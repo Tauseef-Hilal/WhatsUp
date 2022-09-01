@@ -1,8 +1,63 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late List<Widget> floatingBtns;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    _tabController.addListener(_handleTabIndex);
+
+    floatingBtns = [
+      FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.chat),
+      ),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            backgroundColor: AppColors.appBarColor,
+            onPressed: () {},
+            child: Icon(Icons.edit),
+          ),
+          SizedBox(
+            height: 16.0,
+          ),
+          FloatingActionButton(
+            onPressed: () {},
+            child: Icon(Icons.camera_alt_rounded),
+          ),
+        ],
+      ),
+      FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.add_call),
+      )
+    ];
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabIndex);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _handleTabIndex() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +76,8 @@ class HomePage extends StatelessWidget {
               icon: const Icon(Icons.more_vert),
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
+            controller: _tabController,
             indicatorColor: AppColors.tabColor,
             indicatorWeight: 3.0,
             labelColor: AppColors.tabColor,
@@ -40,6 +96,7 @@ class HomePage extends StatelessWidget {
           ),
         ),
         body: TabBarView(
+          controller: _tabController,
           children: [
             ListView(
               children: [
@@ -213,6 +270,7 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
+        floatingActionButton: floatingBtns[_tabController.index],
       ),
     );
   }

@@ -7,5 +7,9 @@ ThemeData darkTheme = defaultDark.copyWith(
     elevation: 0.0,
     backgroundColor: AppColors.appBarColor,
   ),
+  floatingActionButtonTheme: defaultDark.floatingActionButtonTheme.copyWith(
+    backgroundColor: AppColors.tabColor,
+    foregroundColor: Colors.white,
+  ),
   scaffoldBackgroundColor: AppColors.backgroundColor,
 );
