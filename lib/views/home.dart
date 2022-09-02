@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:whatsapp_clone/views/chat.dart';
 import '../theme/colors.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,7 +12,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late List<Widget> floatingBtns;
+  late List<Widget> _floatingButtons;
 
   @override
   void initState() {
@@ -19,10 +20,10 @@ class _HomePageState extends State<HomePage>
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(_handleTabIndex);
 
-    floatingBtns = [
+    _floatingButtons = [
       FloatingActionButton(
         onPressed: () {},
-        child: Icon(Icons.chat),
+        child: const Icon(Icons.chat),
       ),
       Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -30,20 +31,20 @@ class _HomePageState extends State<HomePage>
           FloatingActionButton(
             backgroundColor: AppColors.appBarColor,
             onPressed: () {},
-            child: Icon(Icons.edit),
+            child: const Icon(Icons.edit),
           ),
-          SizedBox(
+          const SizedBox(
             height: 16.0,
           ),
           FloatingActionButton(
             onPressed: () {},
-            child: Icon(Icons.camera_alt_rounded),
+            child: const Icon(Icons.camera_alt_rounded),
           ),
         ],
       ),
       FloatingActionButton(
         onPressed: () {},
-        child: Icon(Icons.add_call),
+        child: const Icon(Icons.add_call),
       )
     ];
   }
@@ -57,6 +58,14 @@ class _HomePageState extends State<HomePage>
 
   void _handleTabIndex() {
     setState(() {});
+  }
+
+  void _showChatScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ChatScreen(),
+      ),
+    );
   }
 
   @override
@@ -82,7 +91,7 @@ class _HomePageState extends State<HomePage>
             indicatorWeight: 3.0,
             labelColor: AppColors.tabColor,
             unselectedLabelColor: AppColors.textColor,
-            tabs: [
+            tabs: const [
               Tab(
                 text: 'CHATS',
               ),
@@ -101,6 +110,7 @@ class _HomePageState extends State<HomePage>
             ListView(
               children: [
                 ListTile(
+                  onTap: () => _showChatScreen(context),
                   leading: const CircleAvatar(),
                   title: const Text('Basit Bai'),
                   subtitle: Text(
@@ -213,7 +223,7 @@ class _HomePageState extends State<HomePage>
                     ],
                   ),
                   trailing: const Icon(
-                    Icons.videocam,
+                    Icons.videocam_rounded,
                     color: AppColors.tabColor,
                     size: 25,
                   ),
@@ -261,7 +271,7 @@ class _HomePageState extends State<HomePage>
                     ],
                   ),
                   trailing: const Icon(
-                    Icons.videocam,
+                    Icons.videocam_rounded,
                     color: AppColors.tabColor,
                     size: 25,
                   ),
@@ -270,7 +280,7 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
-        floatingActionButton: floatingBtns[_tabController.index],
+        floatingActionButton: _floatingButtons[_tabController.index],
       ),
     );
   }
