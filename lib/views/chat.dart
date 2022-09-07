@@ -10,6 +10,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _messageController = TextEditingController();
+  bool _hideElements = false;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,68 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Expanded(
               child: ListView(
-                children: [],
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        color: AppColors.messageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('Hello'),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        color: AppColors.messageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('Wansai'),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        color: AppColors.messageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('College ikha Monday?'),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        color: AppColors.messageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('Pareshaan kurhas be'),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        color: AppColors.messageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('Adkya kar'),
+                    ),
+                  )
+                ],
               ),
             ),
             Row(
@@ -88,6 +150,15 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         Expanded(
                           child: TextField(
+                            onChanged: (value) {
+                              setState(() {
+                                if (value.isNotEmpty) {
+                                  _hideElements = true;
+                                } else {
+                                  _hideElements = false;
+                                }
+                              });
+                            },
                             maxLines: 100,
                             minLines: 1,
                             cursorColor: AppColors.tabColor,
@@ -122,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: AppColors.iconColor,
                               ),
                             ),
-                          ],
+                          ].sublist(0, _hideElements ? 1 : 3),
                         ),
                       ],
                     ),

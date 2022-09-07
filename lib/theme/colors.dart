@@ -13,4 +13,6 @@ class AppColors {
   static const chatBarMessage = Color.fromRGBO(30, 36, 40, 1);
   static const mobileChatBoxColor = Color.fromRGBO(31, 44, 52, 1);
   static const iconColor = Color.fromRGBO(148, 154, 157, 1);
+  static const blackColor = Color.fromRGBO(0, 0, 0, 1);
+  static const welcomeTitleColor = Color.fromARGB(255, 197, 200, 201);
 }
