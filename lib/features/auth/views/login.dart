@@ -33,14 +33,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  void _sendVerificationCode(BuildContext context) {
+  Future<void> _sendVerificationCode(BuildContext context) async {
     String phoneNumber = countryCode + _phoneController.text.trim();
     if (phoneNumber.isEmpty || countryCode.isEmpty) {
       return;
     }
 
     final authController = ref.read(authControllerProvider);
-    authController.signInWithPhone(context, phoneNumber);
+    await authController.signInWithPhone(context, phoneNumber);
   }
 
   @override
@@ -91,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 150, vertical: 55),
             child: GreenElevatedButton(
-              onPressed: () => _sendVerificationCode(context),
+              onPressed: () async => await _sendVerificationCode(context),
               text: 'NEXT',
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/features/auth/views/login.dart';
+import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -39,8 +40,8 @@ class WelcomePage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
-                'Read our Privacy Policy. Tap "Agree and continue" to accept the'
-                ' Terms of Service.',
+                'Read our Privacy Policy. Tap "Agree and continue" to accept'
+                ' the Terms of Service.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.caption,
               ),

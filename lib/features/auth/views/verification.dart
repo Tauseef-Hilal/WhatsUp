@@ -39,21 +39,26 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.50,
               child: TextField(
-                onChanged: (value) {
+                onChanged: (value) async {
                   if (value.length == 6) {
-                    authController.verifyOtp(
+                    await authController.verifyOtp(
                       context,
                       widget.verificationID,
                       value,
                     );
                   }
                 },
+                style: const TextStyle(
+                  letterSpacing: 12.0,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
                 keyboardType: TextInputType.number,
                 cursorColor: AppColors.tabColor,
                 controller: _otpController,
                 textAlign: TextAlign.center,
                 decoration: const InputDecoration(
-                  hintText: '- - - - - -',
+                  hintText: '------',
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.tabColor),
                   ),

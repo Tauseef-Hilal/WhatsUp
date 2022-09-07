@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 
 abstract class FirebaseAuthRepository {
-  void verifyOtp(
+  Future<void> verifyOtp(
     BuildContext context,
     String verificationID,
     String smsCode,
+    Function onVerified,
   );
-  void signInWithPhone(
+
+  Future<void> signInWithPhone(
     BuildContext context,
     String phoneNumber,
     Function onCodeSent,
+    Function onVerified,
   );
 }
 
@@ -32,48 +34,48 @@ class AuthRepository implements FirebaseAuthRepository {
   const AuthRepository({required this.auth, required this.firestore});
 
   @override
-  void verifyOtp(
+  Future<void> verifyOtp(
     BuildContext context,
     String verificationID,
     String smsCode,
+    Function onVerified,
   ) async {
-    try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationID,
-        smsCode: smsCode,
-      );
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationID,
+      smsCode: smsCode,
+    );
 
-      await auth.signInWithCredential(credential);
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-            builder: (context) => const UserProfileCreationPage()),
-        (route) => false,
+    auth.signInWithCredential(credential).then((_) {
+      onVerified(context);
+    }).catchError((error) {
+      showSnackBar(
+        context: context,
+        content: error.message!,
+        type: SnacBarType.error,
       );
-    } on FirebaseAuthException catch (e) {
-      showSnackBar(context, e.toString());
-    }
+    });
   }
 
   @override
-  void signInWithPhone(
+  Future<void> signInWithPhone(
     BuildContext context,
     String phoneNumber,
     Function onCodeSent,
+    Function onVerified,
   ) async {
     await auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await auth.signInWithCredential(credential);
-
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const UserProfileCreationPage(),
-          ),
-          (route) => false,
-        );
+      verificationCompleted: (PhoneAuthCredential credential) {
+        auth.signInWithCredential(credential).then((_) {
+          onVerified(context);
+        });
       },
       verificationFailed: (FirebaseAuthException e) {
-        showSnackBar(context, e.toString());
+        showSnackBar(
+          context: context,
+          content: e.message!,
+          type: SnacBarType.error,
+        );
       },
       codeSent: (String verificationId, int? resendToken) {
         onCodeSent(context, verificationId);
