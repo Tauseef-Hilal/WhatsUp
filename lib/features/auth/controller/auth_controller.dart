@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/repository/auth_repository.dart';
+import 'package:whatsapp_clone/features/auth/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';

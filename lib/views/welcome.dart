@@ -39,11 +39,23 @@ class WelcomePage extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                'Read our Privacy Policy. Tap "Agree and continue" to accept'
-                ' the Terms of Service.',
+              child: RichText(
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.caption,
+                  children: const [
+                    TextSpan(text: 'Read our '),
+                    TextSpan(
+                      text: 'Privacy Policy. ',
+                      style: TextStyle(color: AppColors.linkColor),
+                    ),
+                    TextSpan(text: 'Tap "Agree and Continue" to accept the'),
+                    TextSpan(
+                      text: ' Terms of Service.',
+                      style: TextStyle(color: AppColors.linkColor),
+                    ),
+                  ],
+                ),
               ),
             ),
             Padding(
