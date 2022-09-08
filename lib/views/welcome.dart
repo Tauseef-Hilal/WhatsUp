@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/features/auth/views/login.dart';
-import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -8,8 +7,9 @@ class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
   void _navigateToLoginPage(BuildContext context) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (builder) => const LoginPage()),
+      (route) => false,
     );
   }
 
