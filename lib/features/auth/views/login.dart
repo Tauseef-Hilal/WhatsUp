@@ -50,6 +50,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final countryPickerController = ref.watch(countryPickerControllerProvider);
+    final selectedCountry = countryPickerController.selectedCountry;
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -100,8 +101,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      countryPickerController
-                          .selectedCountry.displayNameNoCountryCode,
+                      selectedCountry.displayNameNoCountryCode,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -154,12 +154,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   width: 0.70 * (screenWidth * 0.60),
                   child: TextField(
                     onChanged: (value) {},
+                    autofocus: true,
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
                     cursorColor: AppColors.tabColor,
                     controller: _phoneController,
                     decoration: InputDecoration(
-                      hintText: 'phone number',
+                      hintText: 'Phone number',
                       hintStyle: Theme.of(context).textTheme.bodySmall,
                       enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
@@ -194,7 +195,71 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 150, vertical: 55),
             child: GreenElevatedButton(
-              onPressed: () async => await _sendVerificationCode(context),
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      backgroundColor: AppColors.appBarColor,
+                      content: SizedBox(
+                        height: 90,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'You entered the phone number:',
+                              style: Theme.of(context).textTheme.bodySmall!,
+                            ),
+                            const SizedBox(height: 16.0),
+                            Text(
+                              _phoneController.text.length > 5
+                                  ? ('+${selectedCountry.phoneCode} '
+                                      '${_phoneController.text.substring(0, 5)} '
+                                      '${_phoneController.text.substring(5)}')
+                                  : '+${selectedCountry.phoneCode} '
+                                      '${_phoneController.text}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16.0),
+                            Text(
+                              'Is this OK, or would you like too edit '
+                              'the number?',
+                              style: Theme.of(context).textTheme.bodySmall!,
+                            ),
+                          ],
+                        ),
+                      ),
+                      actionsAlignment: MainAxisAlignment.spaceBetween,
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'EDIT',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall!
+                                .copyWith(color: AppColors.tabColor),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async =>
+                              await _sendVerificationCode(context),
+                          child: Text(
+                            'OK',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall!
+                                .copyWith(color: AppColors.tabColor),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
               text: 'NEXT',
             ),
           ),
