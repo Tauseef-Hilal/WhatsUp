@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:country_picker/country_picker.dart';
-import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
-import 'package:whatsapp_clone/features/auth/controller/country_picker_controller.dart';
+import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -16,7 +15,10 @@ class _CountryPageState extends ConsumerState<CountryPage> {
   final List<Country> _countries = CountryService().getAll();
 
   void _setCountry(Country country) {
-    ref.read(countryPickerControllerProvider.notifier).update(country);
+    ref.read(countryPickerControllerProvider.notifier).update(
+          country: country,
+          editPhoneCode: true,
+        );
     Navigator.of(context).pop();
   }
 

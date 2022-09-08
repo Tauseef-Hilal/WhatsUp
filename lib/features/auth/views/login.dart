@@ -1,7 +1,8 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
-import 'package:whatsapp_clone/features/auth/controller/country_picker_controller.dart';
+import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/countries.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
@@ -15,6 +16,7 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _phoneController = TextEditingController();
+  final _countries = CountryService().getAll();
 
   @override
   void dispose() {
@@ -40,7 +42,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     countryPickerController.phoneCodeController.dispose();
-    
+
     final authController = ref.read(authControllerProvider);
     await authController.signInWithPhone(context, phoneNumber);
   }
@@ -53,6 +55,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Enter your phone number'),
+        centerTitle: true,
         backgroundColor: AppColors.backgroundColor,
       ),
       body: Column(
@@ -121,7 +124,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 SizedBox(
                   width: 0.25 * (screenWidth * 0.60),
                   child: TextField(
-                    onChanged: (value) {},
+                    onChanged: _onPhoneCodeChanged,
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
@@ -198,5 +201,48 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ],
       ),
     );
+  }
+
+  void _onPhoneCodeChanged(value) {
+    if (value.isEmpty) {
+      return ref.read(countryPickerControllerProvider.notifier).update(
+            country: Country(
+              phoneCode: value,
+              countryCode: '',
+              e164Sc: -1,
+              geographic: false,
+              level: -1,
+              name: '',
+              example: '',
+              displayName: '',
+              displayNameNoCountryCode: 'No such country',
+              e164Key: '',
+            ),
+          );
+    }
+
+    List results =
+        _countries.where((country) => country.phoneCode == value).toList();
+
+    if (results.isNotEmpty) {
+      ref
+          .read(countryPickerControllerProvider.notifier)
+          .update(country: results[0]);
+    } else {
+      ref.read(countryPickerControllerProvider.notifier).update(
+            country: Country(
+              phoneCode: value,
+              countryCode: '',
+              e164Sc: -1,
+              geographic: false,
+              level: -1,
+              name: '',
+              example: '',
+              displayName: '',
+              displayNameNoCountryCode: 'No such country',
+              e164Key: '',
+            ),
+          );
+    }
   }
 }
