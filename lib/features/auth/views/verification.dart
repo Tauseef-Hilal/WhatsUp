@@ -4,9 +4,14 @@ import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class VerificationPage extends ConsumerStatefulWidget {
+  final String phoneNumber;
   final String verificationID;
 
-  const VerificationPage({super.key, required this.verificationID});
+  const VerificationPage({
+    super.key,
+    required this.phoneNumber,
+    required this.verificationID,
+  });
 
   @override
   ConsumerState<VerificationPage> createState() => _VerificationPageState();

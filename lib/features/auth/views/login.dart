@@ -305,10 +305,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             final authController = ref.read(
                               authControllerProvider,
                             );
+                            
 
                             await authController.initiateAuthenticationProcess(
                               context,
-                              ref,
                               phoneNumber,
                             );
                           },

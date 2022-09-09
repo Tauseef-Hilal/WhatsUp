@@ -78,7 +78,7 @@ class AuthRepository implements FirebaseAuthRepository {
         );
       },
       codeSent: (String verificationId, int? resendToken) {
-        onCodeSent(context, verificationId);
+        onCodeSent(context, phoneNumber, verificationId);
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );

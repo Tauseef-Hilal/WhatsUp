@@ -18,11 +18,15 @@ class AuthController {
 
   void _navigateToVerificationPage(
     BuildContext context,
+    String phoneNumber,
     String verificationID,
   ) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) {
-        return VerificationPage(verificationID: verificationID);
+        return VerificationPage(
+          phoneNumber: phoneNumber,
+          verificationID: verificationID,
+        );
       }),
       (route) => false,
     );
@@ -58,12 +62,8 @@ class AuthController {
 
   Future<void> initiateAuthenticationProcess(
     BuildContext context,
-    WidgetRef ref,
     String phoneNumber,
   ) async {
-    final countryPickerController = ref.read(countryPickerControllerProvider);
-    countryPickerController.phoneCodeController.dispose();
-
     phoneNumber = phoneNumber
         .replaceAll('-', '')
         .replaceAll('(', '')

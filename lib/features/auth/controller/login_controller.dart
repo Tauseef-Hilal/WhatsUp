@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final countryPickerControllerProvider =
-    StateNotifierProvider<CountryPickerStateNotifier, CountryPickerController>(
+    StateNotifierProvider.autoDispose<CountryPickerStateNotifier, CountryPickerController>(
   (ref) => CountryPickerStateNotifier(),
 );
 
@@ -39,7 +39,12 @@ class CountryPickerStateNotifier
     extends StateNotifier<CountryPickerController> {
   CountryPickerStateNotifier()
       : super(CountryPickerController(TextEditingController(text: '91')));
-
+  
+  @override
+  void dispose() {
+    state._phoneCodeController.dispose();
+    super.dispose();
+  }
   void update({
     required Country country,
     bool editPhoneCode = false,
