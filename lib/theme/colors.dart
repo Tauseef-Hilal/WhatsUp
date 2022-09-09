@@ -18,4 +18,5 @@ class AppColors {
   static const errorSnackBarColor = Color.fromARGB(255, 211, 45, 81);
   static const infoSnackBarColor = Color.fromARGB(255, 19, 147, 211);
   static const linkColor = Color.fromARGB(255, 61, 171, 255);
+  static const greyColor = Color.fromARGB(172, 88, 95, 96);
 }

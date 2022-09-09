@@ -13,6 +13,10 @@ class CountryPage extends ConsumerStatefulWidget {
 
 class _CountryPageState extends ConsumerState<CountryPage> {
   final List<Country> _countries = CountryService().getAll();
+  final _searchController = TextEditingController();
+  List _searchResults = CountryService().getAll();
+  int appBarIndex = 0;
+  Widget? _showCross = const Text('');
 
   void _setCountry(Country country) {
     ref.read(countryPickerControllerProvider.notifier).update(
@@ -27,8 +31,9 @@ class _CountryPageState extends ConsumerState<CountryPage> {
     final countryPickerController = ref.watch(countryPickerControllerProvider);
     final selectedCountry = countryPickerController.selectedCountry;
 
-    return Scaffold(
-      appBar: AppBar(
+    final appBars = [
+      AppBar(
+        elevation: 0.0,
         title: const Text('Choose a country'),
         centerTitle: false,
         leading: IconButton(
@@ -37,20 +42,100 @@ class _CountryPageState extends ConsumerState<CountryPage> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              setState(() {
+                appBarIndex++;
+              });
+            },
             icon: const Icon(Icons.search),
           ),
         ],
       ),
+      AppBar(
+        elevation: 0.0,
+        title: TextField(
+          onChanged: (value) {
+            setState(() {
+              if (value.isNotEmpty) {
+                _showCross = null;
+              } else {
+                _showCross = const Text('');
+              }
+
+              value = value.toLowerCase();
+              _searchResults = _countries
+                  .where(
+                    (country) => country.name.toLowerCase().startsWith(value),
+                  )
+                  .toList();
+            });
+          },
+          autofocus: true,
+          controller: _searchController,
+          style: Theme.of(context).textTheme.bodyText2,
+          cursorColor: AppColors.tabColor,
+          decoration: const InputDecoration(
+            hintText: 'Search countries',
+            border: InputBorder.none,
+          ),
+        ),
+        leading: IconButton(
+          onPressed: () {
+            setState(() {
+              appBarIndex--;
+            });
+          },
+          icon: const Icon(Icons.arrow_back),
+        ),
+        actions: [
+          _showCross ??
+              IconButton(
+                onPressed: () {
+                  _searchController.clear();
+
+                  setState(() {
+                    _showCross = const Text('');
+                  });
+                },
+                icon: const Icon(
+                  Icons.close,
+                  // style: TextStyle(color: AppColors.iconColor),
+                ),
+              ),
+        ],
+        centerTitle: false,
+      ),
+    ];
+
+    return Scaffold(
+      appBar: appBars[appBarIndex],
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: ListView.separated(
-          itemCount: _countries.length,
+          itemCount: _searchResults.isEmpty ? 1 : _searchResults.length,
           separatorBuilder: (BuildContext context, int index) {
-            return const Divider();
+            return const Divider(
+              color: AppColors.greyColor,
+            );
           },
           itemBuilder: (BuildContext context, int index) {
-            final Country country = _countries[index];
+            final Country country;
+
+            try {
+              country = _searchResults[index];
+            } catch (_) {
+              return Column(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('No matches found'),
+                  ),
+                  Divider(
+                    color: AppColors.greyColor,
+                  ),
+                ],
+              );
+            }
 
             return InkWell(
               onTap: () => _setCountry(country),
