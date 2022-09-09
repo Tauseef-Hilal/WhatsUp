@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/repository/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
@@ -11,7 +12,7 @@ final authControllerProvider = Provider((ref) {
 });
 
 class AuthController {
-  final FirebaseAuthRepository authRepository;
+  final AuthRepository authRepository;
 
   const AuthController({required this.authRepository});
 
@@ -55,7 +56,24 @@ class AuthController {
     );
   }
 
-  Future<void> signInWithPhone(
+  Future<void> initiateAuthenticationProcess(
+    BuildContext context,
+    WidgetRef ref,
+    String phoneNumber,
+  ) async {
+    final countryPickerController = ref.read(countryPickerControllerProvider);
+    countryPickerController.phoneCodeController.dispose();
+
+    phoneNumber = phoneNumber
+        .replaceAll('-', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '')
+        .replaceAll(' ', '');
+
+    await _sendVerificationCode(context, phoneNumber);
+  }
+
+  Future<void> _sendVerificationCode(
     BuildContext context,
     String phoneNumber,
   ) async {

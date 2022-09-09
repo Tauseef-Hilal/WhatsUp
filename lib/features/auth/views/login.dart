@@ -1,6 +1,7 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone_number/phone_number.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/countries.dart';
@@ -15,8 +16,25 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _phoneController = TextEditingController();
   final _countries = CountryService().getAll();
+  String phoneNumber = '';
+  var _phoneController = PhoneNumberEditingController(
+    PhoneNumberUtil(),
+    regionCode: 'IN',
+    behavior: PhoneInputBehavior.strict,
+  );
+  // var _phoneController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_phoneControllerListener);
+  }
+
+  void _phoneControllerListener() {
+    final selectedCountry =
+        ref.read(countryPickerControllerProvider).selectedCountry;
+    phoneNumber = '+${selectedCountry.phoneCode}${_phoneController.text}';
+  }
 
   @override
   void dispose() {
@@ -32,26 +50,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Future<void> _sendVerificationCode(BuildContext context) async {
-    final countryPickerController = ref.read(countryPickerControllerProvider);
-    final country = countryPickerController.selectedCountry;
-    final phoneNumber = '+${country.phoneCode}${_phoneController.text.trim()}';
-
-    if (phoneNumber.isEmpty || country.phoneCode.isEmpty) {
-      return;
-    }
-
-    countryPickerController.phoneCodeController.dispose();
-
-    final authController = ref.read(authControllerProvider);
-    await authController.signInWithPhone(context, phoneNumber);
-  }
-
   @override
   Widget build(BuildContext context) {
     final countryPickerController = ref.watch(countryPickerControllerProvider);
     final selectedCountry = countryPickerController.selectedCountry;
-    final double screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
@@ -124,7 +127,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 SizedBox(
                   width: 0.25 * (screenWidth * 0.60),
                   child: TextField(
-                    onChanged: _onPhoneCodeChanged,
+                    onChanged: (value) {
+                      _onPhoneCodeChanged(value, selectedCountry);
+                    },
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
@@ -196,6 +201,62 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             padding: const EdgeInsets.symmetric(horizontal: 150, vertical: 55),
             child: GreenElevatedButton(
               onPressed: () async {
+                phoneNumber = phoneNumber
+                    .replaceAll('-', '')
+                    .replaceAll('(', '')
+                    .replaceAll(')', '')
+                    .replaceAll(' ', '');
+
+                bool isValidPhoneNumber =
+                    await PhoneNumberUtil().validate(phoneNumber);
+
+                String errorMsg = '';
+                if (selectedCountry.name == 'No such country') {
+                  errorMsg = 'Invalid country code.';
+
+                  if (isValidPhoneNumber) {
+                    isValidPhoneNumber = !isValidPhoneNumber;
+                  }
+                }
+
+                if (!isValidPhoneNumber) {
+                  if (errorMsg.isEmpty) {
+                    errorMsg = _phoneController.text.isEmpty
+                        ? 'Please enter your phone number.'
+                        : 'The phone number your entered is invalid '
+                            'for the country: ${selectedCountry.name}';
+                  }
+
+                  return showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        actionsPadding: const EdgeInsets.all(0),
+                        backgroundColor: AppColors.appBarColor,
+                        content: Text(
+                          errorMsg,
+                          style: Theme.of(context).textTheme.bodySmall!,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                              'OK',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(color: AppColors.tabColor),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+
+                String formatedPhoneNumber = await PhoneNumberUtil()
+                    .format(phoneNumber, selectedCountry.countryCode);
+
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -212,12 +273,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                             const SizedBox(height: 16.0),
                             Text(
-                              _phoneController.text.length > 5
-                                  ? ('+${selectedCountry.phoneCode} '
-                                      '${_phoneController.text.substring(0, 5)} '
-                                      '${_phoneController.text.substring(5)}')
-                                  : '+${selectedCountry.phoneCode} '
-                                      '${_phoneController.text}',
+                              formatedPhoneNumber,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall!
@@ -245,8 +301,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () async =>
-                              await _sendVerificationCode(context),
+                          onPressed: () async {
+                            final authController = ref.read(
+                              authControllerProvider,
+                            );
+
+                            await authController.initiateAuthenticationProcess(
+                              context,
+                              ref,
+                              phoneNumber,
+                            );
+                          },
                           child: Text(
                             'OK',
                             style: Theme.of(context)
@@ -268,8 +333,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  void _onPhoneCodeChanged(value) {
+  void _onPhoneCodeChanged(String value, Country selectedCountry) async {
+    String text = _phoneController.text;
+    text = text
+        .replaceAll('-', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '')
+        .replaceAll(' ', '');
+
+    _phoneController.dispose();
+
     if (value.isEmpty) {
+      _phoneController = PhoneNumberEditingController(
+        PhoneNumberUtil(),
+        regionCode: '',
+        text: text,
+      )..addListener(_phoneControllerListener);
+
       return ref.read(countryPickerControllerProvider.notifier).update(
             country: Country(
               phoneCode: value,
@@ -277,9 +357,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               e164Sc: -1,
               geographic: false,
               level: -1,
-              name: '',
+              name: 'No such country',
               example: '',
-              displayName: '',
+              displayName: 'No such country',
               displayNameNoCountryCode: 'No such country',
               e164Key: '',
             ),
@@ -290,10 +370,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _countries.where((country) => country.phoneCode == value).toList();
 
     if (results.isNotEmpty) {
+      text = await PhoneNumberUtil().format(text, results[0].countryCode);
+
+      _phoneController = PhoneNumberEditingController(
+        PhoneNumberUtil(),
+        regionCode: results[0].countryCode,
+        text: text,
+      )..addListener(_phoneControllerListener);
+
+      phoneNumber = '+${results[0].phoneCode}${_phoneController.text}';
+
       ref
           .read(countryPickerControllerProvider.notifier)
           .update(country: results[0]);
     } else {
+      _phoneController = PhoneNumberEditingController(
+        PhoneNumberUtil(),
+        regionCode: '',
+        text: text,
+      )..addListener(_phoneControllerListener);
       ref.read(countryPickerControllerProvider.notifier).update(
             country: Country(
               phoneCode: value,
@@ -301,9 +396,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               e164Sc: -1,
               geographic: false,
               level: -1,
-              name: '',
+              name: 'No such country',
               example: '',
-              displayName: '',
+              displayName: 'No such country',
               displayNameNoCountryCode: 'No such country',
               e164Key: '',
             ),
