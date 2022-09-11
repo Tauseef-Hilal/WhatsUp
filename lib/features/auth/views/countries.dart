@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class CountryPage extends ConsumerStatefulWidget {
@@ -12,25 +13,37 @@ class CountryPage extends ConsumerStatefulWidget {
 }
 
 class _CountryPageState extends ConsumerState<CountryPage> {
-  final List<Country> _countries = CountryService().getAll();
-  final _searchController = TextEditingController();
-  List _searchResults = CountryService().getAll();
-  int appBarIndex = 0;
-  Widget? _showCross = const Text('');
+  late final List<Country> _countries;
+  late List<Country> _searchResults;
+  late final TextEditingController _searchController;
+  late Country selectedCountry;
 
-  void _setCountry(Country country) {
-    ref.read(countryPickerControllerProvider.notifier).update(
-          country: country,
-          editPhoneCode: true,
-        );
+  Widget? _showCross = const Text('');
+  int appBarIndex = 0;
+
+  @override
+  void initState() {
+    _searchController = TextEditingController();
+    _countries = countriesList;
+    _searchResults = countriesList;
+    selectedCountry = ref.read(countryPickerControllerProvider);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _setCountry(Country country) async {
+    ref.read(countryPickerControllerProvider.notifier).update(country, true);
+    selectedCountry = country;
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final countryPickerController = ref.watch(countryPickerControllerProvider);
-    final selectedCountry = countryPickerController.selectedCountry;
-
     final appBars = [
       AppBar(
         elevation: 0.0,

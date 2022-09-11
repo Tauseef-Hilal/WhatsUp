@@ -1,57 +1,75 @@
 import 'package:country_picker/country_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone_number/phone_number.dart';
 
-final countryPickerControllerProvider =
-    StateNotifierProvider.autoDispose<CountryPickerStateNotifier, CountryPickerController>(
-  (ref) => CountryPickerStateNotifier(),
+final defaultCountryProvider = Provider(
+  (ref) => Country(
+    phoneCode: '91',
+    countryCode: 'IN',
+    e164Sc: 0,
+    geographic: true,
+    level: 1,
+    name: 'India',
+    example: '9123456789',
+    displayName: 'India (IN) [+91]',
+    fullExampleWithPlusSign: '+919123456789',
+    displayNameNoCountryCode: 'India (IN)',
+    e164Key: '91-IN-0',
+  ),
 );
 
-class CountryPickerController {
-  late Country selectedCountry;
-  late final TextEditingController _phoneCodeController;
-  final List<Country> _countries = CountryService().getAll();
+final countryPickerControllerProvider =
+    StateNotifierProvider<CountryPickerController, Country>(
+        (ref) => CountryPickerController(ref));
 
-  CountryPickerController(TextEditingController phoneCodeController) {
-    selectedCountry = _countries.firstWhere(
-      (country) => country.name == 'India',
-    );
+class CountryPickerController extends StateNotifier<Country> {
+  CountryPickerController(this.ref) : super(ref.read(defaultCountryProvider));
+  final StateNotifierProviderRef ref;
 
-    _phoneCodeController = phoneCodeController;
-  }
+  Future<void> update(Country country, [bool editPhoneCode = false]) async {
+    await ref
+        .read(phoneNumberControllerProvider.notifier)
+        .formatNumber(country);
+    state = country;
 
-  TextEditingController get phoneCodeController => _phoneCodeController;
-
-  CountryPickerController withSelectedCountry({
-    required Country country,
-    bool editPhoneCode = false,
-  }) {
-    return !editPhoneCode
-        ? (CountryPickerController(_phoneCodeController)
-          ..selectedCountry = country)
-        : (CountryPickerController(_phoneCodeController)
-          ..selectedCountry = country
-          .._phoneCodeController.text = country.phoneCode);
+    if (editPhoneCode) {
+      ref.read(phoneCodeControllerProvider.notifier).update(country);
+    }
   }
 }
 
-class CountryPickerStateNotifier
-    extends StateNotifier<CountryPickerController> {
-  CountryPickerStateNotifier()
-      : super(CountryPickerController(TextEditingController(text: '91')));
-  
-  @override
-  void dispose() {
-    state._phoneCodeController.dispose();
-    super.dispose();
+final phoneCodeControllerProvider =
+    StateNotifierProvider<PhoneCodeController, String>(
+        (ref) => PhoneCodeController(ref));
+
+class PhoneCodeController extends StateNotifier<String> {
+  PhoneCodeController(this.ref) : super('');
+  final StateNotifierProviderRef ref;
+
+  void update(Country country) async {
+    state = country.phoneCode;
   }
-  void update({
-    required Country country,
-    bool editPhoneCode = false,
-  }) {
-    state = state.withSelectedCountry(
-      country: country,
-      editPhoneCode: editPhoneCode,
-    );
+}
+
+final phoneNumberControllerProvider =
+    StateNotifierProvider<PhoneNumberController, String>(
+        (ref) => PhoneNumberController());
+
+class PhoneNumberController extends StateNotifier<String> {
+  PhoneNumberController() : super('');
+
+  Future<void> formatNumber(Country country) async {
+    state = await PhoneNumberUtil().format(
+        state
+            .replaceAll('-', '')
+            .replaceAll('(', '')
+            .replaceAll(')', '')
+            .replaceAll(' ', ''),
+        country.countryCode);
+  }
+
+  String update(String phoneNumber) {
+    state = phoneNumber;
+    return state;
   }
 }

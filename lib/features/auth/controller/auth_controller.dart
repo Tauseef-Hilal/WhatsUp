@@ -64,7 +64,7 @@ class AuthController {
     String phoneNumber,
   ) async {
     phoneNumber = phoneNumber
-        .replaceAll('-', '')
+        .replaceAll('-', ' ')
         .replaceAll('(', '')
         .replaceAll(')', '')
         .replaceAll(' ', '');
