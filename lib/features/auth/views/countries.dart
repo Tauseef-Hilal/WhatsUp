@@ -24,9 +24,12 @@ class _CountryPageState extends ConsumerState<CountryPage> {
   @override
   void initState() {
     _searchController = TextEditingController();
-    _countries = countriesList;
-    _searchResults = countriesList;
     selectedCountry = ref.read(countryPickerControllerProvider);
+    _countries = countriesList;
+    _searchResults = [
+      selectedCountry,
+      ...countriesList.where((country) => country != selectedCountry).toList()
+    ];
     super.initState();
   }
 
@@ -36,10 +39,12 @@ class _CountryPageState extends ConsumerState<CountryPage> {
     super.dispose();
   }
 
-  void _setCountry(Country country) async {
-    ref.read(countryPickerControllerProvider.notifier).update(country, true);
+  void _setCountry(Country country) {
     selectedCountry = country;
-    Navigator.of(context).pop();
+    ref
+        .read(countryPickerControllerProvider.notifier)
+        .update(country, true)
+        .whenComplete(() => Navigator.of(context).pop());
   }
 
   @override
