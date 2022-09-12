@@ -1,17 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/login.dart';
+import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class VerificationPage extends ConsumerStatefulWidget {
   final String phoneNumber;
-  final String verificationID;
 
   const VerificationPage({
     super.key,
     required this.phoneNumber,
-    required this.verificationID,
   });
 
   @override
@@ -22,11 +25,32 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
   late final List<FocusNode> _focusNodes;
   late final List<TextField> _textFields;
   late final List<TextEditingController> _fieldControllers;
+  late Timer _resendTimer;
+  late String _verificationCode;
+
   String _smsCode = '';
+
+  final _resendFactor = 5;
+  final _resendInitial = 60;
+  int _resendTime = 60;
+  int _resendCount = 1;
 
   @override
   void initState() {
-    super.initState();
+    _verificationCode = ref.read(verificationCodeProvider);
+
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_resendTime == 0) {
+          timer.cancel();
+          _resendTime = _resendCount * _resendInitial * _resendFactor;
+        } else {
+          _resendTime -= 1;
+        }
+      });
+    });
+    _resendCount++;
+
     _focusNodes = List.generate(6, (index) => FocusNode());
     _fieldControllers = List.generate(6, (index) => TextEditingController());
     _textFields = List.generate(
@@ -58,8 +82,14 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
           final authController = ref.read(authControllerProvider);
           await authController.verifyOtp(
             context,
-            widget.verificationID,
+            _verificationCode,
             _smsCode,
+            () => Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const UserProfileCreationPage(),
+              ),
+              (route) => false,
+            ),
           );
         },
         style: const TextStyle(
@@ -76,19 +106,43 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
         focusNode: _focusNodes[index],
       ),
     );
+
+    super.initState();
   }
 
   @override
   void dispose() {
-    super.dispose();
     for (var i = 0; i < _textFields.length; i++) {
       _focusNodes[i].dispose();
       _fieldControllers[i].dispose();
     }
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(verificationCodeProvider, ((previous, next) {
+      showSnackBar(
+        context: context,
+        content: 'OTP sent!',
+        type: SnacBarType.info,
+      );
+
+      _verificationCode = next;
+      _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          if (_resendTime == 0) {
+            timer.cancel();
+            _resendTime = _resendCount * _resendInitial * _resendFactor;
+          } else {
+            _resendTime -= 1;
+          }
+        });
+      });
+      _resendCount++;
+    }));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Verifying your number'),
@@ -179,50 +233,65 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 24.0),
             Text(
               'Enter 6-digit code',
               style: Theme.of(context).textTheme.caption,
             ),
-            const SizedBox(height: 4.0),
+            const SizedBox(height: 8.0),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: ListTile(
-                title: Text(
-                  'Resend SMS',
-                  style: Theme.of(context).textTheme.caption,
-                ),
-                leading: const Icon(
-                  Icons.chat_rounded,
-                  color: AppColors.iconColor,
-                ),
-                trailing: Text(
-                  '01:03',
-                  style: Theme.of(context).textTheme.caption,
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.chat_rounded,
+                        color: _resendTimer.isActive
+                            ? AppColors.greyColor
+                            : AppColors.tabColor,
+                      ),
+                      const SizedBox(
+                        width: 16.0,
+                      ),
+                      TextButton(
+                        onPressed: _resendTimer.isActive
+                            ? null
+                            : () async {
+                                final authController = ref.read(
+                                  authControllerProvider,
+                                );
+
+                                await authController.sendVerificationCode(
+                                  context,
+                                  widget.phoneNumber,
+                                );
+                              },
+                        style: TextButton.styleFrom(
+                          textStyle: Theme.of(context).textTheme.caption,
+                          alignment: Alignment.centerLeft,
+                          foregroundColor: AppColors.tabColor,
+                          disabledForegroundColor: AppColors.appBarColor,
+                          padding: const EdgeInsets.only(left: 0.0),
+                        ),
+                        child: const Text(
+                          'Resend SMS',
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    _resendTimer.isActive ? strFormattedTime(_resendTime) : '',
+                    style: Theme.of(context).textTheme.caption,
+                  ),
+                ],
               ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Divider(
                 color: AppColors.greyColor,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: ListTile(
-                title: Text(
-                  'Call me',
-                  style: Theme.of(context).textTheme.caption,
-                ),
-                leading: const Icon(
-                  Icons.call,
-                  color: AppColors.iconColor,
-                ),
-                trailing: Text(
-                  '00:12',
-                  style: Theme.of(context).textTheme.caption,
-                ),
               ),
             ),
           ],

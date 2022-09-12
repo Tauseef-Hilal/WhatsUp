@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
+
+// GET RID OF BuildContext!
 
 abstract class FirebaseAuthRepository {
   Future<void> verifyOtp(
@@ -14,9 +17,8 @@ abstract class FirebaseAuthRepository {
 
   Future<void> signInWithPhone(
     BuildContext context,
+    ProviderRef ref,
     String phoneNumber,
-    Function onCodeSent,
-    Function onVerified,
   );
 }
 
@@ -31,7 +33,10 @@ class AuthRepository implements FirebaseAuthRepository {
   final FirebaseAuth auth;
   final FirebaseFirestore firestore;
 
-  const AuthRepository({required this.auth, required this.firestore});
+  const AuthRepository({
+    required this.auth,
+    required this.firestore,
+  });
 
   @override
   Future<void> verifyOtp(
@@ -44,9 +49,9 @@ class AuthRepository implements FirebaseAuthRepository {
       verificationId: verificationID,
       smsCode: smsCode,
     );
-
-    auth.signInWithCredential(credential).then((_) {
-      onVerified(context);
+    
+    await auth.signInWithCredential(credential).then((_) {
+      onVerified();
     }).catchError((error) {
       showSnackBar(
         context: context,
@@ -59,16 +64,15 @@ class AuthRepository implements FirebaseAuthRepository {
   @override
   Future<void> signInWithPhone(
     BuildContext context,
+    ProviderRef ref,
     String phoneNumber,
-    Function onCodeSent,
-    Function onVerified,
   ) async {
     await auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) {
-        auth.signInWithCredential(credential).then((_) {
-          onVerified(context);
-        });
+        // NOT IMPLEMENTED YET
+        ref.read(verificationCodeProvider.notifier).state =
+            credential.verificationId!;
       },
       verificationFailed: (FirebaseAuthException e) {
         showSnackBar(
@@ -78,7 +82,7 @@ class AuthRepository implements FirebaseAuthRepository {
         );
       },
       codeSent: (String verificationId, int? resendToken) {
-        onCodeSent(context, phoneNumber, verificationId);
+        ref.read(verificationCodeProvider.notifier).state = verificationId;
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );

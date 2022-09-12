@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
+import 'package:whatsapp_clone/features/auth/views/verification.dart';
 import 'firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'theme/dark.dart';
-import 'views/welcome.dart' show WelcomePage;
+import 'features/auth/views/welcome.dart' show WelcomePage;
 
 class WhatsApp extends StatelessWidget {
   const WhatsApp({super.key});

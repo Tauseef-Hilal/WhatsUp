@@ -1,14 +1,17 @@
-import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone_number/phone_number.dart';
+import 'package:country_picker/country_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
+import 'package:whatsapp_clone/features/auth/views/verification.dart';
 import 'package:whatsapp_clone/features/auth/views/countries.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/dialogs.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/theme/colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -19,16 +22,22 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   String phoneNumber = '';
-  final _phoneCodeController = TextEditingController(text: '91');
-  var _phoneNumberController = PhoneNumberEditingController(
-    PhoneNumberUtil(),
-    regionCode: 'IN',
-    behavior: PhoneInputBehavior.strict,
-  );
+  late final TextEditingController _phoneCodeController;
+  late PhoneNumberEditingController _phoneNumberController;
+  late Country _selectedCountry;
 
   @override
   void initState() {
     super.initState();
+    _selectedCountry = ref.read(defaultCountryProvider);
+    _phoneCodeController = TextEditingController(
+      text: _selectedCountry.phoneCode,
+    );
+    _phoneNumberController = PhoneNumberEditingController(
+      PhoneNumberUtil(),
+      regionCode: _selectedCountry.countryCode,
+      behavior: PhoneInputBehavior.strict,
+    );
     _phoneNumberController.addListener(_phoneNumberListener);
   }
 
@@ -59,9 +68,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _phoneCodeController.text = next;
       _onPhoneCodeChanged(_phoneCodeController.text);
     });
+    ref.listen(verificationCodeProvider, (previous, next) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => VerificationPage(
+            phoneNumber: '+${_selectedCountry.phoneCode}$phoneNumber',
+          ),
+        ),
+        (route) => false,
+      );
+
+      showSnackBar(
+        context: context,
+        content: "OTP Sent!",
+        type: SnacBarType.info,
+      );
+    });
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final selectedCountry = ref.watch(countryPickerControllerProvider);
+    _selectedCountry = ref.watch(countryPickerControllerProvider);
     phoneNumber = ref.read(phoneNumberControllerProvider);
 
     return Scaffold(
@@ -112,7 +137,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      selectedCountry.displayNameNoCountryCode,
+                      _selectedCountry.displayNameNoCountryCode,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -210,13 +235,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: GreenElevatedButton(
               onPressed: () async {
                 String phoneNumberWithCode =
-                    '+${selectedCountry.phoneCode} $phoneNumber';
+                    '+${_selectedCountry.phoneCode} $phoneNumber';
 
                 bool isValidPhoneNumber =
                     await PhoneNumberUtil().validate(phoneNumberWithCode);
 
                 String errorMsg = '';
-                if (selectedCountry.name == 'No such country') {
+                if (_selectedCountry.name == 'No such country') {
                   errorMsg = 'Invalid country code.';
 
                   if (isValidPhoneNumber) {
@@ -229,7 +254,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     errorMsg = _phoneNumberController.text.isEmpty
                         ? 'Please enter your phone number.'
                         : 'The phone number your entered is invalid '
-                            'for the country: ${selectedCountry.name}';
+                            'for the country: ${_selectedCountry.name}';
                   }
 
                   return showDialog(
@@ -272,7 +297,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             authControllerProvider,
                           );
 
-                          await authController.initiateAuthenticationProcess(
+                          await authController.sendVerificationCode(
                             context,
                             phoneNumberWithCode,
                           );

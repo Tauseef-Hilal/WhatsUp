@@ -19,12 +19,12 @@ final defaultCountryProvider = Provider(
 );
 
 final countryPickerControllerProvider =
-    StateNotifierProvider<CountryPickerController, Country>(
+    StateNotifierProvider.autoDispose<CountryPickerController, Country>(
         (ref) => CountryPickerController(ref));
 
 class CountryPickerController extends StateNotifier<Country> {
   CountryPickerController(this.ref) : super(ref.read(defaultCountryProvider));
-  final StateNotifierProviderRef ref;
+  final AutoDisposeStateNotifierProviderRef ref;
 
   Future<void> update(Country country, [bool editPhoneCode = false]) async {
     await ref
@@ -39,12 +39,12 @@ class CountryPickerController extends StateNotifier<Country> {
 }
 
 final phoneCodeControllerProvider =
-    StateNotifierProvider<PhoneCodeController, String>(
+    StateNotifierProvider.autoDispose<PhoneCodeController, String>(
         (ref) => PhoneCodeController(ref));
 
 class PhoneCodeController extends StateNotifier<String> {
   PhoneCodeController(this.ref) : super('');
-  final StateNotifierProviderRef ref;
+  final AutoDisposeStateNotifierProviderRef ref;
 
   void update(Country country) async {
     state = country.phoneCode;

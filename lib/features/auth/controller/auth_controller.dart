@@ -1,65 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/repository/auth_repository.dart';
-import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
-import 'package:whatsapp_clone/features/auth/views/verification.dart';
-import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 
 final authControllerProvider = Provider((ref) {
-  final authRepo = ref.watch(authRepositoryProvider);
-  return AuthController(authRepository: authRepo);
+  return AuthController(ref: ref);
 });
 
+final verificationCodeProvider = StateProvider((ref) => '');
+
 class AuthController {
+  final ProviderRef ref;
   final AuthRepository authRepository;
 
-  const AuthController({required this.authRepository});
-
-  void _navigateToVerificationPage(
-    BuildContext context,
-    String phoneNumber,
-    String verificationID,
-  ) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) {
-        return VerificationPage(
-          phoneNumber: phoneNumber,
-          verificationID: verificationID,
-        );
-      }),
-      (route) => false,
-    );
-
-    showSnackBar(
-      context: context,
-      content: "OTP Sent!",
-      type: SnacBarType.info,
-    );
-  }
-
-  void _navigateToUserCreationPage(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const UserProfileCreationPage(),
-      ),
-      (route) => false,
-    );
-  }
+  AuthController({required this.ref})
+      : authRepository = ref.watch(authRepositoryProvider);
 
   Future<void> verifyOtp(
     BuildContext context,
     String verificationID,
     String smsCode,
+    VoidCallback onVerified,
   ) async {
     await authRepository.verifyOtp(
       context,
       verificationID,
       smsCode,
-      _navigateToUserCreationPage,
+      onVerified,
     );
   }
 
-  Future<void> initiateAuthenticationProcess(
+  Future<void> sendVerificationCode(
     BuildContext context,
     String phoneNumber,
   ) async {
@@ -69,18 +39,6 @@ class AuthController {
         .replaceAll(')', '')
         .replaceAll(' ', '');
 
-    await _sendVerificationCode(context, phoneNumber);
-  }
-
-  Future<void> _sendVerificationCode(
-    BuildContext context,
-    String phoneNumber,
-  ) async {
-    await authRepository.signInWithPhone(
-      context,
-      phoneNumber,
-      _navigateToVerificationPage,
-      _navigateToUserCreationPage,
-    );
+    await authRepository.signInWithPhone(context, ref, phoneNumber);
   }
 }
