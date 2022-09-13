@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
+import 'package:whatsapp_clone/features/auth/controller/verification_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/login.dart';
-import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
@@ -22,104 +20,10 @@ class VerificationPage extends ConsumerStatefulWidget {
 }
 
 class _VerificationPageState extends ConsumerState<VerificationPage> {
-  late final List<FocusNode> _focusNodes;
-  late final List<TextField> _textFields;
-  late final List<TextEditingController> _fieldControllers;
-  late Timer _resendTimer;
-  late String _verificationCode;
-
-  String _smsCode = '';
-
-  final _resendFactor = 5;
-  final _resendInitial = 60;
-  int _resendTime = 60;
-  int _resendCount = 1;
-
   @override
   void initState() {
-    _verificationCode = ref.read(verificationCodeProvider);
-
-    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_resendTime == 0) {
-          timer.cancel();
-          _resendTime = _resendCount * _resendInitial * _resendFactor;
-        } else {
-          _resendTime -= 1;
-        }
-      });
-    });
-    _resendCount++;
-
-    _focusNodes = List.generate(6, (index) => FocusNode());
-    _fieldControllers = List.generate(6, (index) => TextEditingController());
-    _textFields = List.generate(
-      6,
-      (index) => TextField(
-        onChanged: (value) {
-          setState(() {
-            if (value.isEmpty) {
-              if (index > 0) {
-                _focusNodes[index - 1].requestFocus();
-              }
-            } else {
-              if (index < _textFields.length - 1) {
-                _focusNodes[index + 1].requestFocus();
-              }
-            }
-
-            _smsCode = _fieldControllers.map((e) => e.text).join();
-            final emptyFieldCount = _fieldControllers.where((field) {
-              return field.text.isEmpty;
-            }).length;
-
-            if (_smsCode.length == 6 && emptyFieldCount == 0) {
-              _textFields[index].onSubmitted!(_smsCode);
-            }
-          });
-        },
-        onSubmitted: (value) async {
-          final authController = ref.read(authControllerProvider);
-          await authController.verifyOtp(
-            context,
-            _verificationCode,
-            _smsCode,
-            () => Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => const UserProfileCreationPage(),
-              ),
-              (route) => false,
-            ),
-          );
-        },
-        style: const TextStyle(
-          fontSize: 20.0,
-          color: AppColors.textColor,
-        ),
-        autofocus: index == 0,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          hintText: ' -',
-          border: InputBorder.none,
-        ),
-        controller: _fieldControllers[index],
-        focusNode: _focusNodes[index],
-      ),
-    );
-
+    ref.read(verificationControllerProvider.notifier).init();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    if (_resendTimer.isActive) _resendTimer.cancel();
-
-    for (var i = 0; i < _textFields.length; i++) {
-      _focusNodes[i].dispose();
-      _fieldControllers[i].dispose();
-    }
-
-    super.dispose();
   }
 
   @override
@@ -131,18 +35,9 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
         type: SnacBarType.info,
       );
 
-      _verificationCode = next;
-      _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          if (_resendTime == 0) {
-            timer.cancel();
-            _resendTime = _resendCount * _resendInitial * _resendFactor;
-          } else {
-            _resendTime -= 1;
-          }
-        });
-      });
-      _resendCount++;
+      ref.read(verificationControllerProvider.notifier)
+        ..updateVerificationCode(next)
+        ..updateTimer();
     }));
 
     return Scaffold(
@@ -196,44 +91,10 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
               ),
             ),
             const SizedBox(height: 8.0),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.50,
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppColors.tabColor,
-                    width: 2.0,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (var field in _textFields.sublist(0, 3))
-                        SizedBox(
-                          width: 20,
-                          child: field,
-                        )
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 16.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (var field in _textFields.sublist(3))
-                        SizedBox(
-                          width: 20,
-                          child: field,
-                        )
-                    ],
-                  ),
-                ],
-              ),
+            OTPField(
+              onFilled: (value) => ref
+                  .read(verificationControllerProvider.notifier)
+                  .onFilled(context, value),
             ),
             const SizedBox(height: 24.0),
             Text(
@@ -249,18 +110,13 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                   Row(
                     children: [
                       TextButton(
-                        onPressed: _resendTimer.isActive
+                        onPressed: ref
+                                .read(verificationControllerProvider.notifier)
+                                .isTimerActive
                             ? null
-                            : () async {
-                                final authController = ref.read(
-                                  authControllerProvider,
-                                );
-
-                                await authController.sendVerificationCode(
-                                  context,
-                                  widget.phoneNumber,
-                                );
-                              },
+                            : () => ref
+                                .read(verificationControllerProvider.notifier)
+                                .onResendPressed(context, widget.phoneNumber),
                         style: TextButton.styleFrom(
                           textStyle: Theme.of(context).textTheme.caption,
                           alignment: Alignment.centerLeft,
@@ -272,7 +128,10 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                           children: [
                             Icon(
                               Icons.chat_rounded,
-                              color: _resendTimer.isActive
+                              color: ref
+                                      .read(verificationControllerProvider
+                                          .notifier)
+                                      .isTimerActive
                                   ? AppColors.greyColor
                                   : AppColors.tabColor,
                             ),
@@ -288,7 +147,12 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                     ],
                   ),
                   Text(
-                    _resendTimer.isActive ? strFormattedTime(_resendTime) : '',
+                    ref
+                            .read(verificationControllerProvider.notifier)
+                            .isTimerActive
+                        ? strFormattedTime(
+                            ref.watch(verificationControllerProvider))
+                        : '',
                     style: Theme.of(context).textTheme.caption,
                   ),
                 ],
@@ -302,6 +166,133 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class OTPField extends StatefulWidget {
+  const OTPField({
+    super.key,
+    required this.onFilled,
+    this.autofocus,
+    this.textStyle,
+    this.decoration,
+  });
+  final Function(String value) onFilled;
+  final bool? autofocus;
+  final TextStyle? textStyle;
+  final InputDecoration? decoration;
+
+  @override
+  State<OTPField> createState() => _OTPFieldState();
+}
+
+class _OTPFieldState extends State<OTPField> {
+  late final List<FocusNode> _focusNodes;
+  late final List<TextField> _textFields;
+  late final List<TextEditingController> _fieldControllers;
+  String _smsCode = '';
+
+  void onChanged(int index, String value) {
+    setState(() {
+      if (value.isEmpty) {
+        if (index > 0) {
+          _focusNodes[index - 1].requestFocus();
+        }
+      } else {
+        if (index < _textFields.length - 1) {
+          _focusNodes[index + 1].requestFocus();
+        }
+      }
+
+      _smsCode = _fieldControllers.map((e) => e.text).join();
+      final emptyFieldCount = _fieldControllers.where((field) {
+        return field.text.isEmpty;
+      }).length;
+
+      if (_smsCode.length == 6 && emptyFieldCount == 0) {
+        _textFields[index].onSubmitted!(_smsCode);
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    _focusNodes = List.generate(6, (index) => FocusNode());
+    _fieldControllers = List.generate(6, (index) => TextEditingController());
+    _textFields = List.generate(
+      6,
+      (index) => TextField(
+        onChanged: (value) => onChanged(index, value),
+        onSubmitted: (value) => widget.onFilled(_smsCode),
+        style: widget.textStyle ??
+            const TextStyle(
+              fontSize: 20.0,
+              color: AppColors.textColor,
+            ),
+        autofocus: widget.autofocus ?? index == 0,
+        keyboardType: TextInputType.number,
+        decoration: widget.decoration ??
+            const InputDecoration(
+              hintText: ' -',
+              border: InputBorder.none,
+            ),
+        controller: _fieldControllers[index],
+        focusNode: _focusNodes[index],
+      ),
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    for (var i = 0; i < _textFields.length; i++) {
+      _focusNodes[i].dispose();
+      _fieldControllers[i].dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.50,
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.tabColor,
+            width: 2.0,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var field in _textFields.sublist(0, 3))
+                SizedBox(
+                  width: 20,
+                  child: field,
+                )
+            ],
+          ),
+          const SizedBox(
+            width: 16.0,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var field in _textFields.sublist(3))
+                SizedBox(
+                  width: 20,
+                  child: field,
+                )
+            ],
+          ),
+        ],
       ),
     );
   }

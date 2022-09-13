@@ -1,6 +1,12 @@
 import 'package:country_picker/country_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone_number/phone_number.dart';
+import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
+import 'package:whatsapp_clone/features/auth/views/countries.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/widgets/dialogs.dart';
+import 'package:whatsapp_clone/theme/colors.dart';
 
 final defaultCountryProvider = Provider(
   (ref) => Country(
@@ -18,58 +24,273 @@ final defaultCountryProvider = Provider(
   ),
 );
 
-final countryPickerControllerProvider =
-    StateNotifierProvider.autoDispose<CountryPickerController, Country>(
-        (ref) => CountryPickerController(ref));
+final loginControllerProvider =
+    StateNotifierProvider.autoDispose<LoginController, Country>(
+  (ref) => LoginController(ref),
+);
 
-class CountryPickerController extends StateNotifier<Country> {
-  CountryPickerController(this.ref) : super(ref.read(defaultCountryProvider));
+class LoginController extends StateNotifier<Country> {
+  LoginController(this.ref) : super(ref.read(defaultCountryProvider));
+
   final AutoDisposeStateNotifierProviderRef ref;
+  late PhoneNumberEditingController phoneNumberController;
+  late final TextEditingController phoneCodeController;
 
-  Future<void> update(Country country, [bool editPhoneCode = false]) async {
-    await ref
-        .read(phoneNumberControllerProvider.notifier)
-        .formatNumber(country);
+  void init() {
+    phoneCodeController = TextEditingController(
+      text: state.phoneCode,
+    );
+    phoneNumberController = PhoneNumberEditingController(
+      PhoneNumberUtil(),
+      regionCode: state.countryCode,
+      behavior: PhoneInputBehavior.strict,
+    );
+  }
+
+  @override
+  void dispose() {
+    phoneNumberController.dispose();
+    phoneCodeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> updateSelectedCountry(
+    Country country, [
+    bool editPhoneCode = false,
+  ]) async {
+    if (state == country) return;
+
+    await _formatPhoneNumber(country.countryCode);
     state = country;
 
-    if (editPhoneCode) {
-      ref.read(phoneCodeControllerProvider.notifier).update(country);
-    }
+    if (editPhoneCode) _updatePhoneCode(country.phoneCode);
   }
-}
 
-final phoneCodeControllerProvider =
-    StateNotifierProvider.autoDispose<PhoneCodeController, String>(
-        (ref) => PhoneCodeController(ref));
-
-class PhoneCodeController extends StateNotifier<String> {
-  PhoneCodeController(this.ref) : super('');
-  final AutoDisposeStateNotifierProviderRef ref;
-
-  void update(Country country) async {
-    state = country.phoneCode;
+  void _updatePhoneCode(String phoneCode) {
+    phoneCodeController.text = phoneCode;
   }
-}
 
-final phoneNumberControllerProvider =
-    StateNotifierProvider<PhoneNumberController, String>(
-        (ref) => PhoneNumberController());
-
-class PhoneNumberController extends StateNotifier<String> {
-  PhoneNumberController() : super('');
-
-  Future<void> formatNumber(Country country) async {
-    state = await PhoneNumberUtil().format(
-        state
+  Future<void> _formatPhoneNumber(String countryCode) async {
+    final formattedPhoneNumber = await PhoneNumberUtil().format(
+        phoneNumberController.text
             .replaceAll('-', '')
             .replaceAll('(', '')
             .replaceAll(')', '')
             .replaceAll(' ', ''),
-        country.countryCode);
+        countryCode);
+
+    phoneNumberController.dispose();
+    phoneNumberController = PhoneNumberEditingController(
+      PhoneNumberUtil(),
+      text: formattedPhoneNumber,
+      regionCode: countryCode,
+      behavior: PhoneInputBehavior.strict,
+    );
   }
 
-  String update(String phoneNumber) {
-    state = phoneNumber;
-    return state;
+  void onPhoneCodeChanged(String value) async {
+    Country country;
+    if (value.isEmpty) {
+      country = Country(
+        phoneCode: '',
+        countryCode: '',
+        e164Sc: -1,
+        geographic: false,
+        level: -1,
+        name: 'No such country',
+        example: '',
+        displayName: 'No such country',
+        fullExampleWithPlusSign: '',
+        displayNameNoCountryCode: 'No such country',
+        e164Key: '',
+      );
+    } else {
+      List results = countriesList
+          .where(
+            (country) => country.phoneCode == value,
+          )
+          .toList();
+
+      if (results.isEmpty) {
+        country = Country(
+          phoneCode: value,
+          countryCode: '',
+          e164Sc: -1,
+          geographic: false,
+          level: -1,
+          name: 'No such country',
+          example: '',
+          displayName: 'No such country',
+          fullExampleWithPlusSign: '',
+          displayNameNoCountryCode: 'No such country',
+          e164Key: '',
+        );
+      } else {
+        country = results[0];
+      }
+    }
+
+    updateSelectedCountry(country);
+  }
+
+  void onNextBtnPressed(context) async {
+    String phoneNumberWithCode =
+        '+${state.phoneCode} ${phoneNumberController.text}';
+
+    bool isValidPhoneNumber =
+        await PhoneNumberUtil().validate(phoneNumberWithCode);
+
+    String errorMsg = '';
+    if (state.name == 'No such country') {
+      errorMsg = 'Invalid country code.';
+
+      if (isValidPhoneNumber) {
+        isValidPhoneNumber = !isValidPhoneNumber;
+      }
+    }
+
+    if (!isValidPhoneNumber) {
+      if (errorMsg.isEmpty) {
+        errorMsg = ref
+                .read(loginControllerProvider.notifier)
+                .phoneNumberController
+                .text
+                .isEmpty
+            ? 'Please enter your phone number.'
+            : 'The phone number your entered is invalid '
+                'for the country: ${state.name}';
+      }
+
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            actionsPadding: const EdgeInsets.all(0),
+            backgroundColor: AppColors.appBarColor,
+            content: Text(
+              errorMsg,
+              style: Theme.of(context).textTheme.bodySmall!,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(color: AppColors.tabColor),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return ConfirmationDialog(
+          backgroundColor: AppColors.appBarColor,
+          actionButtonTextColor: AppColors.tabColor,
+          actionCallbacks: {
+            'EDIT': () => Navigator.of(context).pop(),
+            'OK': () async {
+              final authController = ref.read(
+                authControllerProvider,
+              );
+
+              await authController.sendVerificationCode(
+                context,
+                phoneNumberWithCode,
+              );
+            },
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'You entered the phone number:',
+                style: Theme.of(context).textTheme.bodySmall!,
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                phoneNumberWithCode,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall!
+                    .copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                'Is this OK, or would you like to edit '
+                'the number?',
+                style: Theme.of(context).textTheme.bodySmall!,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void showCountryPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: ((context) => const CountryPage()),
+      ),
+    );
+  }
+}
+
+final countryPickerControllerProvider =
+    StateNotifierProvider.autoDispose<CountryPickerController, List<Country>>(
+  (ref) => CountryPickerController(ref),
+);
+
+class CountryPickerController extends StateNotifier<List<Country>> {
+  CountryPickerController(this.ref) : super(countriesList);
+  final AutoDisposeStateNotifierProviderRef ref;
+  late final TextEditingController searchController;
+  late final List<Country> _countries;
+
+  void init() {
+    searchController = TextEditingController();
+    _countries = countriesList;
+
+    final selectedCountry = ref.read(loginControllerProvider);
+    state = [
+      selectedCountry,
+      ...countriesList.where((country) => country != selectedCountry).toList()
+    ];
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void setCountry(BuildContext context, Country country) {
+    ref
+        .read(loginControllerProvider.notifier)
+        .updateSelectedCountry(country, true)
+        .whenComplete(() => Navigator.of(context).pop());
+  }
+
+  void onCrossPressed() {
+    searchController.clear();
+    state = _countries;
+  }
+
+  void updateSearchResults(String query) {
+    query = query.toLowerCase();
+    state = _countries
+        .where(
+          (country) => country.name.toLowerCase().startsWith(query),
+        )
+        .toList();
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class CountryPage extends ConsumerStatefulWidget {
@@ -13,42 +12,19 @@ class CountryPage extends ConsumerStatefulWidget {
 }
 
 class _CountryPageState extends ConsumerState<CountryPage> {
-  late final List<Country> _countries;
-  late List<Country> _searchResults;
-  late final TextEditingController _searchController;
-  late Country selectedCountry;
-
   Widget? _showCross = const Text('');
   int appBarIndex = 0;
 
   @override
   void initState() {
-    _searchController = TextEditingController();
-    selectedCountry = ref.read(countryPickerControllerProvider);
-    _countries = countriesList;
-    _searchResults = [
-      selectedCountry,
-      ...countriesList.where((country) => country != selectedCountry).toList()
-    ];
+    ref.read(countryPickerControllerProvider.notifier).init();
     super.initState();
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _setCountry(Country country) {
-    selectedCountry = country;
-    ref
-        .read(countryPickerControllerProvider.notifier)
-        .update(country, true)
-        .whenComplete(() => Navigator.of(context).pop());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final searchResults = ref.watch(countryPickerControllerProvider);
+
     final appBars = [
       AppBar(
         elevation: 0.0,
@@ -73,23 +49,20 @@ class _CountryPageState extends ConsumerState<CountryPage> {
         elevation: 0.0,
         title: TextField(
           onChanged: (value) {
-            setState(() {
-              if (value.isNotEmpty) {
-                _showCross = null;
-              } else {
-                _showCross = const Text('');
-              }
+            if (value.isNotEmpty) {
+              _showCross = null;
+            } else {
+              _showCross = const Text('');
+            }
 
-              value = value.toLowerCase();
-              _searchResults = _countries
-                  .where(
-                    (country) => country.name.toLowerCase().startsWith(value),
-                  )
-                  .toList();
-            });
+            ref
+                .read(countryPickerControllerProvider.notifier)
+                .updateSearchResults(value);
           },
           autofocus: true,
-          controller: _searchController,
+          controller: ref
+              .read(countryPickerControllerProvider.notifier)
+              .searchController,
           style: Theme.of(context).textTheme.bodyText2,
           cursorColor: AppColors.tabColor,
           decoration: const InputDecoration(
@@ -109,7 +82,9 @@ class _CountryPageState extends ConsumerState<CountryPage> {
           _showCross ??
               IconButton(
                 onPressed: () {
-                  _searchController.clear();
+                  ref
+                      .read(countryPickerControllerProvider.notifier)
+                      .onCrossPressed();
 
                   setState(() {
                     _showCross = const Text('');
@@ -130,7 +105,7 @@ class _CountryPageState extends ConsumerState<CountryPage> {
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: ListView.separated(
-          itemCount: _searchResults.isEmpty ? 1 : _searchResults.length,
+          itemCount: searchResults.isEmpty ? 1 : searchResults.length,
           separatorBuilder: (BuildContext context, int index) {
             return const Divider(
               color: AppColors.greyColor,
@@ -140,7 +115,7 @@ class _CountryPageState extends ConsumerState<CountryPage> {
             final Country country;
 
             try {
-              country = _searchResults[index];
+              country = searchResults[index];
             } catch (_) {
               return Column(
                 children: const [
@@ -156,7 +131,9 @@ class _CountryPageState extends ConsumerState<CountryPage> {
             }
 
             return InkWell(
-              onTap: () => _setCountry(country),
+              onTap: () => ref
+                  .read(countryPickerControllerProvider.notifier)
+                  .setCountry(context, country),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -199,7 +176,8 @@ class _CountryPageState extends ConsumerState<CountryPage> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14.0),
                               ),
-                              selectedCountry.name == country.name
+                              ref.read(loginControllerProvider).name ==
+                                      country.name
                                   ? const Icon(
                                       Icons.check,
                                       color: AppColors.tabColor,
