@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:phone_number/phone_number.dart';
-import 'package:country_picker/country_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
+
 import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
-import 'package:whatsapp_clone/features/auth/views/countries.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
-import 'package:whatsapp_clone/shared/widgets/dialogs.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -21,58 +16,21 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  String phoneNumber = '';
-  late final TextEditingController _phoneCodeController;
-  late PhoneNumberEditingController _phoneNumberController;
-  late Country _selectedCountry;
-
   @override
   void initState() {
+    ref.read(loginControllerProvider.notifier).init();
     super.initState();
-    _selectedCountry = ref.read(defaultCountryProvider);
-    _phoneCodeController = TextEditingController(
-      text: _selectedCountry.phoneCode,
-    );
-    _phoneNumberController = PhoneNumberEditingController(
-      PhoneNumberUtil(),
-      regionCode: _selectedCountry.countryCode,
-      behavior: PhoneInputBehavior.strict,
-    );
-    _phoneNumberController.addListener(_phoneNumberListener);
-  }
-
-  void _phoneNumberListener() async {
-    phoneNumber = ref
-        .read(phoneNumberControllerProvider.notifier)
-        .update(_phoneNumberController.text);
-  }
-
-  @override
-  void dispose() {
-    _phoneNumberController.dispose();
-    _phoneCodeController.dispose();
-    super.dispose();
-  }
-
-  void _showCountryPage(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: ((context) => const CountryPage()),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(phoneCodeControllerProvider, (previous, next) {
-      _phoneCodeController.text = next;
-      _onPhoneCodeChanged(_phoneCodeController.text);
-    });
     ref.listen(verificationCodeProvider, (previous, next) {
+      final phoneNumber =
+          '+${ref.read(loginControllerProvider).phoneCode} ${ref.read(loginControllerProvider.notifier).phoneNumberController.text}';
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => VerificationPage(
-            phoneNumber: '+${_selectedCountry.phoneCode}$phoneNumber',
+            phoneNumber: phoneNumber,
           ),
         ),
         (route) => false,
@@ -86,8 +44,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     final screenWidth = MediaQuery.of(context).size.width;
-    _selectedCountry = ref.watch(countryPickerControllerProvider);
-    phoneNumber = ref.read(phoneNumberControllerProvider);
+    final selectedCountry = ref.watch(loginControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -121,7 +78,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           GestureDetector(
-            onTap: () => _showCountryPage(context),
+            onTap: () => ref
+                .read(loginControllerProvider.notifier)
+                .showCountryPage(context),
             child: Container(
               padding: const EdgeInsets.only(top: 18.0),
               width: 0.60 * screenWidth,
@@ -137,12 +96,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      _selectedCountry.displayNameNoCountryCode,
+                      selectedCountry.displayNameNoCountryCode,
                       textAlign: TextAlign.center,
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => _showCountryPage(context),
+                    onTap: () => ref
+                        .read(loginControllerProvider.notifier)
+                        .showCountryPage(context),
                     child: const Icon(
                       Icons.arrow_drop_down,
                       color: AppColors.tabColor,
@@ -161,13 +122,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   width: 0.25 * (screenWidth * 0.60),
                   child: TextField(
                     onChanged: (value) {
-                      _onPhoneCodeChanged(value);
+                      ref
+                          .read(loginControllerProvider.notifier)
+                          .onPhoneCodeChanged(value);
                     },
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
                     cursorColor: AppColors.tabColor,
-                    controller: _phoneCodeController,
+                    controller: ref
+                        .read(loginControllerProvider.notifier)
+                        .phoneCodeController,
                     decoration: const InputDecoration(
                       prefixText: '+ ',
                       enabledBorder: UnderlineInputBorder(
@@ -196,7 +161,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
                     cursorColor: AppColors.tabColor,
-                    controller: _phoneNumberController,
+                    controller: ref
+                        .read(loginControllerProvider.notifier)
+                        .phoneNumberController,
                     decoration: InputDecoration(
                       hintText: 'Phone number',
                       hintStyle: Theme.of(context).textTheme.bodySmall,
@@ -233,162 +200,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 150, vertical: 55),
             child: GreenElevatedButton(
-              onPressed: () async {
-                String phoneNumberWithCode =
-                    '+${_selectedCountry.phoneCode} $phoneNumber';
-
-                bool isValidPhoneNumber =
-                    await PhoneNumberUtil().validate(phoneNumberWithCode);
-
-                String errorMsg = '';
-                if (_selectedCountry.name == 'No such country') {
-                  errorMsg = 'Invalid country code.';
-
-                  if (isValidPhoneNumber) {
-                    isValidPhoneNumber = !isValidPhoneNumber;
-                  }
-                }
-
-                if (!isValidPhoneNumber) {
-                  if (errorMsg.isEmpty) {
-                    errorMsg = _phoneNumberController.text.isEmpty
-                        ? 'Please enter your phone number.'
-                        : 'The phone number your entered is invalid '
-                            'for the country: ${_selectedCountry.name}';
-                  }
-
-                  return showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        actionsPadding: const EdgeInsets.all(0),
-                        backgroundColor: AppColors.appBarColor,
-                        content: Text(
-                          errorMsg,
-                          style: Theme.of(context).textTheme.bodySmall!,
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text(
-                              'OK',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(color: AppColors.tabColor),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
-
-                showDialog(
-                  barrierDismissible: false,
-                  context: context,
-                  builder: (context) {
-                    return ConfirmationDialog(
-                      backgroundColor: AppColors.appBarColor,
-                      actionButtonTextColor: AppColors.tabColor,
-                      actionCallbacks: {
-                        'EDIT': () => Navigator.of(context).pop(),
-                        'OK': () async {
-                          final authController = ref.read(
-                            authControllerProvider,
-                          );
-
-                          await authController.sendVerificationCode(
-                            context,
-                            phoneNumberWithCode,
-                          );
-                        },
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'You entered the phone number:',
-                            style: Theme.of(context).textTheme.bodySmall!,
-                          ),
-                          const SizedBox(height: 16.0),
-                          Text(
-                            phoneNumberWithCode,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 16.0),
-                          Text(
-                            'Is this OK, or would you like to edit '
-                            'the number?',
-                            style: Theme.of(context).textTheme.bodySmall!,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+              onPressed: () => ref
+                  .read(loginControllerProvider.notifier)
+                  .onNextBtnPressed(context),
               text: 'NEXT',
             ),
           ),
         ],
       ),
     );
-  }
-
-  void _onPhoneCodeChanged(String value) async {
-    Country country;
-    if (value.isEmpty) {
-      country = Country(
-        phoneCode: '',
-        countryCode: '',
-        e164Sc: -1,
-        geographic: false,
-        level: -1,
-        name: 'No such country',
-        example: '',
-        displayName: 'No such country',
-        fullExampleWithPlusSign: '',
-        displayNameNoCountryCode: 'No such country',
-        e164Key: '',
-      );
-    } else {
-      List results = countriesList
-          .where(
-            (country) => country.phoneCode == value,
-          )
-          .toList();
-
-      if (results.isEmpty) {
-        country = Country(
-          phoneCode: value,
-          countryCode: '',
-          e164Sc: -1,
-          geographic: false,
-          level: -1,
-          name: 'No such country',
-          example: '',
-          displayName: 'No such country',
-          fullExampleWithPlusSign: '',
-          displayNameNoCountryCode: 'No such country',
-          e164Key: '',
-        );
-      } else {
-        country = results[0];
-      }
-    }
-
-    await ref.read(countryPickerControllerProvider.notifier).update(country);
-
-    _phoneNumberController.dispose();
-    _phoneNumberController = PhoneNumberEditingController(
-      PhoneNumberUtil(),
-      text: ref.read(phoneNumberControllerProvider),
-      regionCode: country.countryCode,
-      behavior: PhoneInputBehavior.strict,
-    )..addListener(_phoneNumberListener);
   }
 }

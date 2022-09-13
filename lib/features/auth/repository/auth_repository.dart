@@ -49,13 +49,23 @@ class AuthRepository implements FirebaseAuthRepository {
       verificationId: verificationID,
       smsCode: smsCode,
     );
-    
+
     await auth.signInWithCredential(credential).then((_) {
       onVerified();
     }).catchError((error) {
+      const Map<String, String> messages = {
+        'invalid-verification-code': 'Invalid OTP!',
+        'network-request-failed': 'Network error!'
+      };
+
+      String? errorMsg;
+      if (error.runtimeType == FirebaseAuthException) {
+        errorMsg = messages[error.code];
+      }
+
       showSnackBar(
         context: context,
-        content: error.message!,
+        content: errorMsg ?? "Unknown error occured",
         type: SnacBarType.error,
       );
     });
