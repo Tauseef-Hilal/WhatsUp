@@ -285,6 +285,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 }
 
                 showDialog(
+                  barrierDismissible: false,
                   context: context,
                   builder: (context) {
                     return ConfirmationDialog(

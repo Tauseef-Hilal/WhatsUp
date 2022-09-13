@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:whatsapp_clone/features/auth/views/user_profile.dart';
-import 'package:whatsapp_clone/features/auth/views/verification.dart';
+import 'package:whatsapp_clone/theme/colors.dart';
 import 'firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,6 +27,39 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  ErrorWidget.builder = (details) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(150),
+                color: AppColors.appBarColor,
+              ),
+              child: Icon(
+                Icons.error,
+                color: Colors.red[400],
+                size: 100,
+              ),
+            ),
+            const SizedBox(
+              height: 100,
+            ),
+            Text(
+              details.summary.toString(),
+              style: const TextStyle(fontSize: 18.0),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  };
 
   runApp(
     const ProviderScope(

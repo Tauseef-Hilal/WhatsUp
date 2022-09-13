@@ -112,6 +112,8 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
 
   @override
   void dispose() {
+    if (_resendTimer.isActive) _resendTimer.cancel();
+
     for (var i = 0; i < _textFields.length; i++) {
       _focusNodes[i].dispose();
       _fieldControllers[i].dispose();
@@ -246,15 +248,6 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.chat_rounded,
-                        color: _resendTimer.isActive
-                            ? AppColors.greyColor
-                            : AppColors.tabColor,
-                      ),
-                      const SizedBox(
-                        width: 16.0,
-                      ),
                       TextButton(
                         onPressed: _resendTimer.isActive
                             ? null
@@ -275,8 +268,21 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                           disabledForegroundColor: AppColors.appBarColor,
                           padding: const EdgeInsets.only(left: 0.0),
                         ),
-                        child: const Text(
-                          'Resend SMS',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.chat_rounded,
+                              color: _resendTimer.isActive
+                                  ? AppColors.greyColor
+                                  : AppColors.tabColor,
+                            ),
+                            const SizedBox(
+                              width: 16.0,
+                            ),
+                            const Text(
+                              'Resend SMS',
+                            ),
+                          ],
                         ),
                       ),
                     ],
