@@ -15,17 +15,13 @@ class AuthController {
   AuthController({required this.ref})
       : authRepository = ref.watch(authRepositoryProvider);
 
-  Future<void> verifyOtp(
-    BuildContext context,
+  Future<Map<String, String>> verifyOtp(
     String verificationID,
     String smsCode,
-    VoidCallback onVerified,
   ) async {
-    await authRepository.verifyOtp(
-      context,
+    return await authRepository.verifyOtp(
       verificationID,
       smsCode,
-      onVerified,
     );
   }
 

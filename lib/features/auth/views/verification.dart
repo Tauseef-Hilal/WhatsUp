@@ -20,25 +20,59 @@ class VerificationPage extends ConsumerStatefulWidget {
 }
 
 class _VerificationPageState extends ConsumerState<VerificationPage> {
+  final GlobalKey _dialogKey = GlobalKey();
+  late String verificationMsg;
+  late int verificationResponseCode;
+  late final Map<int, Widget> _dialogStatusWidget;
+
   @override
   void initState() {
+    _dialogStatusWidget = {
+      -1: const Icon(
+        Icons.warning,
+        color: AppColors.errorSnackBarColor,
+        size: 38.0,
+      ),
+      0: const CircularProgressIndicator(
+        color: AppColors.tabColor,
+      ),
+      1: const Icon(
+        Icons.verified_rounded,
+        color: AppColors.tabColor,
+        size: 38.0,
+      ),
+    };
+
+    final verificationResponse = ref.read(verificationControllerProvider);
+    verificationResponseCode = int.parse(verificationResponse['code']!);
+    verificationMsg = verificationResponse['msg']!;
+
     ref.read(verificationControllerProvider.notifier).init();
+    ref.read(resendTimerControllerProvider.notifier).init();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(verificationCodeProvider, ((previous, next) {
+    ref.listen(verificationCodeProvider, (previous, next) {
       showSnackBar(
         context: context,
         content: 'OTP sent!',
         type: SnacBarType.info,
       );
 
-      ref.read(verificationControllerProvider.notifier)
-        ..updateVerificationCode(next)
-        ..updateTimer();
-    }));
+      ref
+          .read(verificationControllerProvider.notifier)
+          .updateVerificationCode(next);
+
+      ref.read(resendTimerControllerProvider.notifier).updateTimer();
+    });
+
+    ref.listen(verificationControllerProvider, (previous, next) {
+      _updateDialog(next);
+    });
+
+    final resendTime = ref.watch(resendTimerControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,18 +89,17 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                 children: [
                   TextSpan(
                     text: 'Waiting to automatically detect an SMS sent to ',
-                    style: Theme.of(context).textTheme.caption!.copyWith(
-                          fontSize: 11.0,
-                          color: AppColors.textColor,
-                        ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 11.0, color: AppColors.textColor),
                   ),
                   TextSpan(
                     text: '${widget.phoneNumber}.',
                     style: Theme.of(context).textTheme.caption!.copyWith(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textColor,
-                        ),
+                        fontSize: 11.0,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColor),
                   ),
                 ],
               ),
@@ -77,24 +110,28 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const LoginPage(),
-                    ),
-                    (route) => false);
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                  (route) => false,
+                );
               },
               child: Text(
                 'Wrong Number?',
-                style: Theme.of(context).textTheme.caption!.copyWith(
-                      fontSize: 11.0,
-                      color: AppColors.linkColor,
-                    ),
+                style: Theme.of(context)
+                    .textTheme
+                    .caption!
+                    .copyWith(fontSize: 11.0, color: AppColors.linkColor),
               ),
             ),
             const SizedBox(height: 8.0),
             OTPField(
-              onFilled: (value) => ref
-                  .read(verificationControllerProvider.notifier)
-                  .onFilled(context, value),
+              onFilled: (value) {
+                _showVerificationDialog(context);
+                ref
+                    .read(verificationControllerProvider.notifier)
+                    .onFilled(context, value);
+              },
             ),
             const SizedBox(height: 24.0),
             Text(
@@ -111,7 +148,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                     children: [
                       TextButton(
                         onPressed: ref
-                                .read(verificationControllerProvider.notifier)
+                                .read(resendTimerControllerProvider.notifier)
                                 .isTimerActive
                             ? null
                             : () => ref
@@ -129,7 +166,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                             Icon(
                               Icons.chat_rounded,
                               color: ref
-                                      .read(verificationControllerProvider
+                                      .read(resendTimerControllerProvider
                                           .notifier)
                                       .isTimerActive
                                   ? AppColors.greyColor
@@ -148,10 +185,9 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                   ),
                   Text(
                     ref
-                            .read(verificationControllerProvider.notifier)
+                            .read(resendTimerControllerProvider.notifier)
                             .isTimerActive
-                        ? strFormattedTime(
-                            ref.watch(verificationControllerProvider))
+                        ? strFormattedTime(resendTime)
                         : '',
                     style: Theme.of(context).textTheme.caption,
                   ),
@@ -168,6 +204,48 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
         ),
       ),
     );
+  }
+
+  Future<dynamic> _showVerificationDialog(BuildContext context) {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          key: _dialogKey,
+          builder: (context, setState) {
+            return AlertDialog(
+              actionsPadding: const EdgeInsets.all(0),
+              backgroundColor: AppColors.appBarColor,
+              content: Row(
+                children: [
+                  _dialogStatusWidget[verificationResponseCode]!,
+                  const SizedBox(
+                    width: 24.0,
+                  ),
+                  Text(
+                    verificationMsg,
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 16.0),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _updateDialog(Map<String, String> response) {
+    verificationResponseCode = int.parse(response['code']!);
+    verificationMsg = response['msg']!;
+
+    if (_dialogKey.currentState != null && _dialogKey.currentState!.mounted) {
+      _dialogKey.currentState!.setState(() {});
+    }
   }
 }
 

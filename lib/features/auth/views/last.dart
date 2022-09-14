@@ -25,37 +25,36 @@ class _AuthCompletePageState extends State<AuthCompletePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 40),
-              const Text(
-                'Initialising',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: AppColors.welcomeTitleColor,
-                ),
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 40),
+            const Text(
+              'Initialising',
+              style: TextStyle(
+                fontSize: 18,
+                color: AppColors.welcomeTitleColor,
               ),
-              const SizedBox(height: 6.0),
-              Text(
-                'Please wait a moment',
-                style: Theme.of(context).textTheme.caption,
-              ),
-              Expanded(
-                child: Image.asset(
-                  'assets/images/landing_img.png',
-                  color: AppColors.tabColor,
-                  width: 275,
-                  height: 300,
-                ),
-              ),
-              const CircularProgressIndicator(
+            ),
+            const SizedBox(height: 6.0),
+            Text(
+              'Please wait a moment',
+              style: Theme.of(context).textTheme.caption,
+            ),
+            Expanded(
+              child: Image.asset(
+                'assets/images/landing_img.png',
                 color: AppColors.tabColor,
+                width: 275,
+                height: 300,
               ),
-            ],
-          ),
+            ),
+            const CircularProgressIndicator(
+              color: AppColors.tabColor,
+            ),
+            const SizedBox(height: 12.0),
+          ],
         ),
       ),
     );
