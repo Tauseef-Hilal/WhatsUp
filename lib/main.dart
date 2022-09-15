@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:whatsapp_clone/features/auth/views/last.dart';
+import 'package:whatsapp_clone/features/auth/views/user_details.dart';
 import 'firebase_options.dart';
 
-import 'package:whatsapp_clone/features/auth/views/welcome.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/theme/dark.dart';
 
@@ -17,7 +16,7 @@ class WhatsApp extends StatelessWidget {
     return MaterialApp(
       theme: darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const AuthCompletePage(),
+      home: const UserProfileCreationPage(),
     );
   }
 }

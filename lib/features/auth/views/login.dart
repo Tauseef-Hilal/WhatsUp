@@ -47,6 +47,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final selectedCountry = ref.watch(loginControllerProvider);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Enter your phone number'),
         centerTitle: true,

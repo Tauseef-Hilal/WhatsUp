@@ -29,7 +29,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
   void initState() {
     _dialogStatusWidget = {
       -1: const Icon(
-        Icons.warning,
+        Icons.cancel,
         color: AppColors.errorSnackBarColor,
         size: 38.0,
       ),

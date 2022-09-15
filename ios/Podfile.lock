@@ -3,6 +3,8 @@ PODS:
     - Firebase/Firestore (= 9.4.0)
     - firebase_core
     - Flutter
+  - emoji_picker_flutter (0.0.1):
+    - Flutter
   - Firebase/Auth (9.4.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 9.4.0)
@@ -64,6 +66,8 @@ PODS:
     - FirebaseCore (~> 9.0)
     - GTMSessionFetcher/Core (< 2.1, >= 1.7)
   - Flutter (1.0.0)
+  - flutter_keyboard_visibility (0.0.1):
+    - Flutter
   - GoogleDataTransport (9.2.0):
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30910.0, >= 2.30908.0)
@@ -84,6 +88,8 @@ PODS:
   - GoogleUtilities/Reachability (7.7.0):
     - GoogleUtilities/Logger
   - GTMSessionFetcher/Core (2.0.0)
+  - image_picker_ios (0.0.1):
+    - Flutter
   - nanopb (2.30909.0):
     - nanopb/decode (= 2.30909.0)
     - nanopb/encode (= 2.30909.0)
@@ -94,15 +100,21 @@ PODS:
     - PhoneNumberKit/PhoneNumberKitCore (= 3.3.4)
   - PhoneNumberKit/PhoneNumberKitCore (3.3.4)
   - PromisesObjC (2.1.1)
+  - shared_preferences_ios (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
+  - emoji_picker_flutter (from `.symlinks/plugins/emoji_picker_flutter/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - FirebaseFirestore (from `https://github.com/invertase/firestore-ios-sdk-frameworks.git`, tag `9.4.0`)
   - Flutter (from `Flutter`)
+  - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - phone_number (from `.symlinks/plugins/phone_number/ios`)
+  - shared_preferences_ios (from `.symlinks/plugins/shared_preferences_ios/ios`)
 
 SPEC REPOS:
   trunk:
@@ -126,6 +138,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
+  emoji_picker_flutter:
+    :path: ".symlinks/plugins/emoji_picker_flutter/ios"
   firebase_auth:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
@@ -137,8 +151,14 @@ EXTERNAL SOURCES:
     :tag: 9.4.0
   Flutter:
     :path: Flutter
+  flutter_keyboard_visibility:
+    :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
   phone_number:
     :path: ".symlinks/plugins/phone_number/ios"
+  shared_preferences_ios:
+    :path: ".symlinks/plugins/shared_preferences_ios/ios"
 
 CHECKOUT OPTIONS:
   FirebaseFirestore:
@@ -147,6 +167,7 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   cloud_firestore: 6448075c9bac372319e7f025fdfa6f1d382644d7
+  emoji_picker_flutter: df19dac03a2b39ac667dc8d1da939ef3a9e21347
   Firebase: 7703fc4022824b6d6db1bf7bea58d13b8e17ec46
   firebase_auth: 74cfbf7be1e3e7fdaac9e7f117cefd89155251a9
   firebase_core: 8e500850dd138c269d197c8dfca3ae886fa3b6f2
@@ -162,13 +183,16 @@ SPEC CHECKSUMS:
   FirebaseStorage: 160ba975dd3452d9c59a3bf5ea9bf70ff96bd3c2
   FirebaseStorageInternal: 4f8a9e27391a99ac0692adbbd072fe0e5c4125fe
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_keyboard_visibility: 0339d06371254c3eb25eeb90ba8d17dca8f9c069
   GoogleDataTransport: 1c8145da7117bd68bbbed00cf304edb6a24de00f
   GoogleUtilities: e0913149f6b0625b553d70dae12b49fc62914fd1
   GTMSessionFetcher: 681175626052e03fdde7952f7e9c7a9785719506
+  image_picker_ios: b786a5dcf033a8336a657191401bfdf12017dabb
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   phone_number: ad6f917e4fd2e507a198b93dca5eadcb463ec8c2
   PhoneNumberKit: 441e8b26ec88d598e3591de9061eff18f5dd12e8
   PromisesObjC: ab77feca74fa2823e7af4249b8326368e61014cb
+  shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
 
 PODFILE CHECKSUM: 395d6df99053f89e073eed6cb990c9efe0ddb35b
 

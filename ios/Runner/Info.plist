@@ -58,5 +58,11 @@
 		</array>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>To upload profile picture</string>
+		<key>NSCameraUsageDescription</key>
+		<string>To take photo for user profile</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>For online voice chat</string>
 	</dict>
 </plist>
