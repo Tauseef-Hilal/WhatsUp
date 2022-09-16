@@ -1,22 +1,34 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:whatsapp_clone/features/auth/views/login.dart';
+import 'package:whatsapp_clone/features/auth/repository/auth_repository.dart';
+import 'package:whatsapp_clone/features/auth/views/welcome.dart';
+import 'package:whatsapp_clone/views/home.dart';
 import 'firebase_options.dart';
 
 import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/theme/dark.dart';
 
-class WhatsApp extends StatelessWidget {
+class WhatsApp extends ConsumerWidget {
   const WhatsApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       theme: darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const LoginPage(),
+      home: StreamBuilder<User?>(
+        stream: ref.read(authRepositoryProvider).auth.authStateChanges(),
+        builder: (BuildContext context, snapshot) {
+          if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
+            return const HomePage();
+          }
+
+          return const WelcomePage();
+        },
+      ),
     );
   }
 }
