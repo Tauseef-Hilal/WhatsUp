@@ -1,9 +1,116 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/theme/colors.dart';
+
+final userDetailsControllerProvider =
+    StateNotifierProvider.autoDispose<UserDetailsController, File?>(
+        (ref) => UserDetailsController(ref));
+
+class UserDetailsController extends StateNotifier<File?> {
+  UserDetailsController(this.ref) : super(null);
+
+  final AutoDisposeStateNotifierProviderRef ref;
+  late final TextEditingController _usernameController;
+
+  void init() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+    _usernameController = TextEditingController();
+    ref.read(emojiPickerControllerProvider.notifier).init();
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  TextEditingController get usernameController => _usernameController;
+
+  void deleteImage(BuildContext context) {
+    state = null;
+    Navigator.of(context).pop();
+  }
+
+  void setImageFromCamera(BuildContext context) async {
+    state = await capturePhoto();
+    Navigator.of(context).pop();
+  }
+
+  void setImageFromGallery(BuildContext context) async {
+    state = await pickImageFromGallery();
+    Navigator.of(context).pop();
+  }
+
+  void onNextBtnPressed(BuildContext context, WidgetRef ref) async {
+    bool internetConnActive = await isConnected();
+
+    final username = ref
+        .read(userDetailsControllerProvider.notifier)
+        .usernameController
+        .text;
+
+    String errorMsg = '';
+    if (username.isEmpty) {
+      errorMsg = 'Please type your name';
+    } else if (!internetConnActive) {
+      errorMsg = 'Unable to connect. Please check your '
+          'internet connection and try again';
+    }
+
+    if (errorMsg.isNotEmpty) {
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            actionsPadding: const EdgeInsets.all(0),
+            backgroundColor: AppColors.appBarColor,
+            content: Text(
+              errorMsg,
+              style: Theme.of(context).textTheme.bodySmall!,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(color: AppColors.tabColor),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    final authController = ref.read(authControllerProvider);
+
+    // ignore: use_build_context_synchronously
+    await authController.saveUserData(
+      context,
+      ref,
+      username,
+      state,
+    );
+  }
+}
 
 final emojiPickerControllerProvider =
     AutoDisposeStateNotifierProvider<EmojiPickerController, bool>(
@@ -13,18 +120,14 @@ final emojiPickerControllerProvider =
 class EmojiPickerController extends StateNotifier<bool> {
   EmojiPickerController() : super(false);
 
-  late final TextEditingController _usernameController;
   late final StreamSubscription<bool> _keyboardSubscription;
   final FocusNode _fieldFocusNode = FocusNode();
   bool _isKeyboardVisible = true;
 
-  TextEditingController get usernameController => _usernameController;
   FocusNode get fieldFocusNode => _fieldFocusNode;
   bool get keyboardVisible => _isKeyboardVisible;
 
   void init() {
-    _usernameController = TextEditingController();
-
     _keyboardSubscription = KeyboardVisibilityController().onChange.listen(
       (bool visible) {
         _isKeyboardVisible = visible;
@@ -38,7 +141,6 @@ class EmojiPickerController extends StateNotifier<bool> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _keyboardSubscription.cancel();
     _fieldFocusNode.dispose();
     super.dispose();

@@ -2,12 +2,9 @@ import 'dart:io';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/user_details_controller.dart';
 
-import 'package:whatsapp_clone/features/auth/views/last.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -25,21 +22,8 @@ class _UserProfileCreationPageState
 
   @override
   void initState() {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-    ref.read(emojiPickerControllerProvider.notifier).init();
+    ref.read(userDetailsControllerProvider.notifier).init();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    super.dispose();
   }
 
   void showImageSources(BuildContext context) {
@@ -66,11 +50,9 @@ class _UserProfileCreationPageState
                     const Text('Profile photo'),
                     if (userImg != null) ...[
                       GestureDetector(
-                        onTap: () {
-                          userImg = null;
-                          // setState(() {});
-                          Navigator.of(context).pop();
-                        },
+                        onTap: () => ref
+                            .read(userDetailsControllerProvider.notifier)
+                            .deleteImage(context),
                         child: const Icon(
                           Icons.delete,
                           color: AppColors.iconColor,
@@ -85,11 +67,9 @@ class _UserProfileCreationPageState
                 Row(
                   children: [
                     InkWell(
-                      onTap: () async {
-                        userImg = await capturePhoto();
-                        if (!mounted) return;
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => ref
+                          .read(userDetailsControllerProvider.notifier)
+                          .setImageFromCamera(context),
                       child: Column(
                         children: [
                           Container(
@@ -121,11 +101,9 @@ class _UserProfileCreationPageState
                       width: 24.0,
                     ),
                     InkWell(
-                      onTap: () async {
-                        userImg = await pickImageFromGallery();
-                        if (!mounted) return;
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => ref
+                          .read(userDetailsControllerProvider.notifier)
+                          .setImageFromGallery(context),
                       child: Column(
                         children: [
                           Container(
@@ -166,6 +144,7 @@ class _UserProfileCreationPageState
   @override
   Widget build(BuildContext context) {
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
+    userImg = ref.watch(userDetailsControllerProvider);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -200,7 +179,7 @@ class _UserProfileCreationPageState
                   child: TextField(
                     onChanged: (value) {},
                     controller: ref
-                        .read(emojiPickerControllerProvider.notifier)
+                        .read(userDetailsControllerProvider.notifier)
                         .usernameController,
                     focusNode: ref
                         .read(emojiPickerControllerProvider.notifier)
@@ -255,13 +234,9 @@ class _UserProfileCreationPageState
               vertical: 40,
             ),
             child: GreenElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const AuthCompletePage(),
-                    ),
-                    (route) => false);
-              },
+              onPressed: () => ref
+                  .read(userDetailsControllerProvider.notifier)
+                  .onNextBtnPressed(context, ref),
               text: 'NEXT',
             ),
           ),
@@ -272,7 +247,7 @@ class _UserProfileCreationPageState
               height: 0.75 * (MediaQuery.of(context).size.height / 2),
               child: EmojiPicker(
                 textEditingController: ref
-                    .read(emojiPickerControllerProvider.notifier)
+                    .read(userDetailsControllerProvider.notifier)
                     .usernameController,
                 config: const Config(
                   columns: 8,
