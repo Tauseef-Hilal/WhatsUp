@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/user_details.dart';
+import 'package:whatsapp_clone/theme/colors.dart';
 
 const _resendFactor = 1;
 const _resendInitial = 60;
@@ -46,17 +48,14 @@ class ResendTimerController extends StateNotifier<int> {
   }
 }
 
-final verificationControllerProvider = AutoDisposeStateNotifierProvider<
-    VerificationController, Map<String, String>>(
+final verificationControllerProvider = Provider<VerificationController>(
   (ref) => VerificationController(ref),
 );
 
-const _verificationResponseInitial = {'code': '0', 'msg': 'Verifying OTP'};
+class VerificationController {
+  VerificationController(this.ref);
 
-class VerificationController extends StateNotifier<Map<String, String>> {
-  VerificationController(this.ref) : super(_verificationResponseInitial);
-
-  AutoDisposeStateNotifierProviderRef ref;
+  ProviderRef ref;
   late String _verificationCode;
 
   void init() {
@@ -79,42 +78,85 @@ class VerificationController extends StateNotifier<Map<String, String>> {
   }
 
   void onFilled(BuildContext context, String smsCode) async {
-    state = _verificationResponseInitial;
-
     final authController = ref.read(authControllerProvider);
 
-    final Map<String, String> res = await authController.verifyOtp(
-      _verificationCode,
-      smsCode,
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return FutureBuilder<void>(
+            future: authController.verifyOtp(_verificationCode, smsCode),
+            builder: (context, snapshot) {
+              String? text;
+              Widget? widget;
+
+              if (snapshot.hasData) {
+                text = 'Verification complete';
+                widget = const Icon(
+                  Icons.check_circle,
+                  color: AppColors.tabColor,
+                  size: 38.0,
+                );
+
+                Future.delayed(const Duration(seconds: 2), () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const UserProfileCreationPage(),
+                      ),
+                      (route) => false);
+                });
+              } else if (snapshot.hasError) {
+                text = 'Oops! an error occured';
+
+                if (snapshot.error.runtimeType == FirebaseAuthException) {
+                  final FirebaseAuthException error =
+                      snapshot.error as FirebaseAuthException;
+
+                  final msgs = {
+                    'invalid-verification-code': 'Invalid OTP!',
+                    'network-request-failed': 'Network error!'
+                  };
+
+                  if (msgs.containsKey(error.code)) {
+                    text = msgs[error.code];
+                  }
+                }
+
+                widget = const Icon(
+                  Icons.cancel,
+                  color: AppColors.errorSnackBarColor,
+                  size: 38.0,
+                );
+
+                Future.delayed(const Duration(seconds: 2), () {
+                  Navigator.of(context).pop();
+                });
+              }
+
+              return AlertDialog(
+                actionsPadding: const EdgeInsets.all(0),
+                backgroundColor: AppColors.appBarColor,
+                content: Row(
+                  children: [
+                    widget ??
+                        const CircularProgressIndicator(
+                          color: AppColors.tabColor,
+                        ),
+                    const SizedBox(
+                      width: 24.0,
+                    ),
+                    Text(
+                      text ?? 'Connecting',
+                      style: Theme.of(context)
+                          .textTheme
+                          .caption!
+                          .copyWith(fontSize: 16.0),
+                    ),
+                  ],
+                ),
+              );
+            });
+      },
     );
-
-    if (res['status'] == 'failed') {
-      // ignore: use_build_context_synchronously
-      _onVerificationFailed(context, res['msg']!);
-    } else {
-      // ignore: use_build_context_synchronously
-      _onVerificationComplete(context, res['msg']!);
-    }
-  }
-
-  void _onVerificationFailed(BuildContext context, String errorMsg) async {
-    state = {'code': '-1', 'msg': errorMsg};
-
-    await Future.delayed(const Duration(seconds: 1), () {
-      Navigator.of(context).pop();
-    });
-  }
-
-  void _onVerificationComplete(BuildContext context, String msg) async {
-    state = {'code': '1', 'msg': msg};
-
-    await Future.delayed(const Duration(seconds: 1), (() {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const UserProfileCreationPage(),
-        ),
-        (route) => false,
-      );
-    }));
   }
 }

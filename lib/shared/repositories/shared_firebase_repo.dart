@@ -12,12 +12,7 @@ class SharedFirebaseRepo {
   SharedFirebaseRepo(this.firebaseStorage);
 
   Future<String> uploadFileToFirebase(File file, String path) async {
-    try {
-      final snap = await firebaseStorage.ref().child(path).putFile(file);
-      return await snap.ref.getDownloadURL();
-    } on FirebaseException {
-      // handle error
-      return ''; // for now
-    }
+    final snap = await firebaseStorage.ref().child(path).putFile(file);
+    return await snap.ref.getDownloadURL();
   }
 }

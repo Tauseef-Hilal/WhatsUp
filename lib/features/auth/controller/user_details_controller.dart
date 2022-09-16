@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
+import 'package:whatsapp_clone/features/auth/views/last.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -102,12 +103,68 @@ class UserDetailsController extends StateNotifier<File?> {
 
     final authController = ref.read(authControllerProvider);
 
-    // ignore: use_build_context_synchronously
-    await authController.saveUserData(
-      context,
-      ref,
-      username,
-      state,
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return FutureBuilder<void>(
+            future: authController.saveUserData(context, ref, username, state),
+            builder: (context, snapshot) {
+              String? text;
+              Widget? widget;
+
+              if (snapshot.hasData) {
+                text = 'You\'re all set!';
+                widget = const Icon(
+                  Icons.check_circle,
+                  color: AppColors.tabColor,
+                  size: 38.0,
+                );
+
+                Future.delayed(const Duration(seconds: 2), () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const AuthCompletePage(),
+                      ),
+                      (route) => false);
+                });
+              } else if (snapshot.hasError) {
+                text = 'Oops! an error occured';
+                widget = const Icon(
+                  Icons.cancel,
+                  color: AppColors.errorSnackBarColor,
+                  size: 38.0,
+                );
+
+                Future.delayed(const Duration(seconds: 2), () {
+                  Navigator.of(context).pop();
+                });
+              }
+
+              return AlertDialog(
+                actionsPadding: const EdgeInsets.all(0),
+                backgroundColor: AppColors.appBarColor,
+                content: Row(
+                  children: [
+                    widget ??
+                        const CircularProgressIndicator(
+                          color: AppColors.tabColor,
+                        ),
+                    const SizedBox(
+                      width: 24.0,
+                    ),
+                    Text(
+                      text ?? 'Connecting',
+                      style: Theme.of(context)
+                          .textTheme
+                          .caption!
+                          .copyWith(fontSize: 16.0),
+                    ),
+                  ],
+                ),
+              );
+            });
+      },
     );
   }
 }

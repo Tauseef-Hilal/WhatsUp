@@ -9,7 +9,7 @@ import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 // GET RID OF BuildContext!
 
 abstract class FirebaseAuthRepository {
-  Future<Map<String, String>> verifyOtp(
+  Future<bool> verifyOtp(
     String verificationID,
     String smsCode,
   );
@@ -38,7 +38,7 @@ class AuthRepository implements FirebaseAuthRepository {
   });
 
   @override
-  Future<Map<String, String>> verifyOtp(
+  Future<bool> verifyOtp(
     String verificationID,
     String smsCode,
   ) async {
@@ -47,24 +47,9 @@ class AuthRepository implements FirebaseAuthRepository {
       smsCode: smsCode,
     );
 
-    final Map<String, String> res =
-        await auth.signInWithCredential(credential).then((_) {
-      return {'status': 'verified', 'msg': 'Verification complete'};
-    }).catchError((error) {
-      const Map<String, String> messages = {
-        'invalid-verification-code': 'Invalid OTP!',
-        'network-request-failed': 'Network error!'
-      };
-
-      String? errorMsg;
-      if (error.runtimeType == FirebaseAuthException) {
-        errorMsg = messages[error.code];
-      }
-
-      return {'status': 'failed', 'msg': errorMsg ?? 'Unknown error occured'};
+    return await auth.signInWithCredential(credential).then((_) {
+      return true;
     });
-
-    return res;
   }
 
   @override
