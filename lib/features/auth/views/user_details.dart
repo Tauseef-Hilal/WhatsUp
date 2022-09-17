@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/controller/user_details_controller.dart';
+import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/colors.dart';

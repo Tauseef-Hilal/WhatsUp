@@ -3,13 +3,29 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:whatsapp_clone/features/auth/repository/auth_repository.dart';
+import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/welcome.dart';
 import 'package:whatsapp_clone/views/home.dart';
 import 'firebase_options.dart';
 
 import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/theme/dark.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
+
+  runApp(
+    const ProviderScope(
+      child: WhatsApp(),
+    ),
+  );
+}
 
 class WhatsApp extends ConsumerWidget {
   const WhatsApp({super.key});
@@ -33,14 +49,16 @@ class WhatsApp extends ConsumerWidget {
   }
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+class CustomErrorWidget extends StatelessWidget {
+  final FlutterErrorDetails details;
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  const CustomErrorWidget({
+    Key? key,
+    required this.details,
+  }) : super(key: key);
 
-  ErrorWidget.builder = (details) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -116,11 +134,5 @@ void main() async {
         ),
       ),
     );
-  };
-
-  runApp(
-    const ProviderScope(
-      child: WhatsApp(),
-    ),
-  );
+  }
 }

@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
-import 'package:whatsapp_clone/features/auth/views/last.dart';
+import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
+import 'package:whatsapp_clone/features/auth/views/auth_complete.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 

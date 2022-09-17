@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/repository/auth_repository.dart';
+import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/shared_firebase_repo.dart';
 
 final authControllerProvider = Provider((ref) {
@@ -13,7 +14,7 @@ final verificationCodeProvider = StateProvider((ref) => '');
 
 class AuthController {
   final ProviderRef ref;
-  final AuthRepository authRepository;
+  final FirebaseAuthRepository authRepository;
 
   AuthController({required this.ref})
       : authRepository = ref.watch(authRepositoryProvider);
@@ -56,8 +57,16 @@ class AuthController {
           .uploadFileToFirebase(avatar, 'userAvatars/$uid');
     }
 
-    await authRepository.registerUser(username, avatarUrl);
+    await authRepository.registerUser(
+      User(
+        id: uid,
+        name: username,
+        avatarUrl: avatarUrl,
+        phoneNumber: authRepository.auth.currentUser!.phoneNumber!,
+        groupIds: [],
+      ).toMap(),
+    );
+
     return true;
-    
   }
 }

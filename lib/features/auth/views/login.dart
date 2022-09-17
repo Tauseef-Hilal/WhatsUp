@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
+import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
-import 'package:whatsapp_clone/features/auth/controller/login_controller.dart';
+import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
