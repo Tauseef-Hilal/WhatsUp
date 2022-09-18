@@ -64,5 +64,7 @@
 		<string>To take photo for user profile</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>For online voice chat</string>
+		<key>NSContactsUsageDescription</key>
+		<string>To chat with a contact</string>
 	</dict>
 </plist>

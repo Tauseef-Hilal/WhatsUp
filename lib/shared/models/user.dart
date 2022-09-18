@@ -13,7 +13,7 @@ class User {
     required this.groupIds,
   });
 
-  factory User.fromMap(Map userData) {
+  factory User.fromMap(Map<String, dynamic> userData) {
     return User(
       id: userData['id'] as String,
       name: userData['name'] as String,

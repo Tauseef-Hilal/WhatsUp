@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/welcome.dart';
-import 'package:whatsapp_clone/views/home.dart';
+import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'firebase_options.dart';
 
 import 'package:whatsapp_clone/theme/colors.dart';

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
-import 'package:whatsapp_clone/views/home.dart';
+import 'package:whatsapp_clone/features/home/views/base.dart';
 
 class AuthCompletePage extends ConsumerStatefulWidget {
   const AuthCompletePage({

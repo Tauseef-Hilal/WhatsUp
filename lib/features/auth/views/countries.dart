@@ -72,9 +72,11 @@ class _CountryPageState extends ConsumerState<CountryPage> {
         ),
         leading: IconButton(
           onPressed: () {
-            setState(() {
-              appBarIndex--;
-            });
+            appBarIndex--;
+
+            ref
+                .read(countryPickerControllerProvider.notifier)
+                .updateSearchResults('');
           },
           icon: const Icon(Icons.arrow_back),
         ),

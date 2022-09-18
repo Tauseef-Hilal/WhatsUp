@@ -49,7 +49,7 @@ class AuthController {
     File? avatar,
   ) async {
     String uid = authRepository.auth.currentUser!.uid;
-    String avatarUrl = "http://www.gravatar.com/avatar/?d=mp";
+    String avatarUrl = 'http://www.gravatar.com/avatar/?d=mp';
 
     if (avatar != null) {
       avatarUrl = await ref

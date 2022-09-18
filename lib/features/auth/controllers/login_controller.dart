@@ -286,7 +286,7 @@ class CountryPickerController extends StateNotifier<List<Country>> {
   }
 
   void updateSearchResults(String query) {
-    query = query.toLowerCase();
+    query = query.toLowerCase().trim();
     state = _countries
         .where(
           (country) => country.name.toLowerCase().startsWith(query),
