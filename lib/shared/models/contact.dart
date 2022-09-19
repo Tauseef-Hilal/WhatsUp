@@ -1,10 +1,12 @@
 class Contact {
   final String name;
+  final String id;
   final String phoneNumber;
   final String avatarUrl;
 
   Contact({
     required this.name,
+    this.id = '',
     required this.phoneNumber,
     this.avatarUrl = 'http://www.gravatar.com/avatar/?d=mp',
   });

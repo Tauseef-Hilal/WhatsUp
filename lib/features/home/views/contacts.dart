@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
-import 'package:whatsapp_clone/features/home/models/contact.dart';
+import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
@@ -355,9 +355,7 @@ class LocalContactsList extends StatelessWidget {
       children: [
         for (var contact in contactsNotOnWhatsApp)
           InkWell(
-            onTap: () => ref
-                .read(contactPickerControllerProvider.notifier)
-                .pickContact(context, contact),
+            onTap: () {},
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,

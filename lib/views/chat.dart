@@ -1,33 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:whatsapp_clone/features/home/views/base.dart';
+import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+class ChatPage extends StatefulWidget {
+  final Contact contact;
+  const ChatPage({
+    super.key,
+    required this.contact,
+  });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatPageState extends State<ChatPage> {
   final _messageController = TextEditingController();
   bool _hideElements = false;
 
   @override
   Widget build(BuildContext context) {
+    final contact = widget.contact;
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0.0,
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-            const CircleAvatar(),
+            CircleAvatar(
+              backgroundImage: NetworkImage(contact.avatarUrl),
+            ),
             const SizedBox(
               width: 10.0,
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Abuji'),
+                Text(contact.name),
                 Text(
                   'Online',
                   style: Theme.of(context).textTheme.caption,
@@ -38,7 +48,10 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         leadingWidth: 35.0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [

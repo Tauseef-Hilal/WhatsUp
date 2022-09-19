@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import '../../../theme/colors.dart';
