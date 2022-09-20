@@ -45,15 +45,6 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
     }
 
     return ScaffoldWithSearch(
-      searchController:
-          ref.read(contactPickerControllerProvider.notifier).searchController,
-      onChanged: (value) => ref
-          .read(contactPickerControllerProvider.notifier)
-          .updateSearchResults(value),
-      onCloseBtnPressed: () => ref
-          .read(contactPickerControllerProvider.notifier)
-          .onCloseBtnPressed(),
-      searchIconActionIndex: 1,
       appBar: AppBar(
         elevation: 0.0,
         title: const Text('Select contact'),
@@ -71,7 +62,6 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                 )
               : const Text(''),
           PopupMenuButton(
-            // Callback that sets the selected popup menu item.
             onSelected: (value) {},
             color: AppColors.appBarColor,
             child: const Padding(
@@ -83,7 +73,8 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                   onTap: () => ref
                       .read(contactPickerControllerProvider.notifier)
                       .shareInviteLink(
-                          context.findRenderObject() as RenderBox?),
+                        context.findRenderObject() as RenderBox?,
+                      ),
                   child: Text(
                     'Invite a friend',
                     style: Theme.of(context).textTheme.bodyText2,
@@ -124,6 +115,14 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
           ),
         ],
       ),
+      searchController:
+          ref.read(contactPickerControllerProvider.notifier).searchController,
+      onChanged: (value) => ref
+          .read(contactPickerControllerProvider.notifier)
+          .updateSearchResults(value),
+      onCloseBtnPressed:
+          ref.read(contactPickerControllerProvider.notifier).onCloseBtnPressed,
+      searchIconActionIndex: 1,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListView(
@@ -414,7 +413,7 @@ class LocalContactsList extends StatelessWidget {
                 ],
               ),
             ),
-          )
+          ),
       ],
     );
   }
@@ -470,7 +469,7 @@ class WhatsAppContactsList extends StatelessWidget {
                 ],
               ),
             ),
-          )
+          ),
       ],
     );
   }
