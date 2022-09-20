@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart' show FlutterContacts;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/views/chat.dart';
 
-final contactsProvider = FutureProvider((ref) {
+final contactsProvider = FutureProvider((ref) async {
   return ref.watch(contactsRepositoryProvider).getContacts();
 });
 
@@ -30,20 +29,20 @@ class ContactPickerController
     _contacts = await ref.read(contactsProvider.future);
     state = _contacts;
 
-    FlutterContacts.addListener(update);
+    ref.listen(contactsProvider, (previous, next) {
+      next.whenData(
+        (value) {
+          _contacts = value;
+          updateSearchResults(searchController.text);
+        },
+      );
+    });
   }
 
   @override
   void dispose() {
     searchController.dispose();
-    FlutterContacts.removeListener(update);
     super.dispose();
-  }
-
-  void update() async {
-    ref.refresh(contactsProvider);
-    _contacts = await ref.read(contactsProvider.future);
-    updateSearchResults(searchController.text);
   }
 
   void pickContact(BuildContext context, Contact contact) {

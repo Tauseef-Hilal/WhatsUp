@@ -1,8 +1,8 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import '../../../theme/colors.dart';
@@ -24,6 +24,8 @@ class _HomePageState extends ConsumerState<HomePage>
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(_handleTabIndex);
+
+    FlutterContacts.addListener(_contactsListener);
 
     _floatingButtons = [
       FloatingActionButton(
@@ -69,8 +71,13 @@ class _HomePageState extends ConsumerState<HomePage>
     ];
   }
 
+  void _contactsListener() {
+    ref.refresh(contactsRepositoryProvider);
+  }
+
   @override
   void dispose() {
+    FlutterContacts.removeListener(_contactsListener);
     _tabController.removeListener(_handleTabIndex);
     _tabController.dispose();
     super.dispose();
