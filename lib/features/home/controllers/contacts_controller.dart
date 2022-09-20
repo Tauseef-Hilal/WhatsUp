@@ -97,7 +97,7 @@ class ContactPickerController
     );
   }
 
-  void onCrossPressed() {
+  void onCloseBtnPressed() {
     searchController.clear();
     state = _contacts;
   }

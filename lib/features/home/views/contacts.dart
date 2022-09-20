@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
+import 'package:whatsapp_clone/shared/widgets/search.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
@@ -14,8 +15,6 @@ class ContactsPage extends ConsumerStatefulWidget {
 }
 
 class _CountryPageState extends ConsumerState<ContactsPage> {
-  Widget? _showCross = const Text('');
-  int appBarIndex = 0;
   bool _showLoadingIndicator = false;
   Timer? _timer;
 
@@ -45,8 +44,17 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
       });
     }
 
-    final appBars = [
-      AppBar(
+    return ScaffoldWithSearch(
+      searchController:
+          ref.read(contactPickerControllerProvider.notifier).searchController,
+      onChanged: (value) => ref
+          .read(contactPickerControllerProvider.notifier)
+          .updateSearchResults(value),
+      onCloseBtnPressed: () => ref
+          .read(contactPickerControllerProvider.notifier)
+          .onCloseBtnPressed(),
+      searchIconActionIndex: 1,
+      appBar: AppBar(
         elevation: 0.0,
         title: const Text('Select contact'),
         centerTitle: false,
@@ -55,20 +63,13 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          if (_showLoadingIndicator)
-            const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.tabColor,
-              ),
-            ),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                appBarIndex++;
-              });
-            },
-            icon: const Icon(Icons.search),
-          ),
+          _showLoadingIndicator
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.tabColor,
+                  ),
+                )
+              : const Text(''),
           PopupMenuButton(
             // Callback that sets the selected popup menu item.
             onSelected: (value) {},
@@ -123,65 +124,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
           ),
         ],
       ),
-      AppBar(
-        elevation: 0.0,
-        title: TextField(
-          onChanged: (value) {
-            if (value.isNotEmpty) {
-              _showCross = null;
-            } else {
-              _showCross = const Text('');
-            }
-
-            ref
-                .read(contactPickerControllerProvider.notifier)
-                .updateSearchResults(value);
-          },
-          autofocus: true,
-          controller: ref
-              .read(contactPickerControllerProvider.notifier)
-              .searchController,
-          style: Theme.of(context).textTheme.bodyText2,
-          cursorColor: AppColors.tabColor,
-          decoration: const InputDecoration(
-            hintText: 'Search...',
-            border: InputBorder.none,
-          ),
-        ),
-        leading: IconButton(
-          onPressed: () {
-            appBarIndex--;
-
-            ref
-                .read(contactPickerControllerProvider.notifier)
-                .updateSearchResults('');
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
-        actions: [
-          _showCross ??
-              IconButton(
-                onPressed: () {
-                  ref
-                      .read(contactPickerControllerProvider.notifier)
-                      .onCrossPressed();
-
-                  setState(() {
-                    _showCross = const Text('');
-                  });
-                },
-                icon: const Icon(
-                  Icons.close,
-                ),
-              ),
-        ],
-        centerTitle: false,
-      ),
-    ];
-
-    return Scaffold(
-      appBar: appBars[appBarIndex],
-      body: Padding(
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListView(
           shrinkWrap: true,
