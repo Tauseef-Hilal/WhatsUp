@@ -53,9 +53,49 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
             },
             icon: const Icon(Icons.search),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert),
+          PopupMenuButton(
+            // Callback that sets the selected popup menu item.
+            onSelected: (value) {},
+            color: AppColors.appBarColor,
+            child: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(Icons.more_vert),
+            ),
+            itemBuilder: (context) => <PopupMenuEntry>[
+              PopupMenuItem(
+                  onTap: () => ref
+                      .read(contactPickerControllerProvider.notifier)
+                      .shareInviteLink(
+                          context.findRenderObject() as RenderBox?),
+                  child: Text(
+                    'Invite a friend',
+                    style: Theme.of(context).textTheme.bodyText2,
+                  )),
+              PopupMenuItem(
+                  onTap: ref
+                      .read(contactPickerControllerProvider.notifier)
+                      .openContacts,
+                  child: Text(
+                    'Contacts',
+                    style: Theme.of(context).textTheme.bodyText2,
+                  )),
+              PopupMenuItem(
+                  onTap: ref
+                      .read(contactPickerControllerProvider.notifier)
+                      .refreshContactsList,
+                  child: Text(
+                    'Refresh',
+                    style: Theme.of(context).textTheme.bodyText2,
+                  )),
+              PopupMenuItem(
+                  onTap: ref
+                      .read(contactPickerControllerProvider.notifier)
+                      .showHelp,
+                  child: Text(
+                    'Help',
+                    style: Theme.of(context).textTheme.bodyText2,
+                  )),
+            ],
           ),
         ],
       ),
@@ -163,7 +203,9 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                     ),
                   ),
                   InkWell(
-                    onTap: () {},
+                    onTap: ref
+                        .read(contactPickerControllerProvider.notifier)
+                        .createNewContact,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16.0,
@@ -209,7 +251,9 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
               children: [
                 if (searchQuery.isNotEmpty)
                   InkWell(
-                    onTap: () {},
+                    onTap: ref
+                        .read(contactPickerControllerProvider.notifier)
+                        .createNewContact,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16.0,
@@ -235,7 +279,11 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                     ),
                   ),
                 InkWell(
-                  onTap: () {},
+                  onTap: () => ref
+                      .read(contactPickerControllerProvider.notifier)
+                      .shareInviteLink(
+                        context.findRenderObject() as RenderBox?,
+                      ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
@@ -261,7 +309,9 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                   ),
                 ),
                 InkWell(
-                  onTap: () {},
+                  onTap: ref
+                      .read(contactPickerControllerProvider.notifier)
+                      .showHelp,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
@@ -355,7 +405,9 @@ class LocalContactsList extends StatelessWidget {
       children: [
         for (var contact in contactsNotOnWhatsApp)
           InkWell(
-            onTap: () {},
+            onTap: () => ref
+                .read(contactPickerControllerProvider.notifier)
+                .sendSms(contact.phoneNumber),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -378,7 +430,9 @@ class LocalContactsList extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () => ref
+                        .read(contactPickerControllerProvider.notifier)
+                        .sendSms(contact.phoneNumber),
                     child: Text(
                       'INVITE',
                       style: Theme.of(context)

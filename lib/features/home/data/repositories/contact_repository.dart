@@ -15,6 +15,15 @@ class ContactsRepository {
     return await FlutterContacts.requestPermission();
   }
 
+  Future<void> openContacts() async {
+    // For now
+    FlutterContacts.openExternalPick();
+  }
+
+  Future<void> createNewContact() async {
+    FlutterContacts.openExternalInsert();
+  }
+
   Future<Map<String, List<Contact>>> getContacts() async {
     Map<String, List<Contact>> res = {'onWhatsApp': [], 'notOnWhatsApp': []};
 

@@ -66,5 +66,9 @@
 		<string>For online voice chat</string>
 		<key>NSContactsUsageDescription</key>
 		<string>To chat with a contact</string>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>sms</string>
+		</array>
 	</dict>
 </plist>
