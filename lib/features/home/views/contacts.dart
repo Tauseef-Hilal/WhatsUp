@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
@@ -14,6 +16,8 @@ class ContactsPage extends ConsumerStatefulWidget {
 class _CountryPageState extends ConsumerState<ContactsPage> {
   Widget? _showCross = const Text('');
   int appBarIndex = 0;
+  bool _showLoadingIndicator = false;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -35,6 +39,12 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
     bool buildWhatsAppContactsList = contactsOnWhatsApp.isNotEmpty;
     bool buildLocalContactsList = contactsNotOnWhatsApp.isNotEmpty;
 
+    if (_showLoadingIndicator) {
+      Timer(const Duration(microseconds: 500), () {
+        _showLoadingIndicator = false;
+      });
+    }
+
     final appBars = [
       AppBar(
         elevation: 0.0,
@@ -45,6 +55,12 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
+          if (_showLoadingIndicator)
+            const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.tabColor,
+              ),
+            ),
           IconButton(
             onPressed: () {
               setState(() {
@@ -80,9 +96,17 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                     style: Theme.of(context).textTheme.bodyText2,
                   )),
               PopupMenuItem(
-                  onTap: ref
-                      .read(contactPickerControllerProvider.notifier)
-                      .refreshContactsList,
+                  onTap: () {
+                    if (_timer?.isActive ?? false) return;
+
+                    setState(() {
+                      _showLoadingIndicator = true;
+                    });
+
+                    ref
+                        .read(contactPickerControllerProvider.notifier)
+                        .refreshContactsList();
+                  },
                   child: Text(
                     'Refresh',
                     style: Theme.of(context).textTheme.bodyText2,
