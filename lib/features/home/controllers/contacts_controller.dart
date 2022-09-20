@@ -80,13 +80,7 @@ class ContactPickerController
   }
 
   void sendSms(String phoneNumber) {
-    launchUrl(
-      Uri(
-        scheme: 'sms',
-        path: phoneNumber,
-        query: Uri.encodeQueryComponent('body=$shareMsg'),
-      ),
-    );
+    launchUrl(Uri.parse('sms:$phoneNumber?body=$shareMsg'));
   }
 
   void showHelp() {
