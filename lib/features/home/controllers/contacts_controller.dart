@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
+import 'package:whatsapp_clone/features/home/data/repositories/firebase_repo.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 
 final contactsProvider = FutureProvider((ref) async {
   return ref.watch(contactsRepositoryProvider).getContacts();
@@ -58,11 +60,16 @@ class ContactPickerController
     ref.refresh(contactsProvider);
   }
 
-  void pickContact(BuildContext context, Contact contact) {
+  void pickContact(BuildContext context, User sender, Contact contact) async {
+    final receiver = await ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .getUserById(contact.id);
+
+    // ignore: use_build_context_synchronously
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => ChatPage(contact: contact),
+          builder: (context) => ChatPage(sender: sender, receiver: receiver!),
         ),
         (route) => false);
   }

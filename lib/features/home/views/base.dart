@@ -4,6 +4,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
+import 'package:whatsapp_clone/features/home/data/repositories/firebase_repo.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import '../../../theme/colors.dart';
@@ -28,7 +29,6 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void initState() {
-    super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(_handleTabIndex);
 
@@ -50,7 +50,7 @@ class _HomePageState extends ConsumerState<HomePage>
           }
 
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ContactsPage()),
+            MaterialPageRoute(builder: (context) => ContactsPage(user: user)),
           );
         },
         child: const Icon(Icons.chat),
@@ -77,6 +77,8 @@ class _HomePageState extends ConsumerState<HomePage>
         child: const Icon(Icons.add_call),
       )
     ];
+
+    super.initState();
   }
 
   void _contactsListener() {
@@ -145,7 +147,23 @@ class _HomePageState extends ConsumerState<HomePage>
             )
           ],
         ),
-        floatingActionButton: _floatingButtons[_tabController.index],
+        floatingActionButton: FutureBuilder(
+          future: ref
+              .read(firebaseFirestoreRepositoryProvider)
+              .getUserById(widget.userId),
+          builder: (context, snapshot) {
+            Widget? widget;
+            if (snapshot.hasData) {
+              user = snapshot.data!;
+              widget = _floatingButtons[_tabController.index];
+            }
+
+            return widget ??
+                const CircularProgressIndicator(
+                  color: AppColors.textColor,
+                );
+          },
+        ),
       ),
     );
   }

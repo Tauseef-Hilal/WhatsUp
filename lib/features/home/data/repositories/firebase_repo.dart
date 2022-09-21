@@ -13,6 +13,14 @@ class FirebaseFirestoreRepo {
     required this.firestore,
   });
 
+  Future<User?> getUserById(String id) async {
+    final documentSnapshot = await firestore.collection('users').doc(id).get();
+
+    return documentSnapshot.exists
+        ? User.fromMap(documentSnapshot.data()!)
+        : null;
+  }
+
   Future<User?> getUserByPhone(String phoneNumber) async {
     phoneNumber = phoneNumber
         .replaceAll(' ', '')

@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/widgets/search.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
-  const ContactsPage({super.key});
+  final User user;
+  const ContactsPage({super.key, required this.user});
 
   @override
   ConsumerState<ContactsPage> createState() => _CountryPageState();
@@ -326,6 +328,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
         ),
       ),
       WhatsAppContactsList(
+        user: widget.user,
         contactsOnWhatsApp: contactsOnWhatsApp,
         ref: ref,
       )
@@ -420,8 +423,11 @@ class LocalContactsList extends StatelessWidget {
 }
 
 class WhatsAppContactsList extends StatelessWidget {
+  final User user;
+
   const WhatsAppContactsList({
     Key? key,
+    required this.user,
     required this.contactsOnWhatsApp,
     required this.ref,
   }) : super(key: key);
@@ -437,7 +443,7 @@ class WhatsAppContactsList extends StatelessWidget {
           InkWell(
             onTap: () => ref
                 .read(contactPickerControllerProvider.notifier)
-                .pickContact(context, contact),
+                .pickContact(context, user, contact),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
