@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
-import 'package:whatsapp_clone/features/home/data/repositories/firebase_repo.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';

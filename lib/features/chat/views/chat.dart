@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/features/home/views/base.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
+import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends ConsumerStatefulWidget {
   final User sender;
   final User receiver;
 
@@ -14,17 +17,21 @@ class ChatPage extends StatefulWidget {
   });
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
-  final _messageController = TextEditingController();
-  bool _hideElements = false;
+class _ChatPageState extends ConsumerState<ChatPage> {
+  @override
+  void initState() {
+    ref.read(chatControllerProvider.notifier).init();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final sender = widget.sender;
     final receiver = widget.receiver;
+    final hideElements = ref.watch(chatControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -57,11 +64,9 @@ class _ChatPageState extends State<ChatPage> {
         ),
         leadingWidth: 34.0,
         leading: IconButton(
-          onPressed: () => Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => HomePage(userId: sender.id)),
-              (route) => false),
+          onPressed: () => ref
+              .read(chatControllerProvider.notifier)
+              .navigateToHome(context, sender.id),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
@@ -86,76 +91,12 @@ class _ChatPageState extends State<ChatPage> {
         child: Column(
           children: [
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 8.0,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ChatStream(
+                  sender: sender,
+                  receiver: receiver,
                 ),
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: AppColors.senderMessageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Hello' * 20,
-                        softWrap: true,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: AppColors.messageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: const Text('Wansai'),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: AppColors.senderMessageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: const Text('College ikha Monday?'),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: AppColors.messageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: const Text('Pareshaan kurhas be'),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: AppColors.messageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: const Text('Adkya kar'),
-                    ),
-                  )
-                ],
               ),
             ),
             Padding(
@@ -190,18 +131,12 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                             Expanded(
                               child: TextField(
-                                onChanged: (value) {
-                                  if (value.isEmpty) {
-                                    _hideElements = false;
-                                  } else if (value != ' ') {
-                                    _hideElements = true;
-                                  } else {
-                                    _messageController.text = '';
-                                  }
-
-                                  setState(() {});
-                                },
-                                controller: _messageController,
+                                onChanged: (value) => ref
+                                    .read(chatControllerProvider.notifier)
+                                    .onTextChanged(value),
+                                controller: ref
+                                    .read(chatControllerProvider.notifier)
+                                    .messageController,
                                 maxLines: 6,
                                 minLines: 1,
                                 cursorColor: AppColors.tabColor,
@@ -230,7 +165,7 @@ class _ChatPageState extends State<ChatPage> {
                                     ),
                                   ),
                                 ),
-                                if (!_hideElements) ...[
+                                if (!hideElements) ...[
                                   Padding(
                                     padding: const EdgeInsets.only(
                                       bottom: 8.0,
@@ -273,27 +208,26 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(
                     width: 4.0,
                   ),
-                  _hideElements
-                      ? CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppColors.tabColor,
-                          child: GestureDetector(
-                            onTap: () {
-                              // final text = _messageController.text.trim();
-
-                            },
-                            child: const Icon(
+                  hideElements
+                      ? InkWell(
+                          onTap: () => ref
+                              .read(chatControllerProvider.notifier)
+                              .onSendBtnPressed(ref, sender, receiver),
+                          child: const CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppColors.tabColor,
+                            child: Icon(
                               Icons.send,
                               color: Colors.white,
                             ),
                           ),
                         )
-                      : CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppColors.tabColor,
-                          child: GestureDetector(
-                            onTap: () {},
-                            child: const Icon(
+                      : InkWell(
+                          onTap: () {},
+                          child: const CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppColors.tabColor,
+                            child: Icon(
                               Icons.mic,
                               color: Colors.white,
                             ),
@@ -308,6 +242,94 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ChatStream extends ConsumerStatefulWidget {
+  const ChatStream({
+    Key? key,
+    required this.sender,
+    required this.receiver,
+  }) : super(key: key);
+
+  final User sender;
+  final User receiver;
+
+  @override
+  ConsumerState<ChatStream> createState() => _ChatStreamState();
+}
+
+class _ChatStreamState extends ConsumerState<ChatStream> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Message>>(
+      stream: ref
+          .read(firebaseFirestoreRepositoryProvider)
+          .getChatStream(widget.sender.id, widget.receiver.id),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container();
+        }
+
+        final messages = snapshot.data!;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+        return ListView.builder(
+          itemCount: messages.length,
+          shrinkWrap: true,
+          controller: _scrollController,
+          itemBuilder: (context, index) {
+            return messages[index].senderId == widget.sender.id
+                ? Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: AppColors.senderMessageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        messages[index].content,
+                        softWrap: true,
+                      ),
+                    ),
+                  )
+                : Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: AppColors.receiverMessageColor,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        messages[index].content,
+                        softWrap: true,
+                      ),
+                    ),
+                  );
+          },
+        );
+      },
     );
   }
 }

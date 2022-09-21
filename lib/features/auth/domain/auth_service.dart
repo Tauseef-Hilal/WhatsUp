@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
-import 'package:whatsapp_clone/shared/repositories/shared_firebase_repo.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
 
 final authControllerProvider = Provider((ref) {
   return AuthController(ref: ref);
@@ -53,7 +53,7 @@ class AuthController {
 
     if (avatar != null) {
       avatarUrl = await ref
-          .read(sharedFirebaseRepoProvider)
+          .read(firebaseStorageRepoProvider)
           .uploadFileToFirebase(avatar, 'userAvatars/$uid');
     }
 

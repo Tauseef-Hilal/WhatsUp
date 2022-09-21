@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final sharedFirebaseRepoProvider =
-    Provider((ref) => SharedFirebaseRepo(FirebaseStorage.instance));
+final firebaseStorageRepoProvider =
+    Provider((ref) => FirebaseStorageRepo(FirebaseStorage.instance));
 
-class SharedFirebaseRepo {
+class FirebaseStorageRepo {
   final FirebaseStorage firebaseStorage;
 
-  SharedFirebaseRepo(this.firebaseStorage);
+  FirebaseStorageRepo(this.firebaseStorage);
 
   Future<String> uploadFileToFirebase(File file, String path) async {
     final snap = await firebaseStorage.ref().child(path).putFile(file);

@@ -4,7 +4,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
-import 'package:whatsapp_clone/features/home/data/repositories/firebase_repo.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import '../../../theme/colors.dart';
