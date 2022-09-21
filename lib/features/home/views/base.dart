@@ -5,10 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 import '../../../theme/colors.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key});
+  final String userId;
+
+  const HomePage({
+    super.key,
+    required this.userId,
+  });
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
@@ -18,6 +24,7 @@ class _HomePageState extends ConsumerState<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late List<Widget> _floatingButtons;
+  late final User user;
 
   @override
   void initState() {
@@ -25,6 +32,7 @@ class _HomePageState extends ConsumerState<HomePage>
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(_handleTabIndex);
 
+    // Exception needs to be handled for the case - Permission
     FlutterContacts.addListener(_contactsListener);
 
     _floatingButtons = [

@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
-import 'package:whatsapp_clone/views/chat.dart';
+import 'package:whatsapp_clone/features/chat/views/chat.dart';
 
 final contactsProvider = FutureProvider((ref) async {
   return ref.watch(contactsRepositoryProvider).getContacts();

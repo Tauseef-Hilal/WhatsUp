@@ -42,7 +42,7 @@ class AuthController {
     await authRepository.signInWithPhone(context, ref, phoneNumber);
   }
 
-  Future<bool> saveUserData(
+  Future<User> saveUserData(
     BuildContext context,
     WidgetRef ref,
     String username,
@@ -57,16 +57,15 @@ class AuthController {
           .uploadFileToFirebase(avatar, 'userAvatars/$uid');
     }
 
-    await authRepository.registerUser(
-      User(
-        id: uid,
-        name: username,
-        avatarUrl: avatarUrl,
-        phoneNumber: authRepository.auth.currentUser!.phoneNumber!,
-        groupIds: [],
-      ).toMap(),
+    final user = User(
+      id: uid,
+      name: username,
+      avatarUrl: avatarUrl,
+      phoneNumber: authRepository.auth.currentUser!.phoneNumber!,
+      groupIds: [],
     );
 
-    return true;
+    await authRepository.registerUser(user.toMap());
+    return user;
   }
 }

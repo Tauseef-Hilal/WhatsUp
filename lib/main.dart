@@ -39,7 +39,7 @@ class WhatsApp extends ConsumerWidget {
         stream: ref.read(authRepositoryProvider).auth.authStateChanges(),
         builder: (BuildContext context, snapshot) {
           if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
-            return const HomePage();
+            return HomePage(userId: snapshot.data!.uid);
           }
 
           return const WelcomePage();

@@ -50,7 +50,8 @@ class _ChatPageState extends State<ChatPage> {
         leading: IconButton(
           onPressed: () => Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
+              MaterialPageRoute(
+                  builder: (context) => HomePage(userId: contact.id)),
               (route) => false),
           icon: const Icon(Icons.arrow_back),
         ),

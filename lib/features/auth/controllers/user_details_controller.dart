@@ -7,6 +7,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/auth_complete.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -107,7 +108,7 @@ class UserDetailsController extends StateNotifier<File?> {
       barrierDismissible: false,
       context: context,
       builder: (context) {
-        return FutureBuilder<void>(
+        return FutureBuilder<User>(
             future: authController.saveUserData(context, ref, username, state),
             builder: (context, snapshot) {
               String? text;
@@ -124,7 +125,9 @@ class UserDetailsController extends StateNotifier<File?> {
                 Future.delayed(const Duration(seconds: 2), () {
                   Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (context) => const AuthCompletePage(),
+                        builder: (context) => AuthCompletePage(
+                          user: snapshot.data!,
+                        ),
                       ),
                       (route) => false);
                 });

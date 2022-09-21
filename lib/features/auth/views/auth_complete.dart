@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
 
 class AuthCompletePage extends ConsumerStatefulWidget {
+  final User user;
+
   const AuthCompletePage({
     super.key,
+    required this.user,
   });
 
   @override
@@ -21,7 +25,8 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
   void initState() {
     _timer = Timer(const Duration(seconds: 2), () {
       Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(
+              builder: (context) => HomePage(userId: widget.user.id)),
           (route) => false);
     });
 
