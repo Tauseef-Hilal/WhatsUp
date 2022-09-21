@@ -69,7 +69,7 @@ class ContactPickerController
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => ChatPage(sender: sender, receiver: receiver!),
+          builder: (context) => ChatPage(self: sender, other: receiver!),
         ),
         (route) => false);
   }

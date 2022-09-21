@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/welcome.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'firebase_options.dart';
 
 import 'package:whatsapp_clone/theme/colors.dart';
@@ -39,7 +40,18 @@ class WhatsApp extends ConsumerWidget {
         stream: ref.read(authRepositoryProvider).auth.authStateChanges(),
         builder: (BuildContext context, snapshot) {
           if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
-            return HomePage(userId: snapshot.data!.uid);
+            return FutureBuilder(
+              future: ref
+                  .read(firebaseFirestoreRepositoryProvider)
+                  .getUserById(snapshot.data!.uid),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Container();
+                }
+
+                return HomePage(user: snapshot.data!);
+              },
+            );
           }
 
           return const WelcomePage();

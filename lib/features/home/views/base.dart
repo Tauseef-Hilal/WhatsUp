@@ -3,18 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
+import 'package:whatsapp_clone/features/chat/views/chat.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import '../../../theme/colors.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  final String userId;
+  final User user;
 
   const HomePage({
     super.key,
-    required this.userId,
+    required this.user,
   });
 
   @override
@@ -25,7 +28,6 @@ class _HomePageState extends ConsumerState<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late List<Widget> _floatingButtons;
-  late final User user;
 
   @override
   void initState() {
@@ -50,7 +52,11 @@ class _HomePageState extends ConsumerState<HomePage>
           }
 
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ContactsPage(user: user)),
+            MaterialPageRoute(
+              builder: (context) => ContactsPage(
+                user: widget.user,
+              ),
+            ),
           );
         },
         child: const Icon(Icons.chat),
@@ -135,36 +141,97 @@ class _HomePageState extends ConsumerState<HomePage>
         ),
         body: TabBarView(
           controller: _tabController,
-          children: const [
-            Center(
+          children: [
+            RecentChats(user: widget.user),
+            const Center(
               child: Text('Coming soon'),
             ),
-            Center(
-              child: Text('Coming soon'),
-            ),
-            Center(
+            const Center(
               child: Text('Coming soon'),
             )
           ],
         ),
-        floatingActionButton: FutureBuilder(
-          future: ref
-              .read(firebaseFirestoreRepositoryProvider)
-              .getUserById(widget.userId),
-          builder: (context, snapshot) {
-            Widget? widget;
-            if (snapshot.hasData) {
-              user = snapshot.data!;
-              widget = _floatingButtons[_tabController.index];
-            }
-
-            return widget ??
-                const CircularProgressIndicator(
-                  color: AppColors.textColor,
-                );
-          },
-        ),
+        floatingActionButton: _floatingButtons[_tabController.index],
       ),
     );
+  }
+}
+
+class RecentChats extends ConsumerStatefulWidget {
+  const RecentChats({
+    Key? key,
+    required this.user,
+  }) : super(key: key);
+
+  final User user;
+
+  @override
+  ConsumerState<RecentChats> createState() => _RecentChatsState();
+}
+
+class _RecentChatsState extends ConsumerState<RecentChats> {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<RecentChat>>(
+        stream: ref
+            .read(firebaseFirestoreRepositoryProvider)
+            .getRecentChatStream(widget.user.id),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Container();
+          }
+
+          final chats = snapshot.data!;
+          return ListView.builder(
+            itemCount: chats.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              RecentChat chat = chats[index];
+
+              return ListTile(
+                onTap: () async {
+                  final user1 = await ref
+                      .read(firebaseFirestoreRepositoryProvider)
+                      .getUserById(chat.message.senderId);
+
+                  final user2 = await ref
+                      .read(firebaseFirestoreRepositoryProvider)
+                      .getUserById(chat.message.receiverId);
+
+                  if (!mounted) return;
+
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => ChatPage(
+                          self: widget.user,
+                          other: widget.user.id == user1!.id ? user2! : user1,
+                        ),
+                      ),
+                      (route) => false);
+                },
+                leading: CircleAvatar(
+                  // radius: 24.0,
+                  backgroundImage: NetworkImage(
+                    chat.avatarUrl,
+                  ),
+                ),
+                title: Text(
+                  chat.name,
+                  style: Theme.of(context).textTheme.bodyText2,
+                ),
+                subtitle: Text(
+                  chat.message.content.length > 30
+                      ? '${chat.message.content.substring(0, 30)}...'
+                      : chat.message.content,
+                  style: Theme.of(context).textTheme.caption,
+                ),
+                trailing: Text(
+                  formattedTimestamp(chat.message.timestamp),
+                  style: Theme.of(context).textTheme.caption,
+                ),
+              );
+            },
+          );
+        });
   }
 }

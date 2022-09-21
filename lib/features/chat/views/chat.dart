@@ -4,16 +4,17 @@ import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
-  final User sender;
-  final User receiver;
+  final User self;
+  final User other;
 
   const ChatPage({
     super.key,
-    required this.sender,
-    required this.receiver,
+    required this.self,
+    required this.other,
   });
 
   @override
@@ -29,8 +30,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final sender = widget.sender;
-    final receiver = widget.receiver;
+    final self = widget.self;
+    final other = widget.other;
     final hideElements = ref.watch(chatControllerProvider);
 
     return Scaffold(
@@ -39,7 +40,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: NetworkImage(receiver.avatarUrl),
+              backgroundImage: NetworkImage(other.avatarUrl),
             ),
             const SizedBox(
               width: 10.0,
@@ -48,7 +49,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  receiver.name,
+                  other.name,
                   style: Theme.of(context)
                       .textTheme
                       .bodyText2!
@@ -66,7 +67,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         leading: IconButton(
           onPressed: () => ref
               .read(chatControllerProvider.notifier)
-              .navigateToHome(context, sender.id),
+              .navigateToHome(context, self),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
@@ -92,10 +93,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 child: ChatStream(
-                  sender: sender,
-                  receiver: receiver,
+                  self: self,
+                  other: other,
                 ),
               ),
             ),
@@ -140,6 +142,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                                 maxLines: 6,
                                 minLines: 1,
                                 cursorColor: AppColors.tabColor,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .copyWith(fontSize: 14),
                                 decoration: const InputDecoration(
                                   hintText: 'Message',
                                   border: InputBorder.none,
@@ -153,14 +159,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(
-                                    bottom: 8.0,
+                                    bottom: 12.0,
                                     right: 8.0,
                                   ),
                                   child: InkWell(
                                     onTap: () {},
                                     child: const Icon(
-                                      Icons.link,
-                                      size: 28.0,
+                                      Icons.attach_file_rounded,
+                                      size: 24.0,
                                       color: AppColors.iconColor,
                                     ),
                                   ),
@@ -168,13 +174,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                                 if (!hideElements) ...[
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                      bottom: 8.0,
+                                      bottom: 12.0,
                                       right: 8.0,
                                     ),
                                     child: InkWell(
                                       onTap: () {},
                                       child: const CircleAvatar(
-                                        radius: 12,
+                                        radius: 11,
                                         backgroundColor: AppColors.iconColor,
                                         child: Icon(
                                           Icons.currency_rupee_sharp,
@@ -186,13 +192,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                      bottom: 8.0,
+                                      bottom: 12.0,
                                     ),
                                     child: InkWell(
                                       onTap: () {},
                                       child: const Icon(
                                         Icons.camera_alt,
-                                        size: 22.0,
+                                        size: 24.0,
                                         color: AppColors.iconColor,
                                       ),
                                     ),
@@ -212,7 +218,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       ? InkWell(
                           onTap: () => ref
                               .read(chatControllerProvider.notifier)
-                              .onSendBtnPressed(ref, sender, receiver),
+                              .onSendBtnPressed(ref, self, other),
                           child: const CircleAvatar(
                             radius: 24,
                             backgroundColor: AppColors.tabColor,
@@ -249,12 +255,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 class ChatStream extends ConsumerStatefulWidget {
   const ChatStream({
     Key? key,
-    required this.sender,
-    required this.receiver,
+    required this.self,
+    required this.other,
   }) : super(key: key);
 
-  final User sender;
-  final User receiver;
+  final User self;
+  final User other;
 
   @override
   ConsumerState<ChatStream> createState() => _ChatStreamState();
@@ -282,7 +288,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     return StreamBuilder<List<Message>>(
       stream: ref
           .read(firebaseFirestoreRepositoryProvider)
-          .getChatStream(widget.sender.id, widget.receiver.id),
+          .getChatStream(widget.self.id, widget.other.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Container();
@@ -296,19 +302,42 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           shrinkWrap: true,
           controller: _scrollController,
           itemBuilder: (context, index) {
-            return messages[index].senderId == widget.sender.id
+            return messages[index].senderId == widget.self.id
                 ? Align(
                     alignment: Alignment.centerRight,
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
+                        borderRadius: BorderRadius.circular(10.0),
                         color: AppColors.senderMessageColor,
                       ),
                       margin: const EdgeInsets.only(bottom: 4.0),
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        messages[index].content,
-                        softWrap: true,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            messages[index].content,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2!
+                                .copyWith(fontSize: 12),
+                            softWrap: true,
+                          ),
+                          const SizedBox(
+                            width: 4.0,
+                          ),
+                          Text(
+                            formattedTimestamp(
+                              messages[index].timestamp,
+                              true,
+                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .caption!
+                                .copyWith(fontSize: 10),
+                          ),
+                        ],
                       ),
                     ),
                   )
@@ -316,14 +345,37 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                     alignment: Alignment.centerLeft,
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
+                        borderRadius: BorderRadius.circular(10.0),
                         color: AppColors.receiverMessageColor,
                       ),
                       margin: const EdgeInsets.only(bottom: 4.0),
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        messages[index].content,
-                        softWrap: true,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            messages[index].content,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2!
+                                .copyWith(fontSize: 12),
+                            softWrap: true,
+                          ),
+                          const SizedBox(
+                            width: 4.0,
+                          ),
+                          Text(
+                            formattedTimestamp(
+                              messages[index].timestamp,
+                              true,
+                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .caption!
+                                .copyWith(fontSize: 10),
+                          ),
+                        ],
                       ),
                     ),
                   );

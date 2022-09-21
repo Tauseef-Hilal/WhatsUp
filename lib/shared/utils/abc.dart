@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
@@ -15,6 +16,20 @@ String strFormattedTime(int seconds) {
   resultParts.removeWhere((element) => element == '0');
 
   return resultParts.join(':');
+}
+
+String formattedTimestamp(Timestamp timestamp, [bool timeOnly = false]) {
+  DateTime now = DateTime.now();
+  DateTime date = timestamp.toDate();
+  Duration timeDelta = now.difference(date);
+
+  if (timeDelta.inDays < 1 || timeOnly) {
+    return DateFormat('hh:mm a').format(date);
+  } else if (timeDelta.inDays == 1) {
+    return 'Yesterday';
+  }
+
+  return DateFormat.yMd().format(date);
 }
 
 Future<File?> capturePhoto() async {

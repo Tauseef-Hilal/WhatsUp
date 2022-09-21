@@ -5,6 +5,7 @@ enum MessageStatus { sent, delivered, seen }
 class Message {
   final String content;
   final String senderId;
+  final String receiverId;
   final Timestamp timestamp;
   // To be added later
   // final List attachments;
@@ -13,6 +14,7 @@ class Message {
   Message({
     required this.content,
     required this.senderId,
+    required this.receiverId,
     required this.timestamp,
   });
 
@@ -20,6 +22,7 @@ class Message {
     return Message(
       content: msgData['content'],
       senderId: msgData['senderId'],
+      receiverId: msgData['receiverId'],
       timestamp: msgData['timestamp'],
     );
   }
@@ -33,6 +36,7 @@ class Message {
     return {
       'content': content,
       'senderId': senderId,
+      'receiverId': receiverId,
       'timestamp': timestamp,
     };
   }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
+import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 
 final firebaseFirestoreRepositoryProvider = Provider(
@@ -16,22 +17,28 @@ class FirebaseFirestoreRepo {
 
   Future<void> _updateChats(
     Message message,
-    String targetUserId,
-    String chatId,
+    User target,
+    User receiver,
   ) async {
     final docRef = firestore
         .collection('users')
-        .doc(targetUserId)
+        .doc(target.id)
         .collection('chats')
-        .doc(chatId);
+        .doc(receiver.id);
 
-    await docRef.set({'latest': message.toMap()});
     await docRef.collection('messages').add(message.toMap());
+    await docRef.set({
+      'recentChat': RecentChat(
+        message: message,
+        name: receiver.name,
+        avatarUrl: receiver.avatarUrl,
+      ).toMap()
+    });
   }
 
   Future<void> sendMessage(Message message, User sender, User receiver) async {
-    _updateChats(message, sender.id, receiver.id);
-    _updateChats(message, receiver.id, sender.id);
+    _updateChats(message, sender, receiver);
+    _updateChats(message, receiver, sender);
   }
 
   Future<User?> getUserById(String id) async {
@@ -40,6 +47,22 @@ class FirebaseFirestoreRepo {
     return documentSnapshot.exists
         ? User.fromMap(documentSnapshot.data()!)
         : null;
+  }
+
+  Stream<List<RecentChat>> getRecentChatStream(String targetUserId) {
+    return firestore
+        .collection('users')
+        .doc(targetUserId)
+        .collection('chats')
+        .orderBy('recentChat.message.timestamp')
+        .snapshots()
+        .map((event) {
+      final chats = <RecentChat>[];
+      for (var doc in event.docs) {
+        chats.add(RecentChat.fromMap(doc.data()['recentChat']));
+      }
+      return chats;
+    });
   }
 
   Stream<List<Message>> getChatStream(String targetUserId, String chatId) {

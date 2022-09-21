@@ -25,8 +25,7 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
   void initState() {
     _timer = Timer(const Duration(seconds: 2), () {
       Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-              builder: (context) => HomePage(userId: widget.user.id)),
+          MaterialPageRoute(builder: (context) => HomePage(user: widget.user)),
           (route) => false);
     });
 

@@ -26,11 +26,11 @@ class ChatController extends StateNotifier<bool> {
     super.dispose();
   }
 
-  void navigateToHome(BuildContext context, String userId) {
+  void navigateToHome(BuildContext context, User user) {
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(userId: userId),
+          builder: (context) => HomePage(user: user),
         ),
         (route) => false);
   }
@@ -49,6 +49,7 @@ class ChatController extends StateNotifier<bool> {
     final msg = Message(
       content: messageController.text.trim(),
       senderId: sender.id,
+      receiverId: receiver.id,
       timestamp: Timestamp.now(),
     );
 
