@@ -33,8 +33,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   Widget build(BuildContext context) {
     final self = widget.self;
     final other = widget.other;
-    final hideElements = ref.watch(chatControllerProvider);
-    final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -104,176 +102,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(24.0)),
-                        color: AppColors.appBarColor,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 9.0),
-                              child: GestureDetector(
-                                onTap: ref
-                                    .read(
-                                      emojiPickerControllerProvider.notifier,
-                                    )
-                                    .toggleEmojiPicker,
-                                child: Icon(
-                                  showEmojiPicker
-                                      ? Icons.keyboard
-                                      : Icons.emoji_emotions,
-                                  size: 28.0,
-                                  color: AppColors.iconColor,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 8.0,
-                            ),
-                            Expanded(
-                              child: TextField(
-                                onChanged: (value) => ref
-                                    .read(chatControllerProvider.notifier)
-                                    .onTextChanged(value),
-                                controller: ref
-                                    .read(chatControllerProvider.notifier)
-                                    .messageController,
-                                focusNode: ref
-                                    .read(
-                                        emojiPickerControllerProvider.notifier)
-                                    .fieldFocusNode,
-                                maxLines: 6,
-                                minLines: 1,
-                                cursorColor: AppColors.tabColor,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .copyWith(fontSize: 14),
-                                decoration: const InputDecoration(
-                                  hintText: 'Message',
-                                  border: InputBorder.none,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 8.0,
-                            ),
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 12.0,
-                                    right: 8.0,
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {},
-                                    child: const Icon(
-                                      Icons.attach_file_rounded,
-                                      size: 24.0,
-                                      color: AppColors.iconColor,
-                                    ),
-                                  ),
-                                ),
-                                if (!hideElements) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      bottom: 12.0,
-                                      right: 8.0,
-                                    ),
-                                    child: InkWell(
-                                      onTap: () {},
-                                      child: const CircleAvatar(
-                                        radius: 11,
-                                        backgroundColor: AppColors.iconColor,
-                                        child: Icon(
-                                          Icons.currency_rupee_sharp,
-                                          size: 16,
-                                          color: AppColors.blackColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      bottom: 12.0,
-                                    ),
-                                    child: InkWell(
-                                      onTap: () {},
-                                      child: const Icon(
-                                        Icons.camera_alt,
-                                        size: 24.0,
-                                        color: AppColors.iconColor,
-                                      ),
-                                    ),
-                                  ),
-                                ]
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 4.0,
-                  ),
-                  hideElements
-                      ? InkWell(
-                          onTap: () => ref
-                              .read(chatControllerProvider.notifier)
-                              .onSendBtnPressed(ref, self, other),
-                          child: const CircleAvatar(
-                            radius: 24,
-                            backgroundColor: AppColors.tabColor,
-                            child: Icon(
-                              Icons.send,
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      : InkWell(
-                          onTap: () {},
-                          child: const CircleAvatar(
-                            radius: 24,
-                            backgroundColor: AppColors.tabColor,
-                            child: Icon(
-                              Icons.mic,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                ],
-              ),
-            ),
-            if (ref
-                .read(emojiPickerControllerProvider.notifier)
-                .keyboardVisible)
-              SizedBox(
-                height: MediaQuery.of(context).viewInsets.bottom,
-              ),
-            Offstage(
-              offstage: !showEmojiPicker,
-              child: SizedBox(
-                height: 0.72 * (MediaQuery.of(context).size.height / 2),
-                child: CustomEmojiPicker(
-                  afterEmojiPlaced: (emoji) => ref
-                      .read(chatControllerProvider.notifier)
-                      .onTextChanged(emoji.emoji),
-                  textController: ref
-                      .read(chatControllerProvider.notifier)
-                      .messageController,
-                ),
-              ),
+            ChatInput(
+              self: self,
+              other: other,
             ),
             const SizedBox(
               height: 8.0,
@@ -281,6 +112,196 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ChatInput extends ConsumerStatefulWidget {
+  const ChatInput({super.key, required this.self, required this.other});
+
+  final User self;
+  final User other;
+
+  @override
+  ConsumerState<ChatInput> createState() => _ChatInputState();
+}
+
+class _ChatInputState extends ConsumerState<ChatInput> {
+  @override
+  Widget build(BuildContext context) {
+    final hideElements = ref.watch(chatControllerProvider);
+    final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(24.0)),
+                    color: AppColors.appBarColor,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 9.0),
+                          child: GestureDetector(
+                            onTap: ref
+                                .read(
+                                  emojiPickerControllerProvider.notifier,
+                                )
+                                .toggleEmojiPicker,
+                            child: Icon(
+                              showEmojiPicker
+                                  ? Icons.keyboard
+                                  : Icons.emoji_emotions,
+                              size: 28.0,
+                              color: AppColors.iconColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            onChanged: (value) => ref
+                                .read(chatControllerProvider.notifier)
+                                .onTextChanged(value),
+                            controller: ref
+                                .read(chatControllerProvider.notifier)
+                                .messageController,
+                            focusNode: ref
+                                .read(emojiPickerControllerProvider.notifier)
+                                .fieldFocusNode,
+                            maxLines: 6,
+                            minLines: 1,
+                            cursorColor: AppColors.tabColor,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2!
+                                .copyWith(fontSize: 14),
+                            decoration: const InputDecoration(
+                              hintText: 'Message',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: 12.0,
+                                right: 8.0,
+                              ),
+                              child: InkWell(
+                                onTap: () {},
+                                child: const Icon(
+                                  Icons.attach_file_rounded,
+                                  size: 24.0,
+                                  color: AppColors.iconColor,
+                                ),
+                              ),
+                            ),
+                            if (!hideElements) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: 12.0,
+                                  right: 8.0,
+                                ),
+                                child: InkWell(
+                                  onTap: () {},
+                                  child: const CircleAvatar(
+                                    radius: 11,
+                                    backgroundColor: AppColors.iconColor,
+                                    child: Icon(
+                                      Icons.currency_rupee_sharp,
+                                      size: 16,
+                                      color: AppColors.blackColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: 12.0,
+                                ),
+                                child: InkWell(
+                                  onTap: () {},
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 24.0,
+                                    color: AppColors.iconColor,
+                                  ),
+                                ),
+                              ),
+                            ]
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 4.0,
+              ),
+              hideElements
+                  ? InkWell(
+                      onTap: () => ref
+                          .read(chatControllerProvider.notifier)
+                          .onSendBtnPressed(ref, widget.self, widget.other),
+                      child: const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppColors.tabColor,
+                        child: Icon(
+                          Icons.send,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : InkWell(
+                      onTap: () {},
+                      child: const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppColors.tabColor,
+                        child: Icon(
+                          Icons.mic,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+        ),
+        if (ref.read(emojiPickerControllerProvider.notifier).keyboardVisible)
+          SizedBox(
+            height: MediaQuery.of(context).viewInsets.bottom,
+          ),
+        Offstage(
+          offstage: !showEmojiPicker,
+          child: SizedBox(
+            height: 0.72 * (MediaQuery.of(context).size.height / 2),
+            child: CustomEmojiPicker(
+              afterEmojiPlaced: (emoji) => ref
+                  .read(chatControllerProvider.notifier)
+                  .onTextChanged(emoji.emoji),
+              textController:
+                  ref.read(chatControllerProvider.notifier).messageController,
+            ),
+          ),
+        )
+      ],
     );
   }
 }
@@ -369,6 +390,13 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                                 .textTheme
                                 .caption!
                                 .copyWith(fontSize: 10),
+                          ),
+                          Text(
+                            messages[index].status.value,
+                            style: Theme.of(context)
+                                .textTheme
+                                .caption!
+                                .copyWith(fontSize: 4.0),
                           ),
                         ],
                       ),

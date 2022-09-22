@@ -6,6 +6,7 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 
 final chatControllerProvider =
@@ -49,10 +50,15 @@ class ChatController extends StateNotifier<bool> {
     }
   }
 
-  void onSendBtnPressed(WidgetRef ref, User sender, User receiver) {
+  void onSendBtnPressed(WidgetRef ref, User sender, User receiver) async {
+    if (!await isConnected()) {
+      return;
+    }
+
     final msg = Message(
       id: const Uuid().v4(),
       content: messageController.text.trim(),
+      status: MessageStatus.sent,
       senderId: sender.id,
       receiverId: receiver.id,
       timestamp: Timestamp.now(),
