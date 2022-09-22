@@ -26,7 +26,7 @@ class FirebaseFirestoreRepo {
         .collection('chats')
         .doc(receiver.id);
 
-    await docRef.collection('messages').add(message.toMap());
+    await docRef.collection('messages').doc(message.id).set(message.toMap());
     await docRef.set({
       'recentChat': RecentChat(
         message: message,

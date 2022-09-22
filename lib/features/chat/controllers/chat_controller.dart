@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
@@ -50,6 +51,7 @@ class ChatController extends StateNotifier<bool> {
 
   void onSendBtnPressed(WidgetRef ref, User sender, User receiver) {
     final msg = Message(
+      id: const Uuid().v4(),
       content: messageController.text.trim(),
       senderId: sender.id,
       receiverId: receiver.id,
