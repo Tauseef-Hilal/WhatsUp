@@ -5,19 +5,22 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatController, bool>(
-  (ref) => ChatController(),
+  (ref) => ChatController(ref: ref),
 );
 
 class ChatController extends StateNotifier<bool> {
-  ChatController() : super(false);
+  ChatController({required this.ref}) : super(false);
 
+  final AutoDisposeStateNotifierProviderRef ref;
   late final TextEditingController messageController;
 
   void init() {
     messageController = TextEditingController();
+    ref.read(emojiPickerControllerProvider.notifier).init();
   }
 
   @override

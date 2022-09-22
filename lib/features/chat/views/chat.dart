@@ -5,6 +5,7 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -33,8 +34,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final self = widget.self;
     final other = widget.other;
     final hideElements = ref.watch(chatControllerProvider);
+    final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         titleSpacing: 0.0,
         title: Row(
@@ -120,9 +123,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                             Padding(
                               padding: const EdgeInsets.only(bottom: 9.0),
                               child: GestureDetector(
-                                onTap: () {},
-                                child: const Icon(
-                                  Icons.emoji_emotions,
+                                onTap: ref
+                                    .read(
+                                      emojiPickerControllerProvider.notifier,
+                                    )
+                                    .toggleEmojiPicker,
+                                child: Icon(
+                                  showEmojiPicker
+                                      ? Icons.keyboard
+                                      : Icons.emoji_emotions,
                                   size: 28.0,
                                   color: AppColors.iconColor,
                                 ),
@@ -139,6 +148,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                                 controller: ref
                                     .read(chatControllerProvider.notifier)
                                     .messageController,
+                                focusNode: ref
+                                    .read(
+                                        emojiPickerControllerProvider.notifier)
+                                    .fieldFocusNode,
                                 maxLines: 6,
                                 minLines: 1,
                                 cursorColor: AppColors.tabColor,
@@ -240,6 +253,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                           ),
                         ),
                 ],
+              ),
+            ),
+            if (ref
+                .read(emojiPickerControllerProvider.notifier)
+                .keyboardVisible)
+              SizedBox(
+                height: MediaQuery.of(context).viewInsets.bottom,
+              ),
+            Offstage(
+              offstage: !showEmojiPicker,
+              child: SizedBox(
+                height: 0.72 * (MediaQuery.of(context).size.height / 2),
+                child: CustomEmojiPicker(
+                  afterEmojiPlaced: (emoji) => ref
+                      .read(chatControllerProvider.notifier)
+                      .onTextChanged(emoji.emoji),
+                  textController: ref
+                      .read(chatControllerProvider.notifier)
+                      .messageController,
+                ),
               ),
             ),
             const SizedBox(

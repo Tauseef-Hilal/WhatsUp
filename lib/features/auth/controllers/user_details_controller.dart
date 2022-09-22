@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/auth_complete.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 final userDetailsControllerProvider =
@@ -169,53 +169,5 @@ class UserDetailsController extends StateNotifier<File?> {
             });
       },
     );
-  }
-}
-
-final emojiPickerControllerProvider =
-    AutoDisposeStateNotifierProvider<EmojiPickerController, bool>(
-  (ref) => EmojiPickerController(),
-);
-
-class EmojiPickerController extends StateNotifier<bool> {
-  EmojiPickerController() : super(false);
-
-  late final StreamSubscription<bool> _keyboardSubscription;
-  final FocusNode _fieldFocusNode = FocusNode();
-  bool _isKeyboardVisible = true;
-
-  FocusNode get fieldFocusNode => _fieldFocusNode;
-  bool get keyboardVisible => _isKeyboardVisible;
-
-  void init() {
-    _keyboardSubscription = KeyboardVisibilityController().onChange.listen(
-      (bool visible) {
-        _isKeyboardVisible = visible;
-
-        if (visible) {
-          state = false;
-        }
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _keyboardSubscription.cancel();
-    _fieldFocusNode.dispose();
-    super.dispose();
-  }
-
-  void toggleEmojiPicker() async {
-    if (_isKeyboardVisible) {
-      await SystemChannels.textInput.invokeMethod('TextInput.hide');
-      await Future.delayed(const Duration(milliseconds: 100));
-      state = !state;
-    } else if (state) {
-      _fieldFocusNode.requestFocus();
-      await SystemChannels.textInput.invokeMethod('TextInput.show');
-    } else {
-      state = !state;
-    }
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
+import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class UserProfileCreationPage extends ConsumerStatefulWidget {
@@ -245,33 +245,10 @@ class _UserProfileCreationPageState
             offstage: !showEmojiPicker,
             child: SizedBox(
               height: 0.75 * (MediaQuery.of(context).size.height / 2),
-              child: EmojiPicker(
-                textEditingController: ref
-                    .read(userDetailsControllerProvider.notifier)
-                    .usernameController,
-                config: const Config(
-                  columns: 8,
-                  emojiSizeMax: 28,
-                  verticalSpacing: 0,
-                  horizontalSpacing: 0,
-                  gridPadding: EdgeInsets.zero,
-                  initCategory: Category.SMILEYS,
-                  bgColor: AppColors.backgroundColor,
-                  indicatorColor: AppColors.tabColor,
-                  iconColor: AppColors.iconColor,
-                  iconColorSelected: Colors.white70,
-                  backspaceColor: AppColors.iconColor,
-                  showRecentsTab: true,
-                  recentsLimit: 28,
-                  noRecents: Text(
-                    'No Recents',
-                    style: TextStyle(fontSize: 20, color: Colors.black26),
-                    textAlign: TextAlign.center,
-                  ),
-                  tabIndicatorAnimDuration: kTabScrollDuration,
-                  categoryIcons: CategoryIcons(),
-                ),
-              ),
+              child: CustomEmojiPicker(
+                  textController: ref
+                      .read(userDetailsControllerProvider.notifier)
+                      .usernameController),
             ),
           ),
         ],
