@@ -22,7 +22,8 @@ class ChatPage extends ConsumerStatefulWidget {
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends ConsumerState<ChatPage> {
+class _ChatPageState extends ConsumerState<ChatPage>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     ref.read(chatInputControllerProvider.notifier).init();
@@ -56,9 +57,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       .bodyText2!
                       .copyWith(fontSize: 17.0),
                 ),
-                Text(
-                  'Online',
-                  style: Theme.of(context).textTheme.caption,
+                StreamBuilder<UserActivityStatus>(
+                  stream: ref
+                      .read(firebaseFirestoreRepositoryProvider)
+                      .userActivityStatusStream(userId: other.id),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Text(
+                        other.activityStatus.value,
+                        style: Theme.of(context).textTheme.caption,
+                      );
+                    }
+                    return Text(
+                      snapshot.data!.value,
+                      style: Theme.of(context).textTheme.caption,
+                    );
+                  },
                 ),
               ],
             ),

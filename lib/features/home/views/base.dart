@@ -26,12 +26,31 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   late List<Widget> _floatingButtons;
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        ref.read(firebaseFirestoreRepositoryProvider).setActivityStatus(
+            userId: widget.user.id,
+            statusValue: UserActivityStatus.online.value);
+        break;
+      default:
+        ref.read(firebaseFirestoreRepositoryProvider).setActivityStatus(
+            userId: widget.user.id,
+            statusValue: UserActivityStatus.offline.value);
+        break;
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(_handleTabIndex);
 
@@ -94,6 +113,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     FlutterContacts.removeListener(_contactsListener);
     _tabController.removeListener(_handleTabIndex);
     _tabController.dispose();
@@ -198,14 +218,14 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
 
               return ListTile(
                 onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => ChatPage(
-                          self: widget.user,
-                          other: chat.user,
-                        ),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChatPage(
+                        self: widget.user,
+                        other: chat.user,
                       ),
-                      (route) => false);
+                    ),
+                  );
                 },
                 leading: CircleAvatar(
                   // radius: 24.0,

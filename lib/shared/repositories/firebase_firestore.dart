@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 final firebaseFirestoreRepositoryProvider = Provider(
   (ref) => FirebaseFirestoreRepo(firestore: FirebaseFirestore.instance),
@@ -15,6 +14,23 @@ class FirebaseFirestoreRepo {
   const FirebaseFirestoreRepo({
     required this.firestore,
   });
+
+  Future<void> setActivityStatus({
+    required String userId,
+    required String statusValue,
+  }) async {
+    print(statusValue);
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .update({'activityStatus': statusValue});
+  }
+
+  Stream<UserActivityStatus> userActivityStatusStream({required userId}) {
+    return firestore.collection('users').doc(userId).snapshots().map((event) {
+      return UserActivityStatus.fromValue(event.data()!['activityStatus']);
+    });
+  }
 
   Future<void> _updateChats(
     Message message,

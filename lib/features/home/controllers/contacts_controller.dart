@@ -66,12 +66,12 @@ class ContactPickerController
         .getUserById(contact.id);
 
     // ignore: use_build_context_synchronously
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatPage(self: sender, other: receiver!),
-        ),
-        (route) => false);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPage(self: sender, other: receiver!),
+      ),
+    );
   }
 
   void createNewContact() {

@@ -63,6 +63,7 @@ class AuthController {
       avatarUrl: avatarUrl,
       phoneNumber: authRepository.auth.currentUser!.phoneNumber!,
       groupIds: [],
+      activityStatus: UserActivityStatus.online,
     );
 
     await authRepository.registerUser(user.toMap());
