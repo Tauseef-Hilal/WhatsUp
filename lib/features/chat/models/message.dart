@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum MessageStatus {
+  pending('PENDING'),
   sent('SENT'),
   delivered('DELIVERED'),
   seen('SEEN');
@@ -27,7 +28,7 @@ class Message {
   final String senderId;
   final String receiverId;
   final Timestamp timestamp;
-  final MessageStatus status;
+  MessageStatus status;
   // To be added later
   // final List attachments;
 

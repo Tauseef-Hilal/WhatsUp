@@ -25,7 +25,7 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
-    ref.read(chatControllerProvider.notifier).init();
+    // ref.read(chatInputControllerProvider.notifier).init();
     super.initState();
   }
 
@@ -67,7 +67,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         leadingWidth: 34.0,
         leading: IconButton(
           onPressed: () => ref
-              .read(chatControllerProvider.notifier)
+              .read(chatInputControllerProvider.notifier)
               .navigateToHome(context, self),
           icon: const Icon(Icons.arrow_back),
         ),
@@ -129,7 +129,7 @@ class ChatInput extends ConsumerStatefulWidget {
 class _ChatInputState extends ConsumerState<ChatInput> {
   @override
   Widget build(BuildContext context) {
-    final hideElements = ref.watch(chatControllerProvider);
+    final hideElements = ref.watch(chatInputControllerProvider);
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
 
     return Column(
@@ -173,10 +173,10 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         Expanded(
                           child: TextField(
                             onChanged: (value) => ref
-                                .read(chatControllerProvider.notifier)
+                                .read(chatInputControllerProvider.notifier)
                                 .onTextChanged(value),
                             controller: ref
-                                .read(chatControllerProvider.notifier)
+                                .read(chatInputControllerProvider.notifier)
                                 .messageController,
                             focusNode: ref
                                 .read(emojiPickerControllerProvider.notifier)
@@ -259,7 +259,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
               hideElements
                   ? InkWell(
                       onTap: () => ref
-                          .read(chatControllerProvider.notifier)
+                          .read(chatInputControllerProvider.notifier)
                           .onSendBtnPressed(ref, widget.self, widget.other),
                       child: const CircleAvatar(
                         radius: 24,
@@ -294,10 +294,11 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             height: 0.72 * (MediaQuery.of(context).size.height / 2),
             child: CustomEmojiPicker(
               afterEmojiPlaced: (emoji) => ref
-                  .read(chatControllerProvider.notifier)
+                  .read(chatInputControllerProvider.notifier)
                   .onTextChanged(emoji.emoji),
-              textController:
-                  ref.read(chatControllerProvider.notifier).messageController,
+              textController: ref
+                  .read(chatInputControllerProvider.notifier)
+                  .messageController,
             ),
           ),
         )
@@ -337,6 +338,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     );
   }
 
+  void _sendUpdates(Message message) {
+    ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .sendMessage(message, widget.self, widget.other);
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Message>>(
@@ -349,6 +356,23 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         final messages = snapshot.data!;
+        for (var message in messages) {
+          if (message.status == MessageStatus.seen) continue;
+
+          if (message.senderId == widget.self.id) {
+            if (message.status == MessageStatus.pending) {
+              message.status = MessageStatus.sent;
+            }
+
+            continue;
+          }
+
+          message.status = MessageStatus.seen;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => _sendUpdates(message),
+          );
+        }
+
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
         return ListView.builder(
@@ -356,7 +380,10 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           shrinkWrap: true,
           controller: _scrollController,
           itemBuilder: (context, index) {
-            return messages[index].senderId == widget.self.id
+            Message message = messages[index];
+            String msgStatus = message.status.value;
+
+            return message.senderId == widget.self.id
                 ? Align(
                     alignment: Alignment.centerRight,
                     child: Container(
@@ -371,7 +398,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            messages[index].content,
+                            message.content,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyText2!
@@ -383,7 +410,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                           ),
                           Text(
                             formattedTimestamp(
-                              messages[index].timestamp,
+                              message.timestamp,
                               true,
                             ),
                             style: Theme.of(context)
@@ -391,12 +418,13 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                                 .caption!
                                 .copyWith(fontSize: 10),
                           ),
-                          Text(
-                            messages[index].status.value,
-                            style: Theme.of(context)
-                                .textTheme
-                                .caption!
-                                .copyWith(fontSize: 4.0),
+                          const SizedBox(
+                            width: 2.0,
+                          ),
+                          Image.asset(
+                            'assets/images/$msgStatus.png',
+                            color: msgStatus != 'SEEN' ? Colors.white : null,
+                            width: 16.0,
                           ),
                         ],
                       ),

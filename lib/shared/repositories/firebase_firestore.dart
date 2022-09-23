@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 final firebaseFirestoreRepositoryProvider = Provider(
   (ref) => FirebaseFirestoreRepo(firestore: FirebaseFirestore.instance),
@@ -30,8 +31,7 @@ class FirebaseFirestoreRepo {
     await docRef.set({
       'recentChat': RecentChat(
         message: message,
-        name: receiver.name,
-        avatarUrl: receiver.avatarUrl,
+        user: receiver,
       ).toMap()
     });
   }

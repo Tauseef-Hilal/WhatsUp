@@ -1,21 +1,19 @@
 import 'package:whatsapp_clone/features/chat/models/message.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 
 class RecentChat {
   final Message message;
-  final String name;
-  final String avatarUrl;
+  final User user;
 
   RecentChat({
     required this.message,
-    required this.name,
-    required this.avatarUrl,
+    required this.user,
   });
 
   factory RecentChat.fromMap(Map<String, dynamic> chatData) {
     return RecentChat(
       message: Message.fromMap(chatData['message']),
-      name: chatData['name'],
-      avatarUrl: chatData['avatarUrl'],
+      user: User.fromMap(chatData['user']),
     );
   }
 
@@ -27,8 +25,7 @@ class RecentChat {
   Map<String, dynamic> toMap() {
     return {
       'message': message.toMap(),
-      'name': name,
-      'avatarUrl': avatarUrl,
+      'user': user.toMap(),
     };
   }
 }

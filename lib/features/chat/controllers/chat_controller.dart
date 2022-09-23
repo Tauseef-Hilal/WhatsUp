@@ -9,19 +9,37 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 
-final chatControllerProvider =
-    StateNotifierProvider.autoDispose<ChatController, bool>(
-  (ref) => ChatController(ref: ref),
+final chatInputControllerProvider =
+    StateNotifierProvider.autoDispose<ChatInputController, bool>(
+  (ref) => ChatInputController(ref: ref),
 );
 
-class ChatController extends StateNotifier<bool> {
-  ChatController({required this.ref}) : super(false);
+// class ChatController {
+//   ChatController();
+
+//   final TextEditingController messageController = TextEditingController();
+
+//   void dispose() {
+//     messageController.dispose();
+//   }
+
+//   void navigateToHome(BuildContext context, User user) {
+//     Navigator.pushAndRemoveUntil(
+//         context,
+//         MaterialPageRoute(
+//           builder: (context) => HomePage(user: user),
+//         ),
+//         (route) => false);
+//   }
+// }
+
+class ChatInputController extends StateNotifier<bool> {
+  ChatInputController({required this.ref}) : super(false);
 
   final AutoDisposeStateNotifierProviderRef ref;
-  late final TextEditingController messageController;
+  final messageController = TextEditingController();
 
   void init() {
-    messageController = TextEditingController();
     ref.read(emojiPickerControllerProvider.notifier).init();
   }
 
@@ -51,14 +69,16 @@ class ChatController extends StateNotifier<bool> {
   }
 
   void onSendBtnPressed(WidgetRef ref, User sender, User receiver) async {
+    MessageStatus status = MessageStatus.sent;
+
     if (!await isConnected()) {
-      return;
+      status = MessageStatus.pending;
     }
 
     final msg = Message(
       id: const Uuid().v4(),
       content: messageController.text.trim(),
-      status: MessageStatus.sent,
+      status: status,
       senderId: sender.id,
       receiverId: receiver.id,
       timestamp: Timestamp.now(),

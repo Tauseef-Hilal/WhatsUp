@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
@@ -187,24 +188,21 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
             shrinkWrap: true,
             itemBuilder: (context, index) {
               RecentChat chat = chats[index];
+              Message msg = chat.message;
+              String msgContent = chat.message.content;
+              String msgStatus = '';
+
+              if (msg.senderId == widget.user.id) {
+                msgStatus = msg.status.value;
+              }
 
               return ListTile(
-                onTap: () async {
-                  final user1 = await ref
-                      .read(firebaseFirestoreRepositoryProvider)
-                      .getUserById(chat.message.senderId);
-
-                  final user2 = await ref
-                      .read(firebaseFirestoreRepositoryProvider)
-                      .getUserById(chat.message.receiverId);
-
-                  if (!mounted) return;
-
+                onTap: () {
                   Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (context) => ChatPage(
                           self: widget.user,
-                          other: widget.user.id == user1!.id ? user2! : user1,
+                          other: chat.user,
                         ),
                       ),
                       (route) => false);
@@ -212,18 +210,32 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                 leading: CircleAvatar(
                   // radius: 24.0,
                   backgroundImage: NetworkImage(
-                    chat.avatarUrl,
+                    chat.user.avatarUrl,
                   ),
                 ),
                 title: Text(
-                  chat.name,
+                  chat.user.name,
                   style: Theme.of(context).textTheme.bodyText2,
                 ),
-                subtitle: Text(
-                  chat.message.content.length > 30
-                      ? '${chat.message.content.substring(0, 30)}...'
-                      : chat.message.content,
-                  style: Theme.of(context).textTheme.caption,
+                subtitle: Row(
+                  children: [
+                    if (msgStatus.isNotEmpty) ...[
+                      Image.asset(
+                        'assets/images/$msgStatus.png',
+                        color: msgStatus != 'SEEN' ? Colors.white : null,
+                        width: 16.0,
+                      ),
+                      const SizedBox(
+                        width: 2.0,
+                      )
+                    ],
+                    Text(
+                      msgContent.length > 30
+                          ? '${chat.message.content.substring(0, 30)}...'
+                          : chat.message.content,
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                  ],
                 ),
                 trailing: Text(
                   formattedTimestamp(chat.message.timestamp),
