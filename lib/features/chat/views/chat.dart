@@ -384,93 +384,141 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
             String msgStatus = message.status.value;
 
             return message.senderId == widget.self.id
-                ? Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        color: AppColors.senderMessageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            message.content,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText2!
-                                .copyWith(fontSize: 12),
-                            softWrap: true,
-                          ),
-                          const SizedBox(
-                            width: 4.0,
-                          ),
-                          Text(
-                            formattedTimestamp(
-                              message.timestamp,
-                              true,
-                            ),
-                            style: Theme.of(context)
-                                .textTheme
-                                .caption!
-                                .copyWith(fontSize: 10),
-                          ),
-                          const SizedBox(
-                            width: 2.0,
-                          ),
-                          Image.asset(
-                            'assets/images/$msgStatus.png',
-                            color: msgStatus != 'SEEN' ? Colors.white : null,
-                            width: 16.0,
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        color: AppColors.receiverMessageColor,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            messages[index].content,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText2!
-                                .copyWith(fontSize: 12),
-                            softWrap: true,
-                          ),
-                          const SizedBox(
-                            width: 4.0,
-                          ),
-                          Text(
-                            formattedTimestamp(
-                              messages[index].timestamp,
-                              true,
-                            ),
-                            style: Theme.of(context)
-                                .textTheme
-                                .caption!
-                                .copyWith(fontSize: 10),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+                ? SentMessageCard(message: message, msgStatus: msgStatus)
+                : ReceivedMessageCard(message: message);
           },
         );
       },
+    );
+  }
+}
+
+class ReceivedMessageCard extends StatelessWidget {
+  const ReceivedMessageCard({
+    Key? key,
+    required this.message,
+  }) : super(key: key);
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        constraints: BoxConstraints(
+          minHeight: 32,
+          minWidth: 80,
+          maxWidth: MediaQuery.of(context).size.width * 0.88,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: AppColors.receiverMessageColor,
+        ),
+        margin: const EdgeInsets.only(bottom: 4.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 4.0,
+        ),
+        child: Stack(
+          children: [
+            Text(
+              '${message.content}${' ' * 16}',
+              style:
+                  Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 12),
+              softWrap: true,
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Row(
+                children: [
+                  Text(
+                    formattedTimestamp(
+                      message.timestamp,
+                      true,
+                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 10),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SentMessageCard extends StatelessWidget {
+  const SentMessageCard({
+    Key? key,
+    required this.message,
+    required this.msgStatus,
+  }) : super(key: key);
+
+  final Message message;
+  final String msgStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        constraints: BoxConstraints(
+          minHeight: 32,
+          minWidth: 80,
+          maxWidth: MediaQuery.of(context).size.width * 0.88,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: AppColors.senderMessageColor,
+        ),
+        margin: const EdgeInsets.only(bottom: 4.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 4.0,
+        ),
+        child: Stack(
+          children: [
+            Text(
+              '${message.content}${' ' * 20}',
+              style:
+                  Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 12),
+              softWrap: true,
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Row(
+                children: [
+                  Text(
+                    formattedTimestamp(
+                      message.timestamp,
+                      true,
+                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 10),
+                  ),
+                  const SizedBox(
+                    width: 2.0,
+                  ),
+                  Image.asset(
+                    'assets/images/$msgStatus.png',
+                    color: msgStatus != 'SEEN' ? Colors.white : null,
+                    width: 16.0,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
