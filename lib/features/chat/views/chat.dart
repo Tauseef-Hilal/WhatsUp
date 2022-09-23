@@ -25,7 +25,7 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
-    // ref.read(chatInputControllerProvider.notifier).init();
+    ref.read(chatInputControllerProvider.notifier).init();
     super.initState();
   }
 
