@@ -25,7 +25,9 @@ class UserDetailsController extends StateNotifier<File?> {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     _usernameController = TextEditingController();
-    ref.read(emojiPickerControllerProvider.notifier).init();
+    ref
+        .read(emojiPickerControllerProvider.notifier)
+        .init(keyboardVisibility: true);
   }
 
   @override

@@ -40,7 +40,9 @@ class ChatInputController extends StateNotifier<bool> {
   final messageController = TextEditingController();
 
   void init() {
-    ref.read(emojiPickerControllerProvider.notifier).init();
+    ref
+        .read(emojiPickerControllerProvider.notifier)
+        .init(keyboardVisibility: false);
   }
 
   @override

@@ -108,8 +108,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
           children: [
             Expanded(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: ChatStream(
                   self: self,
                   other: other,
@@ -165,7 +164,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 9.0),
+                          padding: const EdgeInsets.only(bottom: 12.0),
                           child: GestureDetector(
                             onTap: ref
                                 .read(
@@ -176,7 +175,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                               showEmojiPicker
                                   ? Icons.keyboard
                                   : Icons.emoji_emotions,
-                              size: 28.0,
+                              size: 24.0,
                               color: AppColors.iconColor,
                             ),
                           ),
@@ -201,9 +200,13 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyText2!
-                                .copyWith(fontSize: 14),
-                            decoration: const InputDecoration(
+                                .copyWith(fontSize: 18),
+                            decoration: InputDecoration(
                               hintText: 'Message',
+                              hintStyle: Theme.of(context)
+                                  .textTheme
+                                  .caption!
+                                  .copyWith(fontSize: 18),
                               border: InputBorder.none,
                             ),
                           ),
@@ -216,13 +219,12 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                             Padding(
                               padding: const EdgeInsets.only(
                                 bottom: 12.0,
-                                right: 8.0,
                               ),
                               child: InkWell(
                                 onTap: () {},
                                 child: const Icon(
                                   Icons.attach_file_rounded,
-                                  size: 24.0,
+                                  size: 20.0,
                                   color: AppColors.iconColor,
                                 ),
                               ),
@@ -231,16 +233,16 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                               Padding(
                                 padding: const EdgeInsets.only(
                                   bottom: 12.0,
-                                  right: 8.0,
+                                  left: 16.0,
                                 ),
                                 child: InkWell(
                                   onTap: () {},
                                   child: const CircleAvatar(
-                                    radius: 11,
+                                    radius: 10,
                                     backgroundColor: AppColors.iconColor,
                                     child: Icon(
                                       Icons.currency_rupee_sharp,
-                                      size: 16,
+                                      size: 14,
                                       color: AppColors.blackColor,
                                     ),
                                   ),
@@ -249,12 +251,13 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                               Padding(
                                 padding: const EdgeInsets.only(
                                   bottom: 12.0,
+                                  left: 16.0,
                                 ),
                                 child: InkWell(
                                   onTap: () {},
                                   child: const Icon(
-                                    Icons.camera_alt,
-                                    size: 24.0,
+                                    Icons.camera_alt_rounded,
+                                    size: 22.0,
                                     color: AppColors.iconColor,
                                   ),
                                 ),
@@ -298,14 +301,17 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             ],
           ),
         ),
-        if (ref.read(emojiPickerControllerProvider.notifier).keyboardVisible)
-          SizedBox(
-            height: MediaQuery.of(context).viewInsets.bottom,
+        Offstage(
+          offstage:
+              !ref.read(emojiPickerControllerProvider.notifier).keyboardVisible,
+          child: SizedBox(
+            height: 0.70 * (MediaQuery.of(context).size.height / 2),
           ),
+        ),
         Offstage(
           offstage: !showEmojiPicker,
           child: SizedBox(
-            height: 0.72 * (MediaQuery.of(context).size.height / 2),
+            height: 0.70 * (MediaQuery.of(context).size.height / 2),
             child: CustomEmojiPicker(
               afterEmojiPlaced: (emoji) => ref
                   .read(chatInputControllerProvider.notifier)
@@ -337,6 +343,7 @@ class ChatStream extends ConsumerStatefulWidget {
 
 class _ChatStreamState extends ConsumerState<ChatStream> {
   final _scrollController = ScrollController();
+  bool initialScroll = true;
 
   @override
   void dispose() {
@@ -345,6 +352,13 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   }
 
   void _scrollToBottom() {
+    if (initialScroll) {
+      // Not the right way ig
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent + 50);
+      initialScroll = false;
+      return;
+    }
+
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
       duration: const Duration(milliseconds: 200),

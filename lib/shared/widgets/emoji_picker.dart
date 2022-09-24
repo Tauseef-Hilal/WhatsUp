@@ -56,12 +56,13 @@ class EmojiPickerController extends StateNotifier<bool> {
 
   late final StreamSubscription<bool> _keyboardSubscription;
   final FocusNode _fieldFocusNode = FocusNode();
-  bool _isKeyboardVisible = true;
+  late bool _isKeyboardVisible;
 
   FocusNode get fieldFocusNode => _fieldFocusNode;
   bool get keyboardVisible => _isKeyboardVisible;
 
-  void init() {
+  void init({required bool keyboardVisibility}) {
+    _isKeyboardVisible = keyboardVisibility;
     _keyboardSubscription = KeyboardVisibilityController().onChange.listen(
       (bool visible) {
         _isKeyboardVisible = visible;
@@ -83,7 +84,7 @@ class EmojiPickerController extends StateNotifier<bool> {
   void toggleEmojiPicker() async {
     if (_isKeyboardVisible) {
       await SystemChannels.textInput.invokeMethod('TextInput.hide');
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
       state = !state;
     } else if (state) {
       _fieldFocusNode.requestFocus();
