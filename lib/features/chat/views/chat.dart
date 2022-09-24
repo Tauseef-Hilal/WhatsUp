@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -197,6 +198,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                             maxLines: 6,
                             minLines: 1,
                             cursorColor: AppColors.tabColor,
+                            cursorHeight: 20,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyText2!
@@ -451,14 +453,15 @@ class ReceivedMessageCard extends StatelessWidget {
         child: Stack(
           children: [
             Text(
-              '${message.content}${' ' * 16}',
-              style:
-                  Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 12),
+              '${message.content}${' ' * 8}',
+              style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                    fontSize: 16,
+                  ),
               softWrap: true,
             ),
             Positioned(
               right: 0,
-              bottom: 0,
+              bottom: 2,
               child: Row(
                 children: [
                   Text(
@@ -469,7 +472,7 @@ class ReceivedMessageCard extends StatelessWidget {
                     style: Theme.of(context)
                         .textTheme
                         .caption!
-                        .copyWith(fontSize: 10),
+                        .copyWith(fontSize: 11),
                   ),
                 ],
               ),
@@ -513,15 +516,17 @@ class SentMessageCard extends StatelessWidget {
         child: Stack(
           children: [
             Text(
-              '${message.content}${' ' * 20}',
-              style:
-                  Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 12),
+              '${message.content}${' ' * 14}',
+              style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                    fontSize: 16,
+                  ),
               softWrap: true,
             ),
             Positioned(
               right: 0,
-              bottom: 0,
+              bottom: 2,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     formattedTimestamp(
@@ -531,7 +536,7 @@ class SentMessageCard extends StatelessWidget {
                     style: Theme.of(context)
                         .textTheme
                         .caption!
-                        .copyWith(fontSize: 10),
+                        .copyWith(fontSize: 11),
                   ),
                   const SizedBox(
                     width: 2.0,
@@ -539,7 +544,7 @@ class SentMessageCard extends StatelessWidget {
                   Image.asset(
                     'assets/images/$msgStatus.png',
                     color: msgStatus != 'SEEN' ? Colors.white : null,
-                    width: 16.0,
+                    width: 15.0,
                   ),
                 ],
               ),

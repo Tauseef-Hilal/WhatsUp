@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,9 +22,14 @@ void main() async {
 
   ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
 
-  runApp(
-    const ProviderScope(
-      child: WhatsApp(),
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.top],
+  ).then(
+    (_) => runApp(
+      const ProviderScope(
+        child: WhatsApp(),
+      ),
     ),
   );
 }
