@@ -130,15 +130,24 @@ class _HomePageState extends ConsumerState<HomePage>
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('WhatsApp'),
+          title: const Text(
+            'WhatsApp',
+            style: TextStyle(color: AppColors.iconColor),
+          ),
           actions: [
             IconButton(
               onPressed: () {},
-              icon: const Icon(Icons.search),
+              icon: const Icon(
+                Icons.search,
+                color: AppColors.iconColor,
+              ),
             ),
             IconButton(
               onPressed: () {},
-              icon: const Icon(Icons.more_vert),
+              icon: const Icon(
+                Icons.more_vert,
+                color: AppColors.iconColor,
+              ),
             ),
           ],
           bottom: TabBar(
@@ -146,7 +155,7 @@ class _HomePageState extends ConsumerState<HomePage>
             indicatorColor: AppColors.tabColor,
             indicatorWeight: 3.0,
             labelColor: AppColors.tabColor,
-            unselectedLabelColor: AppColors.textColor,
+            unselectedLabelColor: AppColors.iconColor,
             tabs: const [
               Tab(
                 text: 'CHATS',
@@ -203,66 +212,75 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
           }
 
           final chats = snapshot.data!;
-          return ListView.builder(
-            itemCount: chats.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              RecentChat chat = chats[index];
-              Message msg = chat.message;
-              String msgContent = chat.message.content;
-              String msgStatus = '';
+          return Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: ListView.builder(
+              itemCount: chats.length,
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                RecentChat chat = chats[index];
+                Message msg = chat.message;
+                String msgContent = chat.message.content;
+                String msgStatus = '';
 
-              if (msg.senderId == widget.user.id) {
-                msgStatus = msg.status.value;
-              }
+                if (msg.senderId == widget.user.id) {
+                  msgStatus = msg.status.value;
+                }
 
-              return ListTile(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ChatPage(
-                        self: widget.user,
-                        other: chat.user,
+                return ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChatPage(
+                          self: widget.user,
+                          other: chat.user,
+                        ),
                       ),
+                    );
+                  },
+                  leading: CircleAvatar(
+                    radius: 24.0,
+                    backgroundImage: NetworkImage(
+                      chat.user.avatarUrl,
                     ),
-                  );
-                },
-                leading: CircleAvatar(
-                  // radius: 24.0,
-                  backgroundImage: NetworkImage(
-                    chat.user.avatarUrl,
                   ),
-                ),
-                title: Text(
-                  chat.user.name,
-                  style: Theme.of(context).textTheme.bodyText2,
-                ),
-                subtitle: Row(
-                  children: [
-                    if (msgStatus.isNotEmpty) ...[
-                      Image.asset(
-                        'assets/images/$msgStatus.png',
-                        color: msgStatus != 'SEEN' ? Colors.white : null,
-                        width: 16.0,
+                  title: Text(
+                    chat.user.name,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText2!
+                        .copyWith(fontSize: 18),
+                  ),
+                  subtitle: Row(
+                    children: [
+                      if (msgStatus.isNotEmpty) ...[
+                        Image.asset(
+                          'assets/images/$msgStatus.png',
+                          color: msgStatus != 'SEEN' ? Colors.white : null,
+                          width: 15.0,
+                        ),
+                        const SizedBox(
+                          width: 2.0,
+                        )
+                      ],
+                      Text(
+                        msgContent.length > 30
+                            ? '${chat.message.content.substring(0, 30)}...'
+                            : chat.message.content,
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption!
+                            .copyWith(fontSize: 14),
                       ),
-                      const SizedBox(
-                        width: 2.0,
-                      )
                     ],
-                    Text(
-                      msgContent.length > 30
-                          ? '${chat.message.content.substring(0, 30)}...'
-                          : chat.message.content,
-                      style: Theme.of(context).textTheme.caption,
-                    ),
-                  ],
-                ),
-                trailing: Text(
-                  formattedTimestamp(chat.message.timestamp),
-                  style: Theme.of(context).textTheme.caption,
-                ),
-              );
-            },
+                  ),
+                  trailing: Text(
+                    formattedTimestamp(chat.message.timestamp),
+                    style: Theme.of(context).textTheme.caption,
+                  ),
+                );
+              },
+            ),
           );
         });
   }

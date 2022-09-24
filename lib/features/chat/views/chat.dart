@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -37,16 +36,17 @@ class _ChatPageState extends ConsumerState<ChatPage>
     final other = widget.other;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         titleSpacing: 0.0,
         title: Row(
           children: [
             CircleAvatar(
+              maxRadius: 18,
               backgroundImage: NetworkImage(other.avatarUrl),
             ),
             const SizedBox(
-              width: 10.0,
+              width: 8.0,
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +56,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                   style: Theme.of(context)
                       .textTheme
                       .bodyText2!
-                      .copyWith(fontSize: 17.0),
+                      .copyWith(fontSize: 18.0),
                 ),
                 StreamBuilder<UserActivityStatus>(
                   stream: ref
@@ -79,7 +79,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
             ),
           ],
         ),
-        leadingWidth: 34.0,
+        leadingWidth: 30.0,
         leading: IconButton(
           onPressed: () => ref
               .read(chatInputControllerProvider.notifier)
@@ -91,12 +91,15 @@ class _ChatPageState extends ConsumerState<ChatPage>
             onPressed: () {},
             icon: const Icon(
               Icons.videocam_rounded,
-              size: 28,
+              size: 22,
             ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.call),
+            icon: const Icon(
+              Icons.call,
+              size: 20,
+            ),
           ),
           IconButton(
             onPressed: () {},
@@ -303,13 +306,13 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             ],
           ),
         ),
-        Offstage(
-          offstage:
-              !ref.read(emojiPickerControllerProvider.notifier).keyboardVisible,
-          child: SizedBox(
-            height: 0.70 * (MediaQuery.of(context).size.height / 2),
-          ),
-        ),
+        // Offstage(
+        //   offstage:
+        //       !ref.read(emojiPickerControllerProvider.notifier).keyboardVisible,
+        //   child: SizedBox(
+        //     height: 0.85 * (MediaQuery.of(context).size.height / 2),
+        //   ),
+        // ),
         Offstage(
           offstage: !showEmojiPicker,
           child: SizedBox(
@@ -453,7 +456,7 @@ class ReceivedMessageCard extends StatelessWidget {
         child: Stack(
           children: [
             Text(
-              '${message.content}${' ' * 8}',
+              message.content + ' ' * 12,
               style: Theme.of(context).textTheme.bodyText2!.copyWith(
                     fontSize: 16,
                   ),
@@ -461,7 +464,7 @@ class ReceivedMessageCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              bottom: 2,
+              bottom: 1,
               child: Row(
                 children: [
                   Text(
@@ -516,7 +519,7 @@ class SentMessageCard extends StatelessWidget {
         child: Stack(
           children: [
             Text(
-              '${message.content}${' ' * 14}',
+              message.content + ' ' * 16,
               style: Theme.of(context).textTheme.bodyText2!.copyWith(
                     fontSize: 16,
                   ),
@@ -524,7 +527,7 @@ class SentMessageCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              bottom: 2,
+              bottom: 1,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
