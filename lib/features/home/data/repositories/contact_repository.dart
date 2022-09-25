@@ -44,7 +44,7 @@ class ContactsRepository {
     return null;
   }
 
-  Future<Map<String, List<Contact>>> getContacts() async {
+  Future<Map<String, List<Contact>>> getContacts({required User self}) async {
     Map<String, List<Contact>> res = {'onWhatsApp': [], 'notOnWhatsApp': []};
 
     final contacts = await FlutterContacts.getContacts(withProperties: true);
@@ -53,7 +53,7 @@ class ContactsRepository {
     for (var contact in contacts) {
       for (var phone in contact.phones) {
         User? user = await firestoreRepo.getUserByPhone(phone.number);
-        if (user != null) {
+        if (user != null && user.id != self.id) {
           res['onWhatsApp']!.add(
             Contact(
               name: contact.displayName,

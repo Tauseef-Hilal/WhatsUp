@@ -23,7 +23,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
 
   @override
   void initState() {
-    ref.read(contactPickerControllerProvider.notifier).init();
+    ref.read(contactPickerControllerProvider.notifier).init(user: widget.user);
     super.initState();
   }
 
@@ -100,7 +100,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
 
                     ref
                         .read(contactPickerControllerProvider.notifier)
-                        .refreshContactsList();
+                        .refreshContactsList(user: widget.user);
                   },
                   child: Text(
                     'Refresh',

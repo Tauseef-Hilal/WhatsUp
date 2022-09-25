@@ -10,8 +10,9 @@ import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 
-final contactsProvider = FutureProvider((ref) async {
-  return ref.watch(contactsRepositoryProvider).getContacts();
+final contactsProvider =
+    FutureProvider.family<Map<String, List<Contact>>, User>((ref, user) async {
+  return ref.watch(contactsRepositoryProvider).getContacts(self: user);
 });
 
 final contactPickerControllerProvider = StateNotifierProvider.autoDispose<
@@ -32,11 +33,11 @@ class ContactPickerController
   ContactPickerController(this.ref)
       : super({'onWhatsApp': [], 'notOnWhatsApp': []});
 
-  Future<void> init() async {
-    _contacts = await ref.read(contactsProvider.future);
+  Future<void> init({required User user}) async {
+    _contacts = await ref.read(contactsProvider(user).future);
     state = _contacts;
 
-    ref.listen(contactsProvider, (previous, next) {
+    ref.listen(contactsProvider(user), (previous, next) {
       next.whenData(
         (value) {
           _contacts = value;
@@ -56,8 +57,8 @@ class ContactPickerController
     ref.read(contactsRepositoryProvider).openContacts();
   }
 
-  void refreshContactsList() {
-    ref.refresh(contactsProvider);
+  void refreshContactsList({required user}) {
+    ref.refresh(contactsProvider(user));
   }
 
   void pickContact(BuildContext context, User sender, Contact contact) async {
