@@ -64,15 +64,15 @@ class _ChatPageState extends ConsumerState<ChatPage>
                       .userActivityStatusStream(userId: other.id),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return Text(
-                        other.activityStatus.value,
-                        style: Theme.of(context).textTheme.caption,
-                      );
+                      return Container();
                     }
-                    return Text(
-                      snapshot.data!.value,
-                      style: Theme.of(context).textTheme.caption,
-                    );
+
+                    return snapshot.data!.value == 'Online'
+                        ? Text(
+                            'Online',
+                            style: Theme.of(context).textTheme.caption,
+                          )
+                        : Container();
                   },
                 ),
               ],
@@ -107,7 +107,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
           ),
         ],
       ),
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('assets/images/chat_bg_dark.png'),
+              fit: BoxFit.cover),
+        ),
         child: Column(
           children: [
             Expanded(
@@ -409,12 +414,27 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
         return ListView.builder(
+          physics: const BouncingScrollPhysics(),
           itemCount: messages.length,
           shrinkWrap: true,
           controller: _scrollController,
           itemBuilder: (context, index) {
             Message message = messages[index];
             String msgStatus = message.status.value;
+
+            if (index == 0 ||
+                messages[index - 1].senderId != messages[index].senderId) {
+              return message.senderId == widget.self.id
+                  ? SentMessageCard(
+                      message: message,
+                      msgStatus: msgStatus,
+                      special: true,
+                    )
+                  : ReceivedMessageCard(
+                      message: message,
+                      special: true,
+                    );
+            }
 
             return message.senderId == widget.self.id
                 ? SentMessageCard(message: message, msgStatus: msgStatus)
@@ -430,9 +450,11 @@ class ReceivedMessageCard extends StatelessWidget {
   const ReceivedMessageCard({
     Key? key,
     required this.message,
+    this.special = false,
   }) : super(key: key);
 
   final Message message;
+  final bool special;
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +470,7 @@ class ReceivedMessageCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10.0),
           color: AppColors.receiverMessageColor,
         ),
-        margin: const EdgeInsets.only(bottom: 4.0),
+        margin: EdgeInsets.only(bottom: 2.0, top: special ? 6.0 : 0),
         padding: const EdgeInsets.symmetric(
           horizontal: 8.0,
           vertical: 4.0,
@@ -492,10 +514,12 @@ class SentMessageCard extends StatelessWidget {
     Key? key,
     required this.message,
     required this.msgStatus,
+    this.special = false,
   }) : super(key: key);
 
   final Message message;
   final String msgStatus;
+  final bool special;
 
   @override
   Widget build(BuildContext context) {
@@ -507,11 +531,11 @@ class SentMessageCard extends StatelessWidget {
           minWidth: 80,
           maxWidth: MediaQuery.of(context).size.width * 0.88,
         ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(10)),
           color: AppColors.senderMessageColor,
         ),
-        margin: const EdgeInsets.only(bottom: 4.0),
+        margin: EdgeInsets.only(bottom: 2.0, top: special ? 6.0 : 0.0),
         padding: const EdgeInsets.symmetric(
           horizontal: 8.0,
           vertical: 4.0,
@@ -527,7 +551,7 @@ class SentMessageCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              bottom: 1,
+              bottom: 0,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

@@ -83,6 +83,7 @@ flutter:
     - assets/images/SENT.png
     - assets/images/DELIVERED.png
     - assets/images/SEEN.png
+    - assets/images/chat_bg_dark.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
