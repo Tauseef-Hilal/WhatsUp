@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/controllers/verification_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/login.dart';
+import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class VerificationPage extends ConsumerStatefulWidget {
-  final String phoneNumber;
+  final Phone phone;
 
   const VerificationPage({
     super.key,
-    required this.phoneNumber,
+    required this.phone,
   });
 
   @override
@@ -63,7 +64,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                         .copyWith(fontSize: 11.0, color: AppColors.textColor1),
                   ),
                   TextSpan(
-                    text: '${widget.phoneNumber}.',
+                    text: '${widget.phone}.',
                     style: Theme.of(context).textTheme.caption!.copyWith(
                         fontSize: 11.0,
                         fontWeight: FontWeight.bold,
@@ -97,7 +98,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
               onFilled: (value) {
                 ref
                     .read(verificationControllerProvider)
-                    .onFilled(context, value);
+                    .onFilled(context, value, widget.phone);
               },
             ),
             const SizedBox(height: 24.0),
@@ -120,7 +121,10 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                             ? null
                             : () => ref
                                 .read(verificationControllerProvider)
-                                .onResendPressed(context, widget.phoneNumber),
+                                .onResendPressed(
+                                  context,
+                                  widget.phone.toString(),
+                                ),
                         style: TextButton.styleFrom(
                           textStyle: Theme.of(context).textTheme.caption,
                           alignment: Alignment.centerLeft,

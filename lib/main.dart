@@ -11,7 +11,7 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'firebase_options.dart';
 
 import 'package:whatsapp_clone/theme/colors.dart';
-import 'package:whatsapp_clone/theme/dark.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,8 +40,9 @@ class WhatsApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      theme: ref.read(lightThemeProvider),
-      darkTheme: ref.read(darkThemeProvider),
+      // FOR NOW
+      // theme: ref.read(lightThemeProvider),
+      theme: ref.read(darkThemeProvider),
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<User?>(
         stream: ref.read(authRepositoryProvider).auth.authStateChanges(),

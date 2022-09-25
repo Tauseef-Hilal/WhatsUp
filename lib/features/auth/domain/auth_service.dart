@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
+import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
 
@@ -46,6 +47,7 @@ class AuthController {
     BuildContext context,
     WidgetRef ref,
     String username,
+    Phone phone,
     File? avatar,
   ) async {
     String uid = authRepository.auth.currentUser!.uid;
@@ -61,7 +63,7 @@ class AuthController {
       id: uid,
       name: username,
       avatarUrl: avatarUrl,
-      phoneNumber: authRepository.auth.currentUser!.phoneNumber!,
+      phone: phone,
       groupIds: [],
       activityStatus: UserActivityStatus.online,
     );

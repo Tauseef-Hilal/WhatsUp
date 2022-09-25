@@ -7,7 +7,7 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
-import 'package:whatsapp_clone/theme/dark.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final User self;
@@ -108,7 +108,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-              image: Theme.of(context).imageForName('chat_bg_dark.png'),
+              image: Theme.of(context).themedImage('chat_bg.png'),
               fit: BoxFit.cover),
         ),
         child: Column(
@@ -451,7 +451,7 @@ class ReceivedMessageCard extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(
-          minHeight: 32,
+          minHeight: 36,
           minWidth: 80,
           maxWidth: MediaQuery.of(context).size.width * 0.88,
         ),
@@ -515,7 +515,7 @@ class SentMessageCard extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Container(
         constraints: BoxConstraints(
-          minHeight: 32,
+          minHeight: 36,
           minWidth: 80,
           maxWidth: MediaQuery.of(context).size.width * 0.88,
         ),

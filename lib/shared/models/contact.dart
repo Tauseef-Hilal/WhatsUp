@@ -1,12 +1,12 @@
 class Contact {
-  final String name;
   final String id;
+  final String name;
   final String phoneNumber;
   final String avatarUrl;
 
   Contact({
-    required this.name,
     this.id = '',
+    required this.name,
     required this.phoneNumber,
     this.avatarUrl = 'http://www.gravatar.com/avatar/?d=mp',
   });
@@ -21,6 +21,7 @@ class Contact {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'avatarUrl': avatarUrl,
       'phoneNumber': phoneNumber,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/user_details.dart';
+import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 const _resendFactor = 1;
@@ -77,7 +78,7 @@ class VerificationController {
     );
   }
 
-  void onFilled(BuildContext context, String smsCode) async {
+  void onFilled(BuildContext context, String smsCode, Phone phone) async {
     final authController = ref.read(authControllerProvider);
 
     return showDialog(
@@ -101,7 +102,9 @@ class VerificationController {
                 Future.delayed(const Duration(seconds: 2), () {
                   Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (context) => const UserProfileCreationPage(),
+                        builder: (context) => UserProfileCreationPage(
+                          phone: phone,
+                        ),
                       ),
                       (route) => false);
                 });

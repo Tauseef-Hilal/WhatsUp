@@ -1,3 +1,5 @@
+import 'package:whatsapp_clone/shared/models/phone.dart';
+
 enum UserActivityStatus {
   online('Online'),
   offline('Offline');
@@ -22,7 +24,7 @@ class User {
   final String id;
   final String name;
   final String avatarUrl;
-  final String phoneNumber;
+  final Phone phone;
   final List groupIds;
   UserActivityStatus activityStatus;
 
@@ -30,18 +32,18 @@ class User {
     required this.id,
     required this.name,
     required this.avatarUrl,
-    required this.phoneNumber,
+    required this.phone,
     required this.groupIds,
     required this.activityStatus,
   });
 
   factory User.fromMap(Map<String, dynamic> userData) {
     return User(
-      id: userData['id'] as String,
-      name: userData['name'] as String,
-      avatarUrl: userData['avatarUrl'] as String,
-      phoneNumber: userData['phoneNumber'] as String,
-      groupIds: userData['groupIds'] as List,
+      id: userData['id'],
+      name: userData['name'],
+      avatarUrl: userData['avatarUrl'],
+      phone: Phone.fromMap(userData['phone']),
+      groupIds: userData['groupIds'],
       activityStatus: UserActivityStatus.fromValue(userData['activityStatus']),
     );
   }
@@ -51,7 +53,7 @@ class User {
       'id': id,
       'name': name,
       'avatarUrl': avatarUrl,
-      'phoneNumber': phoneNumber,
+      'phone': phone.toMap(),
       'groupIds': groupIds,
       'activityStatus': activityStatus.value,
     };

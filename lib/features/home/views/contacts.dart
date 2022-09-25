@@ -7,7 +7,7 @@ import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/widgets/search.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
-import 'package:whatsapp_clone/theme/dark.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
   final User user;

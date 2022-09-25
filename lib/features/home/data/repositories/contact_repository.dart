@@ -36,9 +36,9 @@ class ContactsRepository {
         if (user != null) {
           res['onWhatsApp']!.add(
             Contact(
-              name: user.name,
+              name: contact.displayName,
               id: user.id,
-              phoneNumber: user.phoneNumber,
+              phoneNumber: phone.number,
               avatarUrl: user.avatarUrl,
             ),
           );

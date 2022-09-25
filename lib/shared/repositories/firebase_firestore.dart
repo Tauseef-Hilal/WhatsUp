@@ -106,10 +106,18 @@ class FirebaseFirestoreRepo {
         .replaceAll('(', '')
         .replaceAll(')', '');
 
-    final snap = await firestore
-        .collection('users')
-        .where('phoneNumber', isEqualTo: phoneNumber)
-        .get();
+    QuerySnapshot<Map<String, dynamic>> snap;
+    if (phoneNumber.startsWith('+')) {
+      snap = await firestore
+          .collection('users')
+          .where('phoneNumberWithCode', isEqualTo: phoneNumber)
+          .get();
+    } else {
+      snap = await firestore
+          .collection('users')
+          .where('phone.number', isEqualTo: phoneNumber)
+          .get();
+    }
 
     return snap.size == 0 ? null : User.fromMap(snap.docs[0].data());
   }

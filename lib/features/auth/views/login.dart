@@ -4,6 +4,7 @@ import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
+import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
@@ -25,13 +26,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     ref.listen(verificationCodeProvider, (previous, next) {
-      final phoneNumber =
-          '+${ref.read(loginControllerProvider).phoneCode} ${ref.read(loginControllerProvider.notifier).phoneNumberController.text}';
+      final phone = Phone(
+        code: '+${ref.read(loginControllerProvider).phoneCode.trim()}',
+        number: ref
+            .read(loginControllerProvider.notifier)
+            .phoneNumberController
+            .text
+            .replaceAll(' ', '')
+            .replaceAll('-', '')
+            .replaceAll('(', '')
+            .replaceAll(')', ''),
+      );
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => VerificationPage(
-            phoneNumber: phoneNumber,
-          ),
+          builder: (context) => VerificationPage(phone: phone),
         ),
         (route) => false,
       );
@@ -199,7 +208,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 150, vertical: 55),
+            padding: const EdgeInsets.symmetric(horizontal: 130, vertical: 55),
             child: GreenElevatedButton(
               onPressed: () => ref
                   .read(loginControllerProvider.notifier)

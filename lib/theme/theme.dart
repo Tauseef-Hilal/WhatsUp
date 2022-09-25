@@ -75,10 +75,9 @@ extension CustomTheme on ThemeData {
   CustomThemeData get custom =>
       brightness == Brightness.dark ? _customDarkTheme : _customTheme;
 
-  AssetImage imageForName(String name) {
-    final path = brightness == Brightness.dark
-        ? 'assets/images/dark/'
-        : 'assets/images/';
+  AssetImage themedImage(String name) {
+    final path =
+        brightness == Brightness.dark ? 'assets/images/dark' : 'assets/images';
     return AssetImage('$path/$name');
   }
 }

@@ -3,13 +3,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
+import 'package:whatsapp_clone/shared/models/phone.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
 class UserProfileCreationPage extends ConsumerStatefulWidget {
-  const UserProfileCreationPage({super.key});
+  const UserProfileCreationPage({
+    super.key,
+    required this.phone,
+  });
+
+  final Phone phone;
 
   @override
   ConsumerState<UserProfileCreationPage> createState() =>
@@ -230,13 +236,13 @@ class _UserProfileCreationPageState
               : const Spacer(),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 150,
+              horizontal: 130,
               vertical: 40,
             ),
             child: GreenElevatedButton(
               onPressed: () => ref
                   .read(userDetailsControllerProvider.notifier)
-                  .onNextBtnPressed(context, ref),
+                  .onNextBtnPressed(context, ref, widget.phone),
               text: 'NEXT',
             ),
           ),

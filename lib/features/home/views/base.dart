@@ -11,7 +11,7 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
-import 'package:whatsapp_clone/theme/dark.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 import '../../../theme/colors.dart';
 
 class HomePage extends ConsumerStatefulWidget {
