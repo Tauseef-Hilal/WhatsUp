@@ -78,13 +78,12 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/default_chat_bg.png
     - assets/images/landing_img.png
     - assets/images/SENT.png
     - assets/images/DELIVERED.png
     - assets/images/SEEN.png
-    - assets/images/chat_bg_dark.png
-
+    - assets/images/dark/chat_bg_dark.png
+    - assets/images/chat_bg.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

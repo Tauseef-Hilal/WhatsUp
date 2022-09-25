@@ -122,7 +122,7 @@ class _CountryPageState extends ConsumerState<CountryPage> {
                                       country.name
                                   ? const Icon(
                                       Icons.check,
-                                      color: AppColors.tabColor,
+                                      color: AppColors.greenColor,
                                     )
                                   : const Icon(
                                       Icons.check,

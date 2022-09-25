@@ -7,6 +7,7 @@ import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/widgets/search.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/dark.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
   final User user;
@@ -59,7 +60,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
           _showLoadingIndicator
               ? const Center(
                   child: CircularProgressIndicator(
-                    color: AppColors.tabColor,
+                    color: AppColors.greenColor,
                   ),
                 )
               : const Text(''),
@@ -138,7 +139,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                 child: Text(
                   'No results found for \'${searchQuery.trim()}\'',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).custom.textTheme.caption,
                 ),
               ),
             if (searchQuery.isEmpty)
@@ -152,19 +153,20 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                         vertical: 8.0,
                       ),
                       child: Row(
-                        children: const [
-                          CircleAvatar(
-                            backgroundColor: AppColors.tabColor,
+                        children: [
+                          const CircleAvatar(
+                            backgroundColor: AppColors.greenColor,
                             child: Icon(
                               Icons.people,
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 18.0,
                           ),
                           Text(
                             'New group',
+                            style: Theme.of(context).custom.textTheme.bold,
                           ),
                         ],
                       ),
@@ -180,20 +182,19 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                         vertical: 8.0,
                       ),
                       child: Row(
-                        children: const [
-                          CircleAvatar(
-                            backgroundColor: AppColors.tabColor,
+                        children: [
+                          const CircleAvatar(
+                            backgroundColor: AppColors.greenColor,
                             child: Icon(
                               Icons.person_add,
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 18.0,
                           ),
-                          Text(
-                            'New contact',
-                          ),
+                          Text('New contact',
+                              style: Theme.of(context).custom.textTheme.bold),
                         ],
                       ),
                     ),
@@ -212,7 +213,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                 ),
                 child: Text(
                   'More',
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).custom.textTheme.caption,
                 ),
               ),
             Column(
@@ -228,20 +229,19 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                         vertical: 8.0,
                       ),
                       child: Row(
-                        children: const [
-                          CircleAvatar(
+                        children: [
+                          const CircleAvatar(
                             backgroundColor: AppColors.appBarColor,
                             child: Icon(
                               Icons.person_add,
                               color: AppColors.iconColor,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 18.0,
                           ),
-                          Text(
-                            'New Contact',
-                          ),
+                          Text('New Contact',
+                              style: Theme.of(context).custom.textTheme.bold),
                         ],
                       ),
                     ),
@@ -258,20 +258,19 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       vertical: 8.0,
                     ),
                     child: Row(
-                      children: const [
-                        CircleAvatar(
+                      children: [
+                        const CircleAvatar(
                           backgroundColor: AppColors.appBarColor,
                           child: Icon(
                             Icons.share,
                             color: AppColors.iconColor,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 18.0,
                         ),
-                        Text(
-                          'Share invite link',
-                        ),
+                        Text('Share invite link',
+                            style: Theme.of(context).custom.textTheme.bold),
                       ],
                     ),
                   ),
@@ -286,20 +285,19 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       vertical: 8.0,
                     ),
                     child: Row(
-                      children: const [
-                        CircleAvatar(
+                      children: [
+                        const CircleAvatar(
                           backgroundColor: AppColors.appBarColor,
                           child: Icon(
                             Icons.question_mark,
                             color: AppColors.iconColor,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 18.0,
                         ),
-                        Text(
-                          'Contacts help',
-                        ),
+                        Text('Contacts help',
+                            style: Theme.of(context).custom.textTheme.bold),
                       ],
                     ),
                   ),
@@ -324,7 +322,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
         ),
         child: Text(
           'Contacts on WhatsApp',
-          style: Theme.of(context).textTheme.caption,
+          style: Theme.of(context).custom.textTheme.caption,
         ),
       ),
       WhatsAppContactsList(
@@ -347,7 +345,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
         ),
         child: Text(
           'Invite to WhatsApp',
-          style: Theme.of(context).textTheme.caption,
+          style: Theme.of(context).custom.textTheme.caption,
         ),
       ),
       LocalContactsList(
@@ -392,6 +390,7 @@ class LocalContactsList extends StatelessWidget {
                   ),
                   Text(
                     contact.name,
+                    style: Theme.of(context).custom.textTheme.bold,
                   ),
                   const Expanded(
                     child: SizedBox(
@@ -407,7 +406,7 @@ class LocalContactsList extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .caption!
-                          .copyWith(color: AppColors.tabColor),
+                          .copyWith(color: AppColors.greenColor),
                     ),
                   ),
                   const SizedBox(
@@ -460,15 +459,14 @@ class WhatsAppContactsList extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        contact.name,
-                      ),
+                      Text(contact.name,
+                          style: Theme.of(context).custom.textTheme.bold),
                       const SizedBox(
                         width: 4.0,
                       ),
                       Text(
                         'Hey there! I\'m using WhatsApp.',
-                        style: Theme.of(context).textTheme.caption,
+                        style: Theme.of(context).custom.textTheme.caption,
                       ),
                     ],
                   ),

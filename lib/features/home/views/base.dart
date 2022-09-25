@@ -11,6 +11,7 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/theme/dark.dart';
 import '../../../theme/colors.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -130,9 +131,9 @@ class _HomePageState extends ConsumerState<HomePage>
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'WhatsApp',
-            style: TextStyle(color: AppColors.iconColor),
+            style: Theme.of(context).custom.textTheme.titleLarge,
           ),
           actions: [
             IconButton(
@@ -152,10 +153,11 @@ class _HomePageState extends ConsumerState<HomePage>
           ],
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: AppColors.tabColor,
+            indicatorColor: AppColors.greenColor,
             indicatorWeight: 3.0,
-            labelColor: AppColors.tabColor,
-            unselectedLabelColor: AppColors.iconColor,
+            labelColor: AppColors.greenColor,
+            labelStyle: Theme.of(context).custom.textTheme.labelLarge,
+            unselectedLabelColor: AppColors.greyColor,
             tabs: const [
               Tab(
                 text: 'CHATS',
@@ -246,10 +248,7 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                   ),
                   title: Text(
                     chat.user.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText2!
-                        .copyWith(fontSize: 18),
+                    style: Theme.of(context).custom.textTheme.titleMedium,
                   ),
                   subtitle: Row(
                     children: [
@@ -264,20 +263,14 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                         )
                       ],
                       Text(
-                        msgContent.length > 30
-                            ? '${chat.message.content.substring(0, 30)}...'
-                            : chat.message.content,
-                        style: Theme.of(context)
-                            .textTheme
-                            .caption!
-                            .copyWith(fontSize: 14),
-                      ),
+                          msgContent.length > 20
+                              ? '${chat.message.content.substring(0, 20)}...'
+                              : chat.message.content,
+                          style: Theme.of(context).custom.textTheme.subtitle2)
                     ],
                   ),
-                  trailing: Text(
-                    formattedTimestamp(chat.message.timestamp),
-                    style: Theme.of(context).textTheme.caption,
-                  ),
+                  trailing: Text(formattedTimestamp(chat.message.timestamp),
+                      style: Theme.of(context).custom.textTheme.caption),
                 );
               },
             ),

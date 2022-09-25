@@ -51,7 +51,7 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
                 'Initialising',
                 style: TextStyle(
                   fontSize: 18,
-                  color: AppColors.welcomeTitleColor,
+                  color: AppColors.textColor2,
                 ),
               ),
               const SizedBox(height: 6.0),
@@ -62,13 +62,13 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
               Expanded(
                 child: Image.asset(
                   'assets/images/landing_img.png',
-                  color: AppColors.tabColor,
+                  color: AppColors.greenColor,
                   width: 275,
                   height: 300,
                 ),
               ),
               const CircularProgressIndicator(
-                color: AppColors.tabColor,
+                color: AppColors.greenColor,
               ),
               const SizedBox(height: 12.0),
             ],

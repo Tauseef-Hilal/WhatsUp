@@ -20,7 +20,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
+  // ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
 
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
@@ -40,7 +40,8 @@ class WhatsApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      theme: darkTheme,
+      theme: ref.read(lightThemeProvider),
+      darkTheme: ref.read(darkThemeProvider),
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<User?>(
         stream: ref.read(authRepositoryProvider).auth.authStateChanges(),
@@ -138,7 +139,7 @@ class CustomErrorWidget extends StatelessWidget {
                             textAlign: TextAlign.start,
                             style: const TextStyle(
                               fontSize: 12.0,
-                              color: AppColors.linkColor,
+                              color: AppColors.blueColor,
                             ),
                           ),
                         ],

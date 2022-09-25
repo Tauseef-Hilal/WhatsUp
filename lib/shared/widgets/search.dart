@@ -59,7 +59,7 @@ class _ScaffoldWithSearchState extends State<ScaffoldWithSearch> {
           autofocus: true,
           controller: widget.searchController,
           style: Theme.of(context).textTheme.bodyText2,
-          cursorColor: AppColors.tabColor,
+          cursorColor: AppColors.greenColor,
           decoration: InputDecoration(
             hintText: widget.hintText,
             border: InputBorder.none,

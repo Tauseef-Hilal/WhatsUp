@@ -33,7 +33,7 @@ SnackBar _infoSnackBar(BuildContext context, String content) {
       ),
     ),
     behavior: SnackBarBehavior.floating,
-    backgroundColor: AppColors.tabColor,
+    backgroundColor: AppColors.greenColor,
   );
 }
 

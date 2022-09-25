@@ -26,13 +26,13 @@ class WelcomePage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 25,
                 fontWeight: FontWeight.w600,
-                color: AppColors.welcomeTitleColor,
+                color: AppColors.textColor2,
               ),
             ),
             Expanded(
               child: Image.asset(
                 'assets/images/landing_img.png',
-                color: AppColors.tabColor,
+                color: AppColors.greenColor,
                 width: 275,
                 height: 300,
               ),
@@ -47,12 +47,12 @@ class WelcomePage extends StatelessWidget {
                     TextSpan(text: 'Read our '),
                     TextSpan(
                       text: 'Privacy Policy. ',
-                      style: TextStyle(color: AppColors.linkColor),
+                      style: TextStyle(color: AppColors.blueColor),
                     ),
                     TextSpan(text: 'Tap "Agree and Continue" to accept the'),
                     TextSpan(
                       text: ' Terms of Service.',
-                      style: TextStyle(color: AppColors.linkColor),
+                      style: TextStyle(color: AppColors.blueColor),
                     ),
                   ],
                 ),

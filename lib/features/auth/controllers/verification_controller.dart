@@ -94,7 +94,7 @@ class VerificationController {
                 text = 'Verification complete';
                 widget = const Icon(
                   Icons.check_circle,
-                  color: AppColors.tabColor,
+                  color: AppColors.greenColor,
                   size: 38.0,
                 );
 
@@ -140,7 +140,7 @@ class VerificationController {
                   children: [
                     widget ??
                         const CircularProgressIndicator(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                         ),
                     const SizedBox(
                       width: 24.0,

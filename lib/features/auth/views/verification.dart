@@ -60,14 +60,14 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                     style: Theme.of(context)
                         .textTheme
                         .caption!
-                        .copyWith(fontSize: 11.0, color: AppColors.textColor),
+                        .copyWith(fontSize: 11.0, color: AppColors.textColor1),
                   ),
                   TextSpan(
                     text: '${widget.phoneNumber}.',
                     style: Theme.of(context).textTheme.caption!.copyWith(
                         fontSize: 11.0,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textColor),
+                        color: AppColors.textColor1),
                   ),
                 ],
               ),
@@ -89,7 +89,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                 style: Theme.of(context)
                     .textTheme
                     .caption!
-                    .copyWith(fontSize: 11.0, color: AppColors.linkColor),
+                    .copyWith(fontSize: 11.0, color: AppColors.blueColor),
               ),
             ),
             const SizedBox(height: 8.0),
@@ -124,7 +124,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                         style: TextButton.styleFrom(
                           textStyle: Theme.of(context).textTheme.caption,
                           alignment: Alignment.centerLeft,
-                          foregroundColor: AppColors.tabColor,
+                          foregroundColor: AppColors.greenColor,
                           disabledForegroundColor: AppColors.appBarColor,
                           padding: const EdgeInsets.only(left: 0.0),
                         ),
@@ -137,7 +137,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                                           .notifier)
                                       .isTimerActive
                                   ? AppColors.greyColor
-                                  : AppColors.tabColor,
+                                  : AppColors.greenColor,
                             ),
                             const SizedBox(
                               width: 16.0,
@@ -232,7 +232,7 @@ class _OTPFieldState extends State<OTPField> {
         style: widget.textStyle ??
             const TextStyle(
               fontSize: 20.0,
-              color: AppColors.textColor,
+              color: AppColors.textColor1,
             ),
         autofocus: widget.autofocus ?? index == 0,
         keyboardType: TextInputType.number,
@@ -264,7 +264,7 @@ class _OTPFieldState extends State<OTPField> {
       decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: AppColors.tabColor,
+            color: AppColors.greenColor,
             width: 2.0,
           ),
         ),

@@ -65,14 +65,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall!
-                    .copyWith(color: AppColors.textColor),
+                    .copyWith(color: AppColors.textColor1),
                 children: const [
                   TextSpan(
                     text: 'WhatsApp will need to verify your phone number. ',
                   ),
                   TextSpan(
                     text: 'What\'s my number?',
-                    style: TextStyle(color: AppColors.linkColor),
+                    style: TextStyle(color: AppColors.blueColor),
                   ),
                 ],
               ),
@@ -88,7 +88,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               decoration: const BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: AppColors.tabColor,
+                    color: AppColors.greenColor,
                     width: 1,
                   ),
                 ),
@@ -107,7 +107,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         .showCountryPage(context),
                     child: const Icon(
                       Icons.arrow_drop_down,
-                      color: AppColors.tabColor,
+                      color: AppColors.greenColor,
                     ),
                   ),
                 ],
@@ -130,7 +130,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
-                    cursorColor: AppColors.tabColor,
+                    cursorColor: AppColors.greenColor,
                     controller: ref
                         .read(loginControllerProvider.notifier)
                         .phoneCodeController,
@@ -138,13 +138,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       prefixText: '+ ',
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                           width: 1,
                         ),
                       ),
                       focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                           width: 2,
                         ),
                       ),
@@ -161,7 +161,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     autofocus: true,
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,
-                    cursorColor: AppColors.tabColor,
+                    cursorColor: AppColors.greenColor,
                     controller: ref
                         .read(loginControllerProvider.notifier)
                         .phoneNumberController,
@@ -170,13 +170,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       hintStyle: Theme.of(context).textTheme.bodySmall,
                       enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                           width: 1,
                         ),
                       ),
                       focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                           width: 2,
                         ),
                       ),

@@ -84,7 +84,7 @@ class _UserProfileCreationPageState
                             ),
                             child: const Icon(
                               Icons.camera_alt,
-                              color: AppColors.tabColor,
+                              color: AppColors.greenColor,
                             ),
                           ),
                           const SizedBox(
@@ -118,7 +118,7 @@ class _UserProfileCreationPageState
                             ),
                             child: const Icon(
                               Icons.photo_size_select_actual,
-                              color: AppColors.tabColor,
+                              color: AppColors.greenColor,
                             ),
                           ),
                           const SizedBox(
@@ -186,9 +186,9 @@ class _UserProfileCreationPageState
                         .fieldFocusNode,
                     autofocus: true,
                     style: const TextStyle(
-                      color: AppColors.textColor,
+                      color: AppColors.textColor1,
                     ),
-                    cursorColor: AppColors.tabColor,
+                    cursorColor: AppColors.greenColor,
                     decoration: InputDecoration(
                       hintText: 'Type your name here',
                       hintStyle: Theme.of(context)
@@ -197,13 +197,13 @@ class _UserProfileCreationPageState
                           .copyWith(color: AppColors.iconColor),
                       enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                           width: 1,
                         ),
                       ),
                       focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                           width: 2,
                         ),
                       ),

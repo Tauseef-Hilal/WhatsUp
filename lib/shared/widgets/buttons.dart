@@ -16,8 +16,8 @@ class GreenElevatedButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.tabColor,
-        foregroundColor: AppColors.blackColor,
+        backgroundColor: AppColors.greenColor,
+        foregroundColor: Colors.black,
         minimumSize: const Size(double.infinity, 40),
       ),
       child: Text(text),

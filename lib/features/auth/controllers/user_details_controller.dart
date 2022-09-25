@@ -95,7 +95,7 @@ class UserDetailsController extends StateNotifier<File?> {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall!
-                      .copyWith(color: AppColors.tabColor),
+                      .copyWith(color: AppColors.greenColor),
                 ),
               ),
             ],
@@ -120,7 +120,7 @@ class UserDetailsController extends StateNotifier<File?> {
                 text = 'You\'re all set!';
                 widget = const Icon(
                   Icons.check_circle,
-                  color: AppColors.tabColor,
+                  color: AppColors.greenColor,
                   size: 38.0,
                 );
 
@@ -153,7 +153,7 @@ class UserDetailsController extends StateNotifier<File?> {
                   children: [
                     widget ??
                         const CircularProgressIndicator(
-                          color: AppColors.tabColor,
+                          color: AppColors.greenColor,
                         ),
                     const SizedBox(
                       width: 24.0,

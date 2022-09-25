@@ -179,7 +179,7 @@ class LoginController extends StateNotifier<Country> {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall!
-                      .copyWith(color: AppColors.tabColor),
+                      .copyWith(color: AppColors.greenColor),
                 ),
               ),
             ],
@@ -194,7 +194,7 @@ class LoginController extends StateNotifier<Country> {
       builder: (context) {
         return ConfirmationDialog(
           backgroundColor: AppColors.appBarColor,
-          actionButtonTextColor: AppColors.tabColor,
+          actionButtonTextColor: AppColors.greenColor,
           actionCallbacks: {
             'EDIT': () => Navigator.of(context).pop(),
             'OK': () async {

@@ -32,7 +32,7 @@ class CustomEmojiPicker extends StatelessWidget {
           gridPadding: EdgeInsets.zero,
           initCategory: Category.SMILEYS,
           bgColor: AppColors.backgroundColor,
-          indicatorColor: AppColors.tabColor,
+          indicatorColor: AppColors.greenColor,
           iconColor: AppColors.iconColor,
           iconColorSelected: Colors.white70,
           backspaceColor: AppColors.iconColor,
