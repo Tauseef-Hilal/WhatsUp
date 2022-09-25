@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.whatsapp_clone">
+    package="com.whatsapp.clone">
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
     <!-- Provide required visibility configuration for API level 30 and above -->
@@ -16,7 +16,7 @@
         </intent>
     </queries>
    <application
-        android:label="whatsapp_clone"
+        android:label="WhatsApp Clone"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
