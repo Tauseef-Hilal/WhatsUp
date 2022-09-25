@@ -20,7 +20,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
+  ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
 
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
