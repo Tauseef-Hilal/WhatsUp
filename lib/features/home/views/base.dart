@@ -229,48 +229,61 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                   msgStatus = msg.status.value;
                 }
 
-                return ListTile(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ChatPage(
-                          self: widget.user,
-                          other: chat.user,
+                return FutureBuilder(
+                  future: ref
+                      .read(contactsRepositoryProvider)
+                      .getContactByPhone(chat.user.phone.number),
+                  builder: (context, snapshot) {
+                    return ListTile(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ChatPage(
+                              self: widget.user,
+                              other: chat.user,
+                              otherUserContactName:
+                                  snapshot.data?.name ?? chat.user.name,
+                            ),
+                          ),
+                        );
+                      },
+                      leading: CircleAvatar(
+                        radius: 24.0,
+                        backgroundImage: NetworkImage(
+                          chat.user.avatarUrl,
                         ),
                       ),
+                      title: Text(
+                        snapshot.data?.name ?? chat.user.name,
+                        style: Theme.of(context).custom.textTheme.titleMedium,
+                      ),
+                      subtitle: Row(
+                        children: [
+                          if (msgStatus.isNotEmpty) ...[
+                            Image.asset(
+                              'assets/images/$msgStatus.png',
+                              color: msgStatus != 'SEEN' ? Colors.white : null,
+                              width: 15.0,
+                            ),
+                            const SizedBox(
+                              width: 2.0,
+                            )
+                          ],
+                          Text(
+                              msgContent.length > 20
+                                  ? '${chat.message.content.substring(0, 20)}...'
+                                  : chat.message.content,
+                              style:
+                                  Theme.of(context).custom.textTheme.subtitle2)
+                        ],
+                      ),
+                      trailing: Text(
+                          formattedTimestamp(
+                            chat.message.timestamp,
+                          ),
+                          style: Theme.of(context).custom.textTheme.caption),
                     );
                   },
-                  leading: CircleAvatar(
-                    radius: 24.0,
-                    backgroundImage: NetworkImage(
-                      chat.user.avatarUrl,
-                    ),
-                  ),
-                  title: Text(
-                    chat.user.name,
-                    style: Theme.of(context).custom.textTheme.titleMedium,
-                  ),
-                  subtitle: Row(
-                    children: [
-                      if (msgStatus.isNotEmpty) ...[
-                        Image.asset(
-                          'assets/images/$msgStatus.png',
-                          color: msgStatus != 'SEEN' ? Colors.white : null,
-                          width: 15.0,
-                        ),
-                        const SizedBox(
-                          width: 2.0,
-                        )
-                      ],
-                      Text(
-                          msgContent.length > 20
-                              ? '${chat.message.content.substring(0, 20)}...'
-                              : chat.message.content,
-                          style: Theme.of(context).custom.textTheme.subtitle2)
-                    ],
-                  ),
-                  trailing: Text(formattedTimestamp(chat.message.timestamp),
-                      style: Theme.of(context).custom.textTheme.caption),
                 );
               },
             ),

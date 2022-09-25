@@ -69,7 +69,11 @@ class ContactPickerController
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatPage(self: sender, other: receiver!),
+        builder: (context) => ChatPage(
+          self: sender,
+          other: receiver!,
+          otherUserContactName: contact.name,
+        ),
       ),
     );
   }

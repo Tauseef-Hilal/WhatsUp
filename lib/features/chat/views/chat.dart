@@ -12,11 +12,13 @@ import 'package:whatsapp_clone/theme/theme.dart';
 class ChatPage extends ConsumerStatefulWidget {
   final User self;
   final User other;
+  final String otherUserContactName;
 
   const ChatPage({
     super.key,
     required this.self,
     required this.other,
+    required this.otherUserContactName,
   });
 
   @override
@@ -53,7 +55,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  other.name,
+                  widget.otherUserContactName,
                   style: Theme.of(context).custom.textTheme.titleMedium,
                 ),
                 StreamBuilder<UserActivityStatus>(
@@ -127,7 +129,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
               other: other,
             ),
             const SizedBox(
-              height: 8.0,
+              height: 16.0,
             ),
           ],
         ),

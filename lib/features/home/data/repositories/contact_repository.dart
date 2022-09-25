@@ -24,6 +24,26 @@ class ContactsRepository {
     FlutterContacts.openExternalInsert();
   }
 
+  Future<Contact?> getContactByPhone(String phoneNumber) async {
+    final contacts = await FlutterContacts.getContacts(withProperties: true);
+
+    for (var contact in contacts) {
+      for (var phone in contact.phones) {
+        String phoneNumberWithoutFormatting = phone.number
+            .replaceAll(' ', '')
+            .replaceAll('-', '')
+            .replaceAll('(', '')
+            .replaceAll(')', '');
+
+        if (phoneNumberWithoutFormatting.contains(phoneNumber)) {
+          return Contact(name: contact.displayName, phoneNumber: phoneNumber);
+        }
+      }
+    }
+
+    return null;
+  }
+
   Future<Map<String, List<Contact>>> getContacts() async {
     Map<String, List<Contact>> res = {'onWhatsApp': [], 'notOnWhatsApp': []};
 
