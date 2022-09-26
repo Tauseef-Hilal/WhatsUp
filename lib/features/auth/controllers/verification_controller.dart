@@ -7,7 +7,7 @@ import 'package:whatsapp_clone/features/auth/views/user_details.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
-const _resendFactor = 1;
+const _resendFactor = 5;
 const _resendInitial = 60;
 
 final resendTimerControllerProvider =

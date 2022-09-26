@@ -1,19 +1,19 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
 String strFormattedTime(int seconds) {
-  String result = DateFormat('H:m:s').format(
+  String result = DateFormat('HH:mm:s').format(
     DateTime(2022, 1, 1, 0, 0, seconds),
   );
 
   List resultParts = result.split(':');
-  resultParts.removeWhere((element) => element == '0');
+  resultParts.removeWhere((element) => element == '00');
 
   return resultParts.join(':');
 }
@@ -21,11 +21,10 @@ String strFormattedTime(int seconds) {
 String formattedTimestamp(Timestamp timestamp, [bool timeOnly = false]) {
   DateTime now = DateTime.now();
   DateTime date = timestamp.toDate();
-  Duration timeDelta = now.difference(date);
 
-  if (timeDelta.inDays < 1 || timeOnly) {
+  if (now.day - date.day == 0 || timeOnly) {
     return DateFormat('hh:mm a').format(date);
-  } else if (timeDelta.inDays == 1) {
+  } else if (now.day - date.day == 1) {
     return 'Yesterday';
   }
 
