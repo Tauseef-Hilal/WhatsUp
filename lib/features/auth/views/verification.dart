@@ -64,7 +64,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                         .copyWith(fontSize: 11.0, color: AppColors.textColor1),
                   ),
                   TextSpan(
-                    text: '${widget.phone}.',
+                    text: '${widget.phone.formattedNumber}.',
                     style: Theme.of(context).textTheme.caption!.copyWith(
                         fontSize: 11.0,
                         fontWeight: FontWeight.bold,

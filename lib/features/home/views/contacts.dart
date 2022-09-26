@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
@@ -18,9 +16,6 @@ class ContactsPage extends ConsumerStatefulWidget {
 }
 
 class _CountryPageState extends ConsumerState<ContactsPage> {
-  bool _showLoadingIndicator = false;
-  Timer? _timer;
-
   @override
   void initState() {
     ref.read(contactPickerControllerProvider.notifier).init(user: widget.user);
@@ -41,12 +36,6 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
     bool buildWhatsAppContactsList = contactsOnWhatsApp.isNotEmpty;
     bool buildLocalContactsList = contactsNotOnWhatsApp.isNotEmpty;
 
-    if (_showLoadingIndicator) {
-      Timer(const Duration(microseconds: 500), () {
-        _showLoadingIndicator = false;
-      });
-    }
-
     return ScaffoldWithSearch(
       appBar: AppBar(
         elevation: 0.0,
@@ -57,7 +46,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          _showLoadingIndicator
+          ref.read(contactsProvider(widget.user)).isLoading
               ? const Center(
                   child: CircularProgressIndicator(
                     color: AppColors.greenColor,
@@ -92,12 +81,6 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                   )),
               PopupMenuItem(
                   onTap: () {
-                    if (_timer?.isActive ?? false) return;
-
-                    setState(() {
-                      _showLoadingIndicator = true;
-                    });
-
                     ref
                         .read(contactPickerControllerProvider.notifier)
                         .refreshContactsList(user: widget.user);

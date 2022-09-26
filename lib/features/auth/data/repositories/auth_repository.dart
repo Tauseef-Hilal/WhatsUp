@@ -66,8 +66,6 @@ class FirebaseAuthRepository implements AuthenticationRepository {
 
   @override
   Future<bool> registerUser(Map<String, dynamic> userData) async {
-    userData['phoneNumberWithCode'] =
-        userData['phone']['code'] + userData['phone']['number'];
     await firestore.collection('users').doc(userData['id']).set(userData);
     return true;
   }

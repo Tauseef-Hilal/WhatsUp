@@ -26,6 +26,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     ref.listen(verificationCodeProvider, (previous, next) {
+      final formattedPhoneNumber =
+          '+${ref.read(loginControllerProvider).phoneCode.trim()} ${ref.read(loginControllerProvider.notifier).phoneNumberController.text.trim()}';
       final phone = Phone(
         code: '+${ref.read(loginControllerProvider).phoneCode.trim()}',
         number: ref
@@ -36,6 +38,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             .replaceAll('-', '')
             .replaceAll('(', '')
             .replaceAll(')', ''),
+        formattedNumber: formattedPhoneNumber,
       );
 
       Navigator.of(context).pushAndRemoveUntil(

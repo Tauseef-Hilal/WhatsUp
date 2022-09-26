@@ -29,6 +29,7 @@ class ContactPickerController
 
   final TextEditingController searchController = TextEditingController();
   final AutoDisposeStateNotifierProviderRef ref;
+  bool contactsRefreshing = false;
 
   ContactPickerController(this.ref)
       : super({'onWhatsApp': [], 'notOnWhatsApp': []});

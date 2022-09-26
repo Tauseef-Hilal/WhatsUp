@@ -1,8 +1,7 @@
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
@@ -48,6 +47,12 @@ class _HomePageState extends ConsumerState<HomePage>
     super.didChangeAppLifecycleState(state);
   }
 
+  Future<void> addListenerToContactChanges() async {
+    if (await Permission.contacts.isGranted) {
+      FlutterContacts.addListener(_contactsListener);
+    }
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -55,30 +60,30 @@ class _HomePageState extends ConsumerState<HomePage>
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(_handleTabIndex);
 
-    // Exception needs to be handled for the case - Permission
-    FlutterContacts.addListener(_contactsListener);
+    // Add listener to contact data changes
+    addListenerToContactChanges();
 
     _floatingButtons = [
       FloatingActionButton(
         onPressed: () async {
-          if (!await ref.read(contactsRepositoryProvider).requestPermission()) {
-            final prefs = await SharedPreferences.getInstance();
+          final status = await Permission.contacts.request();
 
-            if (prefs.getBool('showAppSettingsForContactsPerm') ?? false) {
-              return AppSettings.openAppSettings(asAnotherTask: true);
-            }
+          if (status.isGranted && mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ContactsPage(
+                  user: widget.user,
+                ),
+              ),
+            );
 
-            prefs.setBool('showAppSettingsForContactsPerm', true);
             return;
           }
 
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ContactsPage(
-                user: widget.user,
-              ),
-            ),
-          );
+          if (status.isPermanentlyDenied) {
+            await openAppSettings();
+            return;
+          }
         },
         child: const Icon(Icons.chat),
       ),
@@ -241,8 +246,8 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                             builder: (context) => ChatPage(
                               self: widget.user,
                               other: chat.user,
-                              otherUserContactName:
-                                  snapshot.data?.name ?? chat.user.name,
+                              otherUserContactName: snapshot.data?.name ??
+                                  chat.user.phone.formattedNumber,
                             ),
                           ),
                         );
@@ -254,7 +259,7 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                         ),
                       ),
                       title: Text(
-                        snapshot.data?.name ?? chat.user.name,
+                        snapshot.data?.name ?? chat.user.phone.formattedNumber,
                         style: Theme.of(context).custom.textTheme.titleMedium,
                       ),
                       subtitle: Row(

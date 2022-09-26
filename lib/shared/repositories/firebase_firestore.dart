@@ -19,7 +19,6 @@ class FirebaseFirestoreRepo {
     required String userId,
     required String statusValue,
   }) async {
-    print(statusValue);
     await firestore
         .collection('users')
         .doc(userId)
@@ -110,7 +109,7 @@ class FirebaseFirestoreRepo {
     if (phoneNumber.startsWith('+')) {
       snap = await firestore
           .collection('users')
-          .where('phoneNumberWithCode', isEqualTo: phoneNumber)
+          .where('phone.rawNumber', isEqualTo: phoneNumber)
           .get();
     } else {
       snap = await firestore

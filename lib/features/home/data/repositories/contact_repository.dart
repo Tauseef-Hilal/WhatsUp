@@ -1,5 +1,6 @@
 import 'package:flutter_contacts/flutter_contacts.dart' show FlutterContacts;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
@@ -11,10 +12,6 @@ class ContactsRepository {
 
   ContactsRepository(this.ref);
 
-  Future<bool> requestPermission() async {
-    return await FlutterContacts.requestPermission();
-  }
-
   Future<void> openContacts() async {
     // For now
     FlutterContacts.openExternalPick();
@@ -25,6 +22,8 @@ class ContactsRepository {
   }
 
   Future<Contact?> getContactByPhone(String phoneNumber) async {
+    if (!await Permission.contacts.isGranted) return null;
+
     final contacts = await FlutterContacts.getContacts(withProperties: true);
 
     for (var contact in contacts) {
