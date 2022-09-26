@@ -47,6 +47,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
       appBar: AppBar(
         title: const Text('Verifying your number'),
         backgroundColor: AppColors.backgroundColor,
+        centerTitle: true,
       ),
       body: Center(
         child: Column(
