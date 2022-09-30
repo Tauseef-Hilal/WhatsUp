@@ -9,46 +9,19 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 
-final chatInputControllerProvider =
-    StateNotifierProvider.autoDispose<ChatInputController, bool>(
-  (ref) => ChatInputController(ref: ref),
+final chatControllerProvider =
+    StateNotifierProvider.autoDispose<ChatControllerNotifier, ChatController>(
+  (ref) => ChatControllerNotifier(ref: ref),
 );
 
-// class ChatController {
-//   ChatController();
+class ChatController {
+  ChatController({this.hideElements = false, required this.messageController});
 
-//   final TextEditingController messageController = TextEditingController();
+  final bool hideElements;
+  final TextEditingController messageController;
 
-//   void dispose() {
-//     messageController.dispose();
-//   }
-
-//   void navigateToHome(BuildContext context, User user) {
-//     Navigator.pushAndRemoveUntil(
-//         context,
-//         MaterialPageRoute(
-//           builder: (context) => HomePage(user: user),
-//         ),
-//         (route) => false);
-//   }
-// }
-
-class ChatInputController extends StateNotifier<bool> {
-  ChatInputController({required this.ref}) : super(false);
-
-  final AutoDisposeStateNotifierProviderRef ref;
-  final messageController = TextEditingController();
-
-  void init() {
-    ref
-        .read(emojiPickerControllerProvider.notifier)
-        .init(keyboardVisibility: false);
-  }
-
-  @override
   void dispose() {
     messageController.dispose();
-    super.dispose();
   }
 
   void navigateToHome(BuildContext context, User user) {
@@ -60,13 +33,42 @@ class ChatInputController extends StateNotifier<bool> {
         (route) => false);
   }
 
+  ChatController copyWith({
+    bool? hideElements,
+    TextEditingController? controller,
+  }) {
+    return ChatController(
+      hideElements: hideElements ?? this.hideElements,
+      messageController: controller ?? messageController,
+    );
+  }
+}
+
+class ChatControllerNotifier extends StateNotifier<ChatController> {
+  ChatControllerNotifier({required this.ref})
+      : super(ChatController(messageController: TextEditingController()));
+
+  final AutoDisposeStateNotifierProviderRef ref;
+
+  void init() {
+    ref
+        .read(emojiPickerControllerProvider.notifier)
+        .init(keyboardVisibility: false);
+  }
+
+  @override
+  void dispose() {
+    state.dispose();
+    super.dispose();
+  }
+
   void onTextChanged(String value) {
     if (value.isEmpty) {
-      state = false;
+      state = state.copyWith(hideElements: false);
     } else if (value != ' ') {
-      state = true;
+      state = state.copyWith(hideElements: true);
     } else {
-      messageController.text = '';
+      state.messageController.text = '';
     }
   }
 
@@ -79,7 +81,7 @@ class ChatInputController extends StateNotifier<bool> {
 
     final msg = Message(
       id: const Uuid().v4(),
-      content: messageController.text.trim(),
+      content: state.messageController.text.trim(),
       status: status,
       senderId: sender.id,
       receiverId: receiver.id,
@@ -90,7 +92,7 @@ class ChatInputController extends StateNotifier<bool> {
         .read(firebaseFirestoreRepositoryProvider)
         .sendMessage(msg, sender, receiver);
 
-    messageController.text = '';
-    state = false;
+    state.messageController.text = '';
+    state = state.copyWith(hideElements: false);
   }
 }

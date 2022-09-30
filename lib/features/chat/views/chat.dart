@@ -29,7 +29,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
     with WidgetsBindingObserver {
   @override
   void initState() {
-    ref.read(chatInputControllerProvider.notifier).init();
+    ref.read(chatControllerProvider.notifier).init();
     super.initState();
   }
 
@@ -81,9 +81,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
         ),
         leadingWidth: 30.0,
         leading: IconButton(
-          onPressed: () => ref
-              .read(chatInputControllerProvider.notifier)
-              .navigateToHome(context, self),
+          onPressed: () =>
+              ref.read(chatControllerProvider).navigateToHome(context, self),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
@@ -151,7 +150,7 @@ class ChatInput extends ConsumerStatefulWidget {
 class _ChatInputState extends ConsumerState<ChatInput> {
   @override
   Widget build(BuildContext context) {
-    final hideElements = ref.watch(chatInputControllerProvider);
+    final hideElements = ref.watch(chatControllerProvider).hideElements;
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
 
     return Column(
@@ -195,10 +194,10 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         Expanded(
                           child: TextField(
                             onChanged: (value) => ref
-                                .read(chatInputControllerProvider.notifier)
+                                .read(chatControllerProvider.notifier)
                                 .onTextChanged(value),
                             controller: ref
-                                .read(chatInputControllerProvider.notifier)
+                                .read(chatControllerProvider)
                                 .messageController,
                             focusNode: ref
                                 .read(emojiPickerControllerProvider.notifier)
@@ -284,7 +283,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
               hideElements
                   ? InkWell(
                       onTap: () => ref
-                          .read(chatInputControllerProvider.notifier)
+                          .read(chatControllerProvider.notifier)
                           .onSendBtnPressed(ref, widget.self, widget.other),
                       child: const CircleAvatar(
                         radius: 24,
@@ -315,11 +314,10 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             height: 0.70 * (MediaQuery.of(context).size.height / 2),
             child: CustomEmojiPicker(
               afterEmojiPlaced: (emoji) => ref
-                  .read(chatInputControllerProvider.notifier)
+                  .read(chatControllerProvider.notifier)
                   .onTextChanged(emoji.emoji),
-              textController: ref
-                  .read(chatInputControllerProvider.notifier)
-                  .messageController,
+              textController:
+                  ref.read(chatControllerProvider).messageController,
             ),
           ),
         )

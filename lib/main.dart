@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
 import 'package:whatsapp_clone/features/auth/views/welcome.dart';
+import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'firebase_options.dart';
@@ -58,8 +59,7 @@ class WhatsApp extends ConsumerWidget {
                   return Container();
                 }
 
-                // return HomePage(user: snapshot.data!);
-                return VerificationPage(phone: Phone(code: '', number: ''));
+                return HomePage(user: snapshot.data!);
               },
             );
           }
