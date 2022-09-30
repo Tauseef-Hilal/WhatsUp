@@ -1,7 +1,11 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
@@ -228,7 +232,9 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                                 bottom: 12.0,
                               ),
                               child: InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  onAttachmentsIconPressed(context);
+                                },
                                 child: const Icon(
                                   Icons.attach_file_rounded,
                                   size: 20.0,
@@ -322,6 +328,124 @@ class _ChatInputState extends ConsumerState<ChatInput> {
           ),
         )
       ],
+    );
+  }
+
+  void onAttachmentsIconPressed(BuildContext context) {
+    showDialog(
+      barrierColor: null,
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(16.0),
+            ),
+          ),
+          backgroundColor: AppColors.appBarColor,
+          insetPadding: EdgeInsets.only(
+            left: 12.0,
+            right: 12.0,
+            top: MediaQuery.of(context).size.height - 500,
+          ),
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+              vertical: 16.0,
+            ),
+            child: GridView.count(
+              crossAxisCount: 3,
+              shrinkWrap: true,
+              children: [
+                LabelledButton(
+                  onTap: () async {
+                    if (!await hasPermission(Permission.storage)) return;
+                    await pickFile();
+                  },
+                  backgroundColor: Colors.deepPurpleAccent,
+                  label: 'Document',
+                  child: const Icon(
+                    Icons.insert_page_break,
+                    size: 28,
+                    color: Colors.white,
+                  ),
+                ),
+                LabelledButton(
+                  onTap: () {},
+                  label: 'Camera',
+                  backgroundColor: Colors.redAccent[400],
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    size: 28,
+                    color: Colors.white,
+                  ),
+                ),
+                LabelledButton(
+                  onTap: () async {
+                    if (!await hasPermission(Permission.storage)) return;
+                    await pickImageFromGallery();
+                  },
+                  label: 'Gallery',
+                  backgroundColor: Colors.purple[400],
+                  child: const Icon(
+                    Icons.photo_size_select_actual_rounded,
+                    size: 28,
+                    color: Colors.white,
+                  ),
+                ),
+                LabelledButton(
+                  onTap: () async {
+                    if (!await hasPermission(Permission.storage)) return;
+                    await pickFile(FileType.audio);
+                  },
+                  label: 'Audio',
+                  backgroundColor: Colors.orange[900],
+                  child: const Icon(
+                    Icons.headphones_rounded,
+                    size: 28,
+                    color: Colors.white,
+                  ),
+                ),
+                LabelledButton(
+                  onTap: () {},
+                  label: 'Location',
+                  backgroundColor: Colors.green[600],
+                  child: const Icon(
+                    Icons.location_on,
+                    size: 28,
+                    color: Colors.white,
+                  ),
+                ),
+                LabelledButton(
+                  onTap: () {},
+                  label: 'Payment',
+                  backgroundColor: Colors.teal[600],
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.currency_rupee_rounded,
+                      size: 18,
+                      color: Colors.teal[600],
+                    ),
+                  ),
+                ),
+                LabelledButton(
+                  onTap: () {},
+                  label: 'Contact',
+                  backgroundColor: Colors.blue[600],
+                  child: const Icon(
+                    Icons.person,
+                    size: 28,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -431,141 +555,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           },
         );
       },
-    );
-  }
-}
-
-class ReceivedMessageCard extends StatelessWidget {
-  const ReceivedMessageCard({
-    Key? key,
-    required this.message,
-    this.special = false,
-  }) : super(key: key);
-
-  final Message message;
-  final bool special;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(
-          minHeight: 36,
-          minWidth: 80,
-          maxWidth: MediaQuery.of(context).size.width * 0.88,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          color: AppColors.incomingMessageBubbleColor,
-        ),
-        margin: EdgeInsets.only(bottom: 2.0, top: special ? 6.0 : 0),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8.0,
-          vertical: 4.0,
-        ),
-        child: Stack(
-          children: [
-            Text(
-              message.content + ' ' * 12,
-              style: Theme.of(context).custom.textTheme.bodyText1,
-              softWrap: true,
-            ),
-            Positioned(
-              right: 0,
-              bottom: 1,
-              child: Row(
-                children: [
-                  Text(
-                    formattedTimestamp(
-                      message.timestamp,
-                      true,
-                    ),
-                    style: Theme.of(context)
-                        .custom
-                        .textTheme
-                        .caption
-                        .copyWith(fontSize: 11, color: AppColors.textColor2),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SentMessageCard extends StatelessWidget {
-  const SentMessageCard({
-    Key? key,
-    required this.message,
-    required this.msgStatus,
-    this.special = false,
-  }) : super(key: key);
-
-  final Message message;
-  final String msgStatus;
-  final bool special;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        constraints: BoxConstraints(
-          minHeight: 36,
-          minWidth: 80,
-          maxWidth: MediaQuery.of(context).size.width * 0.88,
-        ),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-          color: AppColors.outgoingMessageBubbleColor,
-        ),
-        margin: EdgeInsets.only(bottom: 2.0, top: special ? 6.0 : 0.0),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8.0,
-          vertical: 4.0,
-        ),
-        child: Stack(
-          children: [
-            Text(
-              message.content + ' ' * 16,
-              style: Theme.of(context).custom.textTheme.bodyText1,
-              softWrap: true,
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    formattedTimestamp(
-                      message.timestamp,
-                      true,
-                    ),
-                    style: Theme.of(context)
-                        .custom
-                        .textTheme
-                        .caption
-                        .copyWith(fontSize: 11, color: AppColors.textColor2),
-                  ),
-                  const SizedBox(
-                    width: 2.0,
-                  ),
-                  Image.asset(
-                    'assets/images/$msgStatus.png',
-                    color: msgStatus != 'SEEN' ? Colors.white : null,
-                    width: 15.0,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

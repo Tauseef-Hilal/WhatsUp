@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/auth_complete.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
@@ -52,13 +53,15 @@ class UserDetailsController extends StateNotifier<File?> {
   }
 
   void setImageFromCamera(BuildContext context) async {
+    if (!await hasPermission(Permission.camera)) return;
+
     state = await capturePhoto();
-    Navigator.of(context).pop();
   }
 
   void setImageFromGallery(BuildContext context) async {
+    if (Platform.isIOS && !await hasPermission(Permission.camera)) return;
+
     state = await pickImageFromGallery();
-    Navigator.of(context).pop();
   }
 
   void onNextBtnPressed(

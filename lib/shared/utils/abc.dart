@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
@@ -52,6 +54,27 @@ Future<bool> isConnected() async {
       return true;
     }
   } on SocketException catch (_) {}
+
+  return false;
+}
+
+Future<File?> pickFile([FileType fileType = FileType.any]) async {
+  FilePickerResult? result =
+      await FilePicker.platform.pickFiles(type: fileType);
+
+  return result != null ? File(result.files.single.path!) : null;
+}
+
+Future<bool> hasPermission(Permission permission) async {
+  PermissionStatus status = await permission.status;
+  if (status.isGranted) {
+    return true;
+  }
+
+  status = await permission.request();
+  if (status.isPermanentlyDenied) {
+    await openAppSettings();
+  }
 
   return false;
 }

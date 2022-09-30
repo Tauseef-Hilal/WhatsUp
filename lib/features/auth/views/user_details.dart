@@ -73,9 +73,14 @@ class _UserProfileCreationPageState
                 Row(
                   children: [
                     InkWell(
-                      onTap: () => ref
-                          .read(userDetailsControllerProvider.notifier)
-                          .setImageFromCamera(context),
+                      onTap: () {
+                        ref
+                            .read(userDetailsControllerProvider.notifier)
+                            .setImageFromCamera(context);
+
+                        if (!mounted) return;
+                        Navigator.of(context).pop();
+                      },
                       child: Column(
                         children: [
                           Container(
@@ -107,9 +112,14 @@ class _UserProfileCreationPageState
                       width: 24.0,
                     ),
                     InkWell(
-                      onTap: () => ref
-                          .read(userDetailsControllerProvider.notifier)
-                          .setImageFromGallery(context),
+                      onTap: () {
+                        ref
+                            .read(userDetailsControllerProvider.notifier)
+                            .setImageFromGallery(context);
+
+                        if (!mounted) return;
+                        Navigator.of(context).pop();
+                      },
                       child: Column(
                         children: [
                           Container(

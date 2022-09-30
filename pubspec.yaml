@@ -54,6 +54,7 @@ dependencies:
   url_launcher: ^6.1.5
   uuid: ^3.0.6
   permission_handler: ^10.0.1
+  file_picker: ^5.2.0+1
   
 dev_dependencies:
   rename: ^2.0.1

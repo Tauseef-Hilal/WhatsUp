@@ -66,24 +66,15 @@ class _HomePageState extends ConsumerState<HomePage>
     _floatingButtons = [
       FloatingActionButton(
         onPressed: () async {
-          final status = await Permission.contacts.request();
+          if (!await hasPermission(Permission.contacts)) return;
 
-          if (status.isGranted && mounted) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ContactsPage(
-                  user: widget.user,
-                ),
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ContactsPage(
+                user: widget.user,
               ),
-            );
-
-            return;
-          }
-
-          if (status.isPermanentlyDenied) {
-            await openAppSettings();
-            return;
-          }
+            ),
+          );
         },
         child: const Icon(Icons.chat),
       ),
