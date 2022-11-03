@@ -53,7 +53,7 @@ class UserDetailsController extends StateNotifier<File?> {
   }
 
   void setImageFromCamera(BuildContext context) async {
-    if (!await hasPermission(Permission.camera)) return;
+    if (Platform.isIOS && !await hasPermission(Permission.camera)) return;
 
     state = await capturePhoto();
   }

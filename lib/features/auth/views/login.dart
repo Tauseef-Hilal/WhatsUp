@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
@@ -17,6 +19,8 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  bool gotKeyboardHeight = false;
+
   @override
   void initState() {
     ref.read(loginControllerProvider.notifier).init();
@@ -169,7 +173,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 SizedBox(
                   width: 0.70 * (screenWidth * 0.60),
                   child: TextField(
-                    onChanged: (value) {},
+                    onChanged: (value) async {
+                      if (!gotKeyboardHeight) {
+                        var sharedPreferences =
+                            await SharedPreferences.getInstance();
+
+                        if (!mounted) return;
+
+                        sharedPreferences.setDouble(
+                          'keyboardHeight',
+                          MediaQuery.of(context).viewInsets.bottom,
+                        );
+
+                        ref.read(keyboardHeightProvider.notifier).state =
+                            await getKeyboardHeight();
+
+                        gotKeyboardHeight = true;
+                      }
+                    },
                     autofocus: true,
                     style: Theme.of(context).textTheme.bodyText2,
                     keyboardType: TextInputType.phone,

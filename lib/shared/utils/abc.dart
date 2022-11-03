@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
@@ -78,3 +80,10 @@ Future<bool> hasPermission(Permission permission) async {
 
   return false;
 }
+
+Future<double> getKeyboardHeight() async {
+  var sharedPreferences = await SharedPreferences.getInstance();
+  return sharedPreferences.getDouble('keyboardHeight')!;
+}
+
+StateProvider keyboardHeightProvider = StateProvider((ref) => 0.0,);

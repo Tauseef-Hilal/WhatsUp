@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,18 +34,12 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage>
     with WidgetsBindingObserver {
   @override
-  void initState() {
-    ref.read(chatControllerProvider.notifier).init();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final self = widget.self;
     final other = widget.other;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         titleSpacing: 0.0,
         title: Row(
@@ -83,7 +79,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
             ),
           ],
         ),
-        leadingWidth: 30.0,
+        leadingWidth: 32.0,
         leading: IconButton(
           onPressed: () =>
               ref.read(chatControllerProvider).navigateToHome(context, self),
@@ -127,6 +123,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 ),
               ),
             ),
+            const SizedBox(
+              height: 8.0,
+            ),
             ChatInput(
               self: self,
               other: other,
@@ -152,6 +151,17 @@ class ChatInput extends ConsumerStatefulWidget {
 }
 
 class _ChatInputState extends ConsumerState<ChatInput> {
+  late final double keyboardHeight;
+
+  @override
+  void initState() {
+    keyboardHeight = ref.read(keyboardHeightProvider.notifier).state;
+    ref
+        .read(emojiPickerControllerProvider.notifier)
+        .init(keyboardVisibility: false);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final hideElements = ref.watch(chatControllerProvider).hideElements;
@@ -184,7 +194,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                                 )
                                 .toggleEmojiPicker,
                             child: Icon(
-                              showEmojiPicker
+                              showEmojiPicker == 1
                                   ? Icons.keyboard
                                   : Icons.emoji_emotions,
                               size: 24.0,
@@ -314,19 +324,26 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             ],
           ),
         ),
-        Offstage(
-          offstage: !showEmojiPicker,
-          child: SizedBox(
-            height: 0.70 * (MediaQuery.of(context).size.height / 2),
-            child: CustomEmojiPicker(
-              afterEmojiPlaced: (emoji) => ref
-                  .read(chatControllerProvider.notifier)
-                  .onTextChanged(emoji.emoji),
-              textController:
-                  ref.read(chatControllerProvider).messageController,
-            ),
-          ),
-        )
+        if (ref.read(emojiPickerControllerProvider.notifier).keyboardVisible ||
+            showEmojiPicker == 1) ...[
+          Stack(
+            children: [
+              SizedBox(
+                height: Platform.isIOS ? keyboardHeight + 38.0 : keyboardHeight,
+              ),
+              Offstage(
+                offstage: showEmojiPicker != 1,
+                child: CustomEmojiPicker(
+                  afterEmojiPlaced: (emoji) => ref
+                      .read(chatControllerProvider.notifier)
+                      .onTextChanged(emoji.emoji),
+                  textController:
+                      ref.read(chatControllerProvider).messageController,
+                ),
+              )
+            ],
+          )
+        ],
       ],
     );
   }
@@ -481,7 +498,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
       initialScroll = false;
       return;
     }
-
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
       duration: const Duration(milliseconds: 200),

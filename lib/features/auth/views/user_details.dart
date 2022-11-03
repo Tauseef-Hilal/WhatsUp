@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
@@ -25,10 +26,12 @@ class UserProfileCreationPage extends ConsumerStatefulWidget {
 class _UserProfileCreationPageState
     extends ConsumerState<UserProfileCreationPage> {
   File? userImg;
+  late double keyboardHeight;
 
   @override
   void initState() {
     ref.read(userDetailsControllerProvider.notifier).init();
+    keyboardHeight = ref.read(keyboardHeightProvider.notifier).state;
     super.initState();
   }
 
@@ -159,6 +162,7 @@ class _UserProfileCreationPageState
 
   @override
   Widget build(BuildContext context) {
+    final keyboardHeight = ref.watch(keyboardHeightProvider);
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
     userImg = ref.watch(userDetailsControllerProvider);
 
@@ -176,7 +180,7 @@ class _UserProfileCreationPageState
             style: Theme.of(context).textTheme.caption,
           ),
           const SizedBox(
-            height: 16.0,
+            height: 24.0,
           ),
           GestureDetector(
             onTap: () => showImageSources(context),
@@ -186,6 +190,9 @@ class _UserProfileCreationPageState
               backgroundColor: AppColors.appBarColor,
               child: userImg == null ? const Icon(Icons.add_a_photo) : null,
             ),
+          ),
+          const SizedBox(
+            height: 4.0,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -231,19 +238,16 @@ class _UserProfileCreationPageState
                       .read(emojiPickerControllerProvider.notifier)
                       .toggleEmojiPicker(),
                   child: Icon(
-                    showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions,
+                    showEmojiPicker == 1
+                        ? Icons.keyboard
+                        : Icons.emoji_emotions,
                     color: AppColors.iconColor,
                   ),
                 ),
               ],
             ),
           ),
-          showEmojiPicker ||
-                  ref
-                      .read(emojiPickerControllerProvider.notifier)
-                      .keyboardVisible
-              ? const Text('')
-              : const Spacer(),
+          const Spacer(),
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 130,
@@ -256,17 +260,26 @@ class _UserProfileCreationPageState
               text: 'NEXT',
             ),
           ),
-          showEmojiPicker ? const Spacer() : const Text(''),
-          Offstage(
-            offstage: !showEmojiPicker,
-            child: SizedBox(
-              height: 0.75 * (MediaQuery.of(context).size.height / 2),
-              child: CustomEmojiPicker(
-                  textController: ref
-                      .read(userDetailsControllerProvider.notifier)
-                      .usernameController),
-            ),
-          ),
+          if (ref
+                  .read(emojiPickerControllerProvider.notifier)
+                  .keyboardVisible ||
+              showEmojiPicker == 1) ...[
+            Stack(
+              children: [
+                SizedBox(
+                  height: keyboardHeight + 38.0,
+                ),
+                Offstage(
+                  offstage: showEmojiPicker != 1,
+                  child: CustomEmojiPicker(
+                    textController: ref
+                        .read(userDetailsControllerProvider.notifier)
+                        .usernameController,
+                  ),
+                )
+              ],
+            )
+          ],
         ],
       ),
     );

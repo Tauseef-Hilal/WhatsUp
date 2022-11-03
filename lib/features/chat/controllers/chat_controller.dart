@@ -50,12 +50,6 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
 
   final AutoDisposeStateNotifierProviderRef ref;
 
-  void init() {
-    ref
-        .read(emojiPickerControllerProvider.notifier)
-        .init(keyboardVisibility: false);
-  }
-
   @override
   void dispose() {
     state.dispose();

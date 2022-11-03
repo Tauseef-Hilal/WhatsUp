@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
-class CustomEmojiPicker extends StatelessWidget {
+class CustomEmojiPicker extends ConsumerWidget {
   const CustomEmojiPicker({
     super.key,
     required this.textController,
@@ -18,9 +19,9 @@ class CustomEmojiPicker extends StatelessWidget {
   final void Function(Emoji emoji)? afterEmojiPlaced;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      height: 0.75 * (MediaQuery.of(context).size.height / 2),
+      height: ref.read(keyboardHeightProvider.notifier).state,
       child: EmojiPicker(
         textEditingController: textController,
         onEmojiSelected: (_, emoji) => afterEmojiPlaced?.call(emoji),
@@ -34,7 +35,7 @@ class CustomEmojiPicker extends StatelessWidget {
           bgColor: AppColors.backgroundColor,
           indicatorColor: AppColors.greenColor,
           iconColor: AppColors.iconColor,
-          iconColorSelected: Colors.white70,
+          iconColorSelected: Color.fromARGB(179, 105, 47, 47),
           backspaceColor: AppColors.iconColor,
           showRecentsTab: true,
           recentsLimit: 28,
@@ -51,8 +52,8 @@ class CustomEmojiPicker extends StatelessWidget {
   }
 }
 
-class EmojiPickerController extends StateNotifier<bool> {
-  EmojiPickerController() : super(false);
+class EmojiPickerController extends StateNotifier<int> {
+  EmojiPickerController() : super(-1);
 
   late final StreamSubscription<bool> _keyboardSubscription;
   final FocusNode _fieldFocusNode = FocusNode();
@@ -68,7 +69,9 @@ class EmojiPickerController extends StateNotifier<bool> {
         _isKeyboardVisible = visible;
 
         if (visible) {
-          state = false;
+          state = 0;
+        } else {
+          state = -1;
         }
       },
     );
@@ -85,17 +88,17 @@ class EmojiPickerController extends StateNotifier<bool> {
     if (_isKeyboardVisible) {
       await SystemChannels.textInput.invokeMethod('TextInput.hide');
       await Future.delayed(const Duration(milliseconds: 50));
-      state = !state;
-    } else if (state) {
+      state = 1;
+    } else if (state == 1) {
       _fieldFocusNode.requestFocus();
       await SystemChannels.textInput.invokeMethod('TextInput.show');
     } else {
-      state = !state;
+      state = state == 1 ? 0 : 1;
     }
   }
 }
 
 final emojiPickerControllerProvider =
-    StateNotifierProvider.autoDispose<EmojiPickerController, bool>(
+    StateNotifierProvider.autoDispose<EmojiPickerController, int>(
   (ref) => EmojiPickerController(),
 );

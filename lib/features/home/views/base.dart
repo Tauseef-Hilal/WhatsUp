@@ -31,12 +31,15 @@ class _HomePageState extends ConsumerState<HomePage>
   late List<Widget> _floatingButtons;
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     switch (state) {
       case AppLifecycleState.resumed:
         ref.read(firebaseFirestoreRepositoryProvider).setActivityStatus(
             userId: widget.user.id,
             statusValue: UserActivityStatus.online.value);
+
+        ref.read(keyboardHeightProvider.notifier).state =
+            await getKeyboardHeight();
         break;
       default:
         ref.read(firebaseFirestoreRepositoryProvider).setActivityStatus(
