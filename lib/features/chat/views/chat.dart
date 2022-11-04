@@ -484,6 +484,13 @@ class ChatStream extends ConsumerStatefulWidget {
 class _ChatStreamState extends ConsumerState<ChatStream> {
   final _scrollController = ScrollController();
   bool initialScroll = true;
+  bool showDownArrayBtn = false;
+
+  @override
+  void initState() {
+    _scrollController.addListener(_scrollListener);
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -512,13 +519,26 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         .sendMessage(message, widget.self, widget.other);
   }
 
+  void _scrollListener() {
+    if (maxScrollExtentAcquired()) {
+      showDownArrayBtn = false;
+    } else {
+      showDownArrayBtn = true;
+    }
+
+    setState(() {});
+  }
+
+  bool maxScrollExtentAcquired() =>
+      _scrollController.position.pixels >=
+      _scrollController.position.maxScrollExtent;
+
   @override
   Widget build(BuildContext context) {
     ref.listen(emojiPickerControllerProvider, ((previous, next) {
       if ((ref.read(emojiPickerControllerProvider.notifier).keyboardVisible ||
               next == 1) &&
-          _scrollController.position.pixels ==
-              _scrollController.position.maxScrollExtent) {
+          maxScrollExtentAcquired()) {
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       }
     }));
@@ -551,6 +571,8 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (showDownArrayBtn) return;
+
           if (initialScroll) {
             _scrollToBottom();
             initialScroll = false;
@@ -559,33 +581,50 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           }
         });
 
-        return ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          itemCount: messages.length,
-          shrinkWrap: true,
-          controller: _scrollController,
-          itemBuilder: (context, index) {
-            Message message = messages[index];
-            String msgStatus = message.status.value;
+        return Stack(
+          children: [
+            ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: messages.length,
+              shrinkWrap: true,
+              controller: _scrollController,
+              itemBuilder: (context, index) {
+                Message message = messages[index];
+                String msgStatus = message.status.value;
 
-            if (index == 0 ||
-                messages[index - 1].senderId != messages[index].senderId) {
-              return message.senderId == widget.self.id
-                  ? SentMessageCard(
-                      message: message,
-                      msgStatus: msgStatus,
-                      special: true,
-                    )
-                  : ReceivedMessageCard(
-                      message: message,
-                      special: true,
-                    );
-            }
+                if (index == 0 ||
+                    messages[index - 1].senderId != messages[index].senderId) {
+                  return message.senderId == widget.self.id
+                      ? SentMessageCard(
+                          message: message,
+                          msgStatus: msgStatus,
+                          special: true,
+                        )
+                      : ReceivedMessageCard(
+                          message: message,
+                          special: true,
+                        );
+                }
 
-            return message.senderId == widget.self.id
-                ? SentMessageCard(message: message, msgStatus: msgStatus)
-                : ReceivedMessageCard(message: message);
-          },
+                return message.senderId == widget.self.id
+                    ? SentMessageCard(message: message, msgStatus: msgStatus)
+                    : ReceivedMessageCard(message: message);
+              },
+            ),
+            if (showDownArrayBtn) ...[
+              Positioned(
+                bottom: 2.0,
+                right: 2.0,
+                child: GestureDetector(
+                  onTap: _scrollToBottom,
+                  child: const CircleAvatar(
+                    backgroundColor: AppColors.appBarColor,
+                    child: Icon(Icons.keyboard_double_arrow_down),
+                  ),
+                ),
+              )
+            ],
+          ],
         );
       },
     );
