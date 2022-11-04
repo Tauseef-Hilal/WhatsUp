@@ -35,7 +35,7 @@ class CustomEmojiPicker extends ConsumerWidget {
           bgColor: AppColors.backgroundColor,
           indicatorColor: AppColors.greenColor,
           iconColor: AppColors.iconColor,
-          iconColorSelected: Color.fromARGB(179, 105, 47, 47),
+          iconColorSelected: AppColors.textColor2,
           backspaceColor: AppColors.iconColor,
           showRecentsTab: true,
           recentsLimit: 28,
@@ -58,6 +58,7 @@ class EmojiPickerController extends StateNotifier<int> {
   late final StreamSubscription<bool> _keyboardSubscription;
   final FocusNode _fieldFocusNode = FocusNode();
   late bool _isKeyboardVisible;
+  bool notify = true;
 
   FocusNode get fieldFocusNode => _fieldFocusNode;
   bool get keyboardVisible => _isKeyboardVisible;
@@ -70,7 +71,7 @@ class EmojiPickerController extends StateNotifier<int> {
 
         if (visible) {
           state = 0;
-        } else {
+        } else if (notify) {
           state = -1;
         }
       },
@@ -86,15 +87,23 @@ class EmojiPickerController extends StateNotifier<int> {
 
   void toggleEmojiPicker() async {
     if (_isKeyboardVisible) {
+      notify = false;
+
       await SystemChannels.textInput.invokeMethod('TextInput.hide');
       await Future.delayed(const Duration(milliseconds: 50));
+
       state = 1;
-    } else if (state == 1) {
+      notify = true;
+      return;
+    }
+
+    if (state == 1) {
       _fieldFocusNode.requestFocus();
       await SystemChannels.textInput.invokeMethod('TextInput.show');
-    } else {
-      state = state == 1 ? 0 : 1;
+      return;
     }
+
+    state = state == 1 ? 0 : 1;
   }
 }
 

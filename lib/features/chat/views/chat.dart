@@ -491,13 +491,14 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (initialScroll) {
-      // Not the right way ig
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent + 50);
-      initialScroll = false;
+  void _scrollToBottom([bool animate = false]) {
+    if (!animate) {
+      _scrollController.jumpTo(
+        _scrollController.position.maxScrollExtent,
+      );
       return;
     }
+
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
       duration: const Duration(milliseconds: 200),
@@ -513,6 +514,15 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(emojiPickerControllerProvider, ((previous, next) {
+      if ((ref.read(emojiPickerControllerProvider.notifier).keyboardVisible ||
+              next == 1) &&
+          _scrollController.position.pixels ==
+              _scrollController.position.maxScrollExtent) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    }));
+
     return StreamBuilder<List<Message>>(
       stream: ref
           .read(firebaseFirestoreRepositoryProvider)
@@ -540,7 +550,14 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           );
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (initialScroll) {
+            _scrollToBottom();
+            initialScroll = false;
+          } else {
+            _scrollToBottom(true);
+          }
+        });
 
         return ListView.builder(
           physics: const BouncingScrollPhysics(),
