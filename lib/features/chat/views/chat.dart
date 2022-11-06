@@ -8,6 +8,7 @@ import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
@@ -151,11 +152,10 @@ class ChatInput extends ConsumerStatefulWidget {
 }
 
 class _ChatInputState extends ConsumerState<ChatInput> {
-  late final double keyboardHeight;
+  final double keyboardHeight = SharedPref.getDouble('keyboardHeight');
 
   @override
   void initState() {
-    keyboardHeight = ref.read(keyboardHeightProvider.notifier).state;
     ref
         .read(emojiPickerControllerProvider.notifier)
         .init(keyboardVisibility: false);

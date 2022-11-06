@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/colors.dart';
 
@@ -21,7 +22,7 @@ class CustomEmojiPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      height: ref.read(keyboardHeightProvider.notifier).state,
+      height: SharedPref.getDouble('keyboardHeight'),
       child: EmojiPicker(
         textEditingController: textController,
         onEmojiSelected: (_, emoji) => afterEmojiPlaced?.call(emoji),

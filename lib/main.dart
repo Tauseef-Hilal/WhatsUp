@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/features/auth/views/welcome.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'firebase_options.dart';
 
@@ -19,6 +20,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await SharedPref.init();
 
   ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
 

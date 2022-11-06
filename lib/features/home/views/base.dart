@@ -37,9 +37,6 @@ class _HomePageState extends ConsumerState<HomePage>
         ref.read(firebaseFirestoreRepositoryProvider).setActivityStatus(
             userId: widget.user.id,
             statusValue: UserActivityStatus.online.value);
-
-        ref.read(keyboardHeightProvider.notifier).state =
-            await getKeyboardHeight();
         break;
       default:
         ref.read(firebaseFirestoreRepositoryProvider).setActivityStatus(

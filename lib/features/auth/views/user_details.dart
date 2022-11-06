@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
@@ -26,12 +26,11 @@ class UserProfileCreationPage extends ConsumerStatefulWidget {
 class _UserProfileCreationPageState
     extends ConsumerState<UserProfileCreationPage> {
   File? userImg;
-  late double keyboardHeight;
+  final double keyboardHeight = SharedPref.getDouble('keyboardHeight');
 
   @override
   void initState() {
     ref.read(userDetailsControllerProvider.notifier).init();
-    keyboardHeight = ref.read(keyboardHeightProvider.notifier).state;
     super.initState();
   }
 
@@ -162,7 +161,6 @@ class _UserProfileCreationPageState
 
   @override
   Widget build(BuildContext context) {
-    final keyboardHeight = ref.watch(keyboardHeightProvider);
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
     userImg = ref.watch(userDetailsControllerProvider);
 
