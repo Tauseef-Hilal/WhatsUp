@@ -7,7 +7,6 @@ import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
-import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatControllerNotifier, ChatController>(
