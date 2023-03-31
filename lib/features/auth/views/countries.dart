@@ -16,6 +16,10 @@ class _CountryPageState extends ConsumerState<CountryPage> {
   @override
   void initState() {
     ref.read(countryPickerControllerProvider.notifier).init();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      
+      ref.read(countryPickerControllerProvider.notifier).initialUpdate();
+    });
     super.initState();
   }
 

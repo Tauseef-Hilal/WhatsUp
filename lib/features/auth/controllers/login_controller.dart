@@ -259,18 +259,21 @@ class CountryPickerController extends StateNotifier<List<Country>> {
   void init() {
     searchController = TextEditingController();
     _countries = countriesList;
-
-    final selectedCountry = ref.read(loginControllerProvider);
-    state = [
-      selectedCountry,
-      ...countriesList.where((country) => country != selectedCountry).toList()
-    ];
   }
 
   @override
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  void initialUpdate() {
+    final selectedCountry = ref.read(loginControllerProvider);
+
+    state = [
+      selectedCountry,
+      ...countriesList.where((country) => country != selectedCountry).toList()
+    ];
   }
 
   void setCountry(BuildContext context, Country country) {

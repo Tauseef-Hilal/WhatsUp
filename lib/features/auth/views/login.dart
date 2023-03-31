@@ -142,7 +142,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           .read(loginControllerProvider.notifier)
                           .onPhoneCodeChanged(value);
                     },
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
                     cursorColor: AppColors.greenColor,
@@ -183,7 +183,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       }
                     },
                     autofocus: true,
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
                     cursorColor: AppColors.greenColor,
                     controller: ref
@@ -214,7 +214,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             padding: const EdgeInsets.only(top: 16.0),
             child: Text(
               'Carrier charges may apply.',
-              style: Theme.of(context).textTheme.caption,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
           const Expanded(

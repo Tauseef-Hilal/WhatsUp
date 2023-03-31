@@ -105,7 +105,7 @@ class _UserProfileCreationPageState
                           ),
                           Text(
                             'Camera',
-                            style: Theme.of(context).textTheme.caption,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -144,7 +144,7 @@ class _UserProfileCreationPageState
                           ),
                           Text(
                             'Gallery',
-                            style: Theme.of(context).textTheme.caption,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -175,7 +175,7 @@ class _UserProfileCreationPageState
         children: [
           Text(
             'Please provide your name and an optional profile photo',
-            style: Theme.of(context).textTheme.caption,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(
             height: 24.0,
@@ -214,7 +214,7 @@ class _UserProfileCreationPageState
                       hintText: 'Type your name here',
                       hintStyle: Theme.of(context)
                           .textTheme
-                          .bodyText1!
+                          .bodyLarge!
                           .copyWith(color: AppColors.iconColor),
                       enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
