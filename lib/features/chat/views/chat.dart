@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,7 +48,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
           children: [
             CircleAvatar(
               maxRadius: 18,
-              backgroundImage: NetworkImage(other.avatarUrl),
+              backgroundImage: CachedNetworkImageProvider(other.avatarUrl),
             ),
             const SizedBox(
               width: 8.0,
@@ -71,7 +72,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     return snapshot.data!.value == 'Online'
                         ? Text(
                             'Online',
-                            style: Theme.of(context).textTheme.caption,
+                            style: Theme.of(context).textTheme.bodySmall,
                           )
                         : Container();
                   },

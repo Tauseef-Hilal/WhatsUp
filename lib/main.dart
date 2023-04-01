@@ -44,7 +44,6 @@ class WhatsApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       // FOR NOW
-      // theme: ref.read(lightThemeProvider),
       theme: ref.read(darkThemeProvider),
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<User?>(

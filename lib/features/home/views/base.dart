@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,6 +68,7 @@ class _HomePageState extends ConsumerState<HomePage>
       FloatingActionButton(
         onPressed: () async {
           if (!await hasPermission(Permission.contacts)) return;
+          if (!mounted) return;
 
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -132,6 +134,13 @@ class _HomePageState extends ConsumerState<HomePage>
             style: Theme.of(context).custom.textTheme.titleLarge,
           ),
           actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.camera_alt_outlined,
+                color: AppColors.iconColor,
+              ),
+            ),
             IconButton(
               onPressed: () {},
               icon: const Icon(
@@ -210,79 +219,119 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
           }
 
           final chats = snapshot.data!;
-          return Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: ListView.builder(
-              itemCount: chats.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                RecentChat chat = chats[index];
-                Message msg = chat.message;
-                String msgContent = chat.message.content;
-                String msgStatus = '';
+          return ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ListView.builder(
+                  itemCount: chats.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    RecentChat chat = chats[index];
+                    Message msg = chat.message;
+                    String msgContent = chat.message.content;
+                    String msgStatus = '';
 
-                if (msg.senderId == widget.user.id) {
-                  msgStatus = msg.status.value;
-                }
+                    if (msg.senderId == widget.user.id) {
+                      msgStatus = msg.status.value;
+                    }
 
-                return FutureBuilder(
-                  future: ref
-                      .read(contactsRepositoryProvider)
-                      .getContactByPhone(chat.user.phone.number),
-                  builder: (context, snapshot) {
-                    return ListTile(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ChatPage(
-                              self: widget.user,
-                              other: chat.user,
-                              otherUserContactName: snapshot.data?.name ??
-                                  chat.user.phone.formattedNumber,
+                    return FutureBuilder(
+                      future: ref
+                          .read(contactsRepositoryProvider)
+                          .getContactByPhone(chat.user.phone.number),
+                      builder: (context, snapshot) {
+                        return ListTile(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                  self: widget.user,
+                                  other: chat.user,
+                                  otherUserContactName: snapshot.data?.name ??
+                                      chat.user.phone.formattedNumber,
+                                ),
+                              ),
+                            );
+                          },
+                          leading: CircleAvatar(
+                            radius: 28.0,
+                            backgroundImage: CachedNetworkImageProvider(
+                              chat.user.avatarUrl,
                             ),
                           ),
+                          title: Text(
+                            snapshot.data?.name ??
+                                chat.user.phone.formattedNumber,
+                            style:
+                                Theme.of(context).custom.textTheme.titleMedium,
+                          ),
+                          subtitle: Row(
+                            children: [
+                              if (msgStatus.isNotEmpty) ...[
+                                Image.asset(
+                                  'assets/images/$msgStatus.png',
+                                  color:
+                                      msgStatus != 'SEEN' ? Colors.white : null,
+                                  width: 15.0,
+                                ),
+                                const SizedBox(
+                                  width: 2.0,
+                                )
+                              ],
+                              Text(
+                                  msgContent.length > 20
+                                      ? '${chat.message.content.substring(0, 20)}...'
+                                      : chat.message.content,
+                                  style: Theme.of(context)
+                                      .custom
+                                      .textTheme
+                                      .subtitle2)
+                            ],
+                          ),
+                          trailing: Text(
+                              formattedTimestamp(
+                                chat.message.timestamp,
+                              ),
+                              style:
+                                  Theme.of(context).custom.textTheme.caption),
                         );
                       },
-                      leading: CircleAvatar(
-                        radius: 24.0,
-                        backgroundImage: NetworkImage(
-                          chat.user.avatarUrl,
-                        ),
-                      ),
-                      title: Text(
-                        snapshot.data?.name ?? chat.user.phone.formattedNumber,
-                        style: Theme.of(context).custom.textTheme.titleMedium,
-                      ),
-                      subtitle: Row(
-                        children: [
-                          if (msgStatus.isNotEmpty) ...[
-                            Image.asset(
-                              'assets/images/$msgStatus.png',
-                              color: msgStatus != 'SEEN' ? Colors.white : null,
-                              width: 15.0,
-                            ),
-                            const SizedBox(
-                              width: 2.0,
-                            )
-                          ],
-                          Text(
-                              msgContent.length > 20
-                                  ? '${chat.message.content.substring(0, 20)}...'
-                                  : chat.message.content,
-                              style:
-                                  Theme.of(context).custom.textTheme.subtitle2)
-                        ],
-                      ),
-                      trailing: Text(
-                          formattedTimestamp(
-                            chat.message.timestamp,
-                          ),
-                          style: Theme.of(context).custom.textTheme.caption),
                     );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.lock,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.bodySmall,
+                        children: const [
+                          TextSpan(
+                            text: 'Your personal messages are ',
+                            style: TextStyle(color: AppColors.greyColor),
+                          ),
+                          TextSpan(
+                            text: 'end-to-end encrypted',
+                            style: TextStyle(color: AppColors.greenColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           );
         });
   }

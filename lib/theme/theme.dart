@@ -39,15 +39,15 @@ final _customDarkTheme = CustomThemeData();
 // EXTENSIONS AND CLASSES
 class CustomTextTheme {
   final titleLarge = const TextStyle(
-    fontSize: 18,
+    fontSize: 20,
     color: AppColors.greyColor,
   );
   final titleMedium = const TextStyle(
-    fontSize: 16,
+    fontSize: 18,
     color: AppColors.textColor1,
   );
   final labelLarge = const TextStyle(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w600,
     color: AppColors.greyColor,
   );
