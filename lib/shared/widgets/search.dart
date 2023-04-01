@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class ScaffoldWithSearch extends StatefulWidget {
   final AppBar appBar;
@@ -58,10 +58,19 @@ class _ScaffoldWithSearchState extends State<ScaffoldWithSearch> {
           },
           autofocus: true,
           controller: widget.searchController,
-          style: Theme.of(context).textTheme.bodyText2,
-          cursorColor: AppColors.greenColor,
+          style: Theme.of(context)
+              .custom
+              .textTheme
+              .subtitle1
+              .copyWith(color: Colors.white),
+          cursorColor: Theme.of(context).custom.colorTheme.greenColor,
           decoration: InputDecoration(
             hintText: widget.hintText,
+            hintStyle: Theme.of(context)
+                .custom
+                .textTheme
+                .subtitle1
+                .copyWith(color: Colors.white),
             border: InputBorder.none,
           ),
         ),

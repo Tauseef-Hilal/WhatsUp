@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class GreenElevatedButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -16,8 +16,8 @@ class GreenElevatedButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.greenColor,
-        foregroundColor: Colors.black,
+        backgroundColor: Theme.of(context).custom.colorTheme.greenColor,
+        foregroundColor: Theme.of(context).custom.colorTheme.backgroundColor,
         minimumSize: const Size(double.infinity, 40),
       ),
       child: Text(text),

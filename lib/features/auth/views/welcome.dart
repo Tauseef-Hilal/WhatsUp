@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/features/auth/views/login.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -15,24 +15,25 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
     return Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 50),
-            const Text(
+            Text(
               'Welcome to WhatsApp',
               style: TextStyle(
                 fontSize: 25,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textColor2,
+                color: colorTheme.textColor2,
               ),
             ),
             Expanded(
               child: Image.asset(
                 'assets/images/landing_img.png',
-                color: AppColors.greenColor,
+                color: colorTheme.greenColor,
                 width: 275,
                 height: 300,
               ),
@@ -42,17 +43,18 @@ class WelcomePage extends StatelessWidget {
               child: RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: Theme.of(context).textTheme.caption,
-                  children: const [
-                    TextSpan(text: 'Read our '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  children: [
+                    const TextSpan(text: 'Read our '),
                     TextSpan(
                       text: 'Privacy Policy. ',
-                      style: TextStyle(color: AppColors.blueColor),
+                      style: TextStyle(color: colorTheme.blueColor),
                     ),
-                    TextSpan(text: 'Tap "Agree and Continue" to accept the'),
+                    const TextSpan(
+                        text: 'Tap "Agree and Continue" to accept the'),
                     TextSpan(
                       text: ' Terms of Service.',
-                      style: TextStyle(color: AppColors.blueColor),
+                      style: TextStyle(color: colorTheme.blueColor),
                     ),
                   ],
                 ),

@@ -6,7 +6,8 @@ import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/countries.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/dialogs.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/color_theme.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 final defaultCountryProvider = Provider(
   (ref) => Country(
@@ -136,6 +137,8 @@ class LoginController extends StateNotifier<Country> {
   }
 
   void onNextBtnPressed(context) async {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     String phoneNumberWithCode =
         '+${state.phoneCode} ${phoneNumberController.text}';
 
@@ -173,11 +176,11 @@ class LoginController extends StateNotifier<Country> {
         builder: (context) {
           return AlertDialog(
             actionsPadding: const EdgeInsets.all(0),
-            backgroundColor: AppColors.appBarColor,
-            content: Text(
-              errorMsg,
-              style: Theme.of(context).textTheme.bodySmall!,
-            ),
+            backgroundColor: AppColorsDark.appBarColor,
+            content: Text(errorMsg,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColorsDark.textColor1,
+                    )),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -186,7 +189,7 @@ class LoginController extends StateNotifier<Country> {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall!
-                      .copyWith(color: AppColors.greenColor),
+                      .copyWith(color: colorTheme.greenColor),
                 ),
               ),
             ],
@@ -200,8 +203,8 @@ class LoginController extends StateNotifier<Country> {
       context: context,
       builder: (context) {
         return ConfirmationDialog(
-          backgroundColor: AppColors.appBarColor,
-          actionButtonTextColor: AppColors.greenColor,
+          backgroundColor: AppColorsDark.appBarColor,
+          actionButtonTextColor: colorTheme.greenColor,
           actionCallbacks: {
             'EDIT': () => Navigator.of(context).pop(),
             'OK': () async {
@@ -220,21 +223,25 @@ class LoginController extends StateNotifier<Country> {
             children: [
               Text(
                 'You entered the phone number:',
-                style: Theme.of(context).textTheme.bodySmall!,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColorsDark.textColor1,
+                    ),
               ),
               const SizedBox(height: 16.0),
               Text(
                 phoneNumberWithCode,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall!
-                    .copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColorsDark.textColor1,
+                    ),
               ),
               const SizedBox(height: 16.0),
               Text(
                 'Is this OK, or would you like to edit '
                 'the number?',
-                style: Theme.of(context).textTheme.bodySmall!,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColorsDark.textColor1,
+                    ),
               ),
             ],
           ),

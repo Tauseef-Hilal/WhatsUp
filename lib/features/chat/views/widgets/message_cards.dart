@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 class ReceivedMessageCard extends StatelessWidget {
@@ -16,6 +15,7 @@ class ReceivedMessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -26,7 +26,7 @@ class ReceivedMessageCard extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          color: AppColors.incomingMessageBubbleColor,
+          color: colorTheme.incomingMessageBubbleColor,
         ),
         margin: EdgeInsets.only(bottom: 2.0, top: special ? 6.0 : 0),
         padding: const EdgeInsets.symmetric(
@@ -54,7 +54,7 @@ class ReceivedMessageCard extends StatelessWidget {
                         .custom
                         .textTheme
                         .caption
-                        .copyWith(fontSize: 11, color: AppColors.textColor2),
+                        .copyWith(fontSize: 11, color: colorTheme.textColor2),
                   ),
                 ],
               ),
@@ -80,6 +80,8 @@ class SentMessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
@@ -88,9 +90,9 @@ class SentMessageCard extends StatelessWidget {
           minWidth: 80,
           maxWidth: MediaQuery.of(context).size.width * 0.88,
         ),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-          color: AppColors.outgoingMessageBubbleColor,
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          color: colorTheme.outgoingMessageBubbleColor,
         ),
         margin: EdgeInsets.only(bottom: 2.0, top: special ? 6.0 : 0.0),
         padding: const EdgeInsets.symmetric(
@@ -119,14 +121,14 @@ class SentMessageCard extends StatelessWidget {
                         .custom
                         .textTheme
                         .caption
-                        .copyWith(fontSize: 11, color: AppColors.textColor2),
+                        .copyWith(fontSize: 11, color: colorTheme.textColor2),
                   ),
                   const SizedBox(
                     width: 2.0,
                   ),
                   Image.asset(
                     'assets/images/$msgStatus.png',
-                    color: msgStatus != 'SEEN' ? Colors.white : null,
+                    color: msgStatus != 'SEEN' ? colorTheme.greyColor : null,
                     width: 15.0,
                   ),
                 ],

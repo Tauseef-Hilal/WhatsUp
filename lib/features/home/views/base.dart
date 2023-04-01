@@ -12,7 +12,7 @@ import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
-import '../../../theme/colors.dart';
+import '../../../theme/color_theme.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   final User user;
@@ -84,7 +84,7 @@ class _HomePageState extends ConsumerState<HomePage>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            backgroundColor: AppColors.appBarColor,
+            backgroundColor: AppColorsDark.appBarColor,
             onPressed: () {},
             child: const Icon(Icons.edit),
           ),
@@ -107,6 +107,7 @@ class _HomePageState extends ConsumerState<HomePage>
   }
 
   void _contactsListener() {
+    // ignore: unused_result
     ref.refresh(contactsRepositoryProvider);
   }
 
@@ -125,44 +126,47 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).custom.textTheme;
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
             'WhatsApp',
-            style: Theme.of(context).custom.textTheme.titleLarge,
+            style: textTheme.titleLarge.copyWith(color: colorTheme.iconColor),
           ),
           actions: [
             IconButton(
               onPressed: () {},
-              icon: const Icon(
+              icon: Icon(
                 Icons.camera_alt_outlined,
-                color: AppColors.iconColor,
+                color: colorTheme.iconColor,
               ),
             ),
             IconButton(
               onPressed: () {},
-              icon: const Icon(
+              icon: Icon(
                 Icons.search,
-                color: AppColors.iconColor,
+                color: colorTheme.iconColor,
               ),
             ),
             IconButton(
               onPressed: () {},
-              icon: const Icon(
+              icon: Icon(
                 Icons.more_vert,
-                color: AppColors.iconColor,
+                color: colorTheme.iconColor,
               ),
             ),
           ],
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: AppColors.greenColor,
+            indicatorColor: colorTheme.indicatorColor,
             indicatorWeight: 3.0,
-            labelColor: AppColors.greenColor,
-            labelStyle: Theme.of(context).custom.textTheme.labelLarge,
-            unselectedLabelColor: AppColors.greyColor,
+            labelColor: colorTheme.selectedLabelColor,
+            labelStyle: textTheme.labelLarge,
+            unselectedLabelColor: colorTheme.unselectedLabelColor,
             tabs: const [
               Tab(
                 text: 'CHATS',
@@ -209,6 +213,8 @@ class RecentChats extends ConsumerStatefulWidget {
 class _RecentChatsState extends ConsumerState<RecentChats> {
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     return StreamBuilder<List<RecentChat>>(
         stream: ref
             .read(firebaseFirestoreRepositoryProvider)
@@ -263,16 +269,20 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                           title: Text(
                             snapshot.data?.name ??
                                 chat.user.phone.formattedNumber,
-                            style:
-                                Theme.of(context).custom.textTheme.titleMedium,
+                            style: Theme.of(context)
+                                .custom
+                                .textTheme
+                                .titleMedium
+                                .copyWith(color: colorTheme.textColor1),
                           ),
                           subtitle: Row(
                             children: [
                               if (msgStatus.isNotEmpty) ...[
                                 Image.asset(
                                   'assets/images/$msgStatus.png',
-                                  color:
-                                      msgStatus != 'SEEN' ? Colors.white : null,
+                                  color: msgStatus != 'SEEN'
+                                      ? colorTheme.greyColor
+                                      : null,
                                   width: 15.0,
                                 ),
                                 const SizedBox(
@@ -290,11 +300,20 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                             ],
                           ),
                           trailing: Text(
-                              formattedTimestamp(
-                                chat.message.timestamp,
-                              ),
-                              style:
-                                  Theme.of(context).custom.textTheme.caption),
+                            formattedTimestamp(
+                              chat.message.timestamp,
+                            ),
+                            style: Theme.of(context)
+                                .custom
+                                .textTheme
+                                .caption
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .custom
+                                      .colorTheme
+                                      .greyColor,
+                                ),
+                          ),
                         );
                       },
                     );
@@ -307,23 +326,26 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.lock,
                       size: 18,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? colorTheme.greyColor
+                          : colorTheme.iconColor,
                     ),
                     const SizedBox(width: 4),
                     RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: Theme.of(context).textTheme.bodySmall,
-                        children: const [
+                        children: [
                           TextSpan(
                             text: 'Your personal messages are ',
-                            style: TextStyle(color: AppColors.greyColor),
+                            style: TextStyle(color: colorTheme.greyColor),
                           ),
                           TextSpan(
                             text: 'end-to-end encrypted',
-                            style: TextStyle(color: AppColors.greenColor),
+                            style: TextStyle(color: colorTheme.greenColor),
                           ),
                         ],
                       ),

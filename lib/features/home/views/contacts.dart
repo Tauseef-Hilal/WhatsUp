@@ -4,7 +4,6 @@ import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dar
 import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/widgets/search.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
@@ -24,6 +23,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
     final searchResults = ref.watch(contactPickerControllerProvider);
     final contactsOnWhatsApp = searchResults['onWhatsApp']!;
     final contactsNotOnWhatsApp = searchResults['notOnWhatsApp']!;
@@ -47,15 +47,15 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
         ),
         actions: [
           ref.read(contactsProvider(widget.user)).isLoading
-              ? const Center(
+              ? Center(
                   child: CircularProgressIndicator(
-                    color: AppColors.greenColor,
+                    color: colorTheme.greenColor,
                   ),
                 )
               : const Text(''),
           PopupMenuButton(
             onSelected: (value) {},
-            color: AppColors.appBarColor,
+            color: colorTheme.appBarColor,
             child: const Padding(
               padding: EdgeInsets.all(8.0),
               child: Icon(Icons.more_vert),
@@ -69,7 +69,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       ),
                   child: Text(
                     'Invite a friend',
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )),
               PopupMenuItem(
                   onTap: ref
@@ -77,7 +77,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       .openContacts,
                   child: Text(
                     'Contacts',
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )),
               PopupMenuItem(
                   onTap: () {
@@ -87,7 +87,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                   },
                   child: Text(
                     'Refresh',
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )),
               PopupMenuItem(
                   onTap: ref
@@ -95,7 +95,7 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       .showHelp,
                   child: Text(
                     'Help',
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )),
             ],
           ),
@@ -137,9 +137,9 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       ),
                       child: Row(
                         children: [
-                          const CircleAvatar(
-                            backgroundColor: AppColors.greenColor,
-                            child: Icon(
+                          CircleAvatar(
+                            backgroundColor: colorTheme.greenColor,
+                            child: const Icon(
                               Icons.people,
                               color: Colors.white,
                             ),
@@ -166,9 +166,9 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       ),
                       child: Row(
                         children: [
-                          const CircleAvatar(
-                            backgroundColor: AppColors.greenColor,
-                            child: Icon(
+                          CircleAvatar(
+                            backgroundColor: colorTheme.greenColor,
+                            child: const Icon(
                               Icons.person_add,
                               color: Colors.white,
                             ),
@@ -213,11 +213,11 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                       ),
                       child: Row(
                         children: [
-                          const CircleAvatar(
-                            backgroundColor: AppColors.appBarColor,
+                          CircleAvatar(
+                            backgroundColor: colorTheme.appBarColor,
                             child: Icon(
                               Icons.person_add,
-                              color: AppColors.iconColor,
+                              color: colorTheme.iconColor,
                             ),
                           ),
                           const SizedBox(
@@ -242,11 +242,11 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                     ),
                     child: Row(
                       children: [
-                        const CircleAvatar(
-                          backgroundColor: AppColors.appBarColor,
+                        CircleAvatar(
+                          backgroundColor: colorTheme.appBarColor,
                           child: Icon(
                             Icons.share,
-                            color: AppColors.iconColor,
+                            color: colorTheme.iconColor,
                           ),
                         ),
                         const SizedBox(
@@ -269,11 +269,11 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
                     ),
                     child: Row(
                       children: [
-                        const CircleAvatar(
-                          backgroundColor: AppColors.appBarColor,
+                        CircleAvatar(
+                          backgroundColor: colorTheme.appBarColor,
                           child: Icon(
                             Icons.question_mark,
-                            color: AppColors.iconColor,
+                            color: colorTheme.iconColor,
                           ),
                         ),
                         const SizedBox(
@@ -386,10 +386,9 @@ class LocalContactsList extends StatelessWidget {
                         .sendSms(contact.phoneNumber),
                     child: Text(
                       'INVITE',
-                      style: Theme.of(context)
-                          .textTheme
-                          .caption!
-                          .copyWith(color: AppColors.greenColor),
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color:
+                              Theme.of(context).custom.colorTheme.greenColor),
                     ),
                   ),
                   const SizedBox(

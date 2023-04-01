@@ -59,6 +59,7 @@ class ContactPickerController
   }
 
   void refreshContactsList({required user}) {
+    // ignore: unused_result
     ref.refresh(contactsProvider(user));
   }
 

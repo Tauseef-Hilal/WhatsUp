@@ -3,7 +3,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/shared/widgets/search.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class CountryPage extends ConsumerStatefulWidget {
   const CountryPage({super.key});
@@ -17,7 +17,6 @@ class _CountryPageState extends ConsumerState<CountryPage> {
   void initState() {
     ref.read(countryPickerControllerProvider.notifier).init();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      
       ref.read(countryPickerControllerProvider.notifier).initialUpdate();
     });
     super.initState();
@@ -26,6 +25,7 @@ class _CountryPageState extends ConsumerState<CountryPage> {
   @override
   Widget build(BuildContext context) {
     final searchResults = ref.watch(countryPickerControllerProvider);
+    final colorTheme = Theme.of(context).custom.colorTheme;
 
     return ScaffoldWithSearch(
       searchIconActionIndex: 0,
@@ -53,8 +53,8 @@ class _CountryPageState extends ConsumerState<CountryPage> {
         child: ListView.separated(
           itemCount: searchResults.isEmpty ? 1 : searchResults.length,
           separatorBuilder: (BuildContext context, int index) {
-            return const Divider(
-              color: AppColors.greyColor,
+            return Divider(
+              color: colorTheme.greyColor,
             );
           },
           itemBuilder: (BuildContext context, int index) {
@@ -64,13 +64,13 @@ class _CountryPageState extends ConsumerState<CountryPage> {
               country = searchResults[index];
             } catch (_) {
               return Column(
-                children: const [
-                  Padding(
+                children: [
+                  const Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Text('No matches found'),
                   ),
                   Divider(
-                    color: AppColors.greyColor,
+                    color: colorTheme.greyColor,
                   ),
                 ],
               );
@@ -124,13 +124,13 @@ class _CountryPageState extends ConsumerState<CountryPage> {
                               ),
                               ref.read(loginControllerProvider).name ==
                                       country.name
-                                  ? const Icon(
+                                  ? Icon(
                                       Icons.check,
-                                      color: AppColors.greenColor,
+                                      color: colorTheme.greenColor,
                                     )
-                                  : const Icon(
+                                  : Icon(
                                       Icons.check,
-                                      color: AppColors.backgroundColor,
+                                      color: colorTheme.backgroundColor,
                                     ),
                             ],
                           ),

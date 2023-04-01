@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/user_details.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 const _resendFactor = 5;
 const _resendInitial = 60;
@@ -80,6 +80,7 @@ class VerificationController {
 
   void onFilled(BuildContext context, String smsCode, Phone phone) async {
     final authController = ref.read(authControllerProvider);
+    final colorTheme = Theme.of(context).custom.colorTheme;
 
     return showDialog(
       barrierDismissible: false,
@@ -93,9 +94,9 @@ class VerificationController {
 
               if (snapshot.hasData) {
                 text = 'Verification complete';
-                widget = const Icon(
+                widget = Icon(
                   Icons.check_circle,
-                  color: AppColors.greenColor,
+                  color: colorTheme.greenColor,
                   size: 38.0,
                 );
 
@@ -125,9 +126,9 @@ class VerificationController {
                   }
                 }
 
-                widget = const Icon(
+                widget = Icon(
                   Icons.cancel,
-                  color: AppColors.errorSnackBarColor,
+                  color: colorTheme.errorSnackBarColor,
                   size: 38.0,
                 );
 
@@ -138,12 +139,11 @@ class VerificationController {
 
               return AlertDialog(
                 actionsPadding: const EdgeInsets.all(0),
-                backgroundColor: AppColors.appBarColor,
                 content: Row(
                   children: [
                     widget ??
-                        const CircularProgressIndicator(
-                          color: AppColors.greenColor,
+                        CircularProgressIndicator(
+                          color: colorTheme.greenColor,
                         ),
                     const SizedBox(
                       width: 24.0,
@@ -152,7 +152,7 @@ class VerificationController {
                       text ?? 'Connecting',
                       style: Theme.of(context)
                           .textTheme
-                          .caption!
+                          .bodySmall!
                           .copyWith(fontSize: 16.0),
                     ),
                   ],

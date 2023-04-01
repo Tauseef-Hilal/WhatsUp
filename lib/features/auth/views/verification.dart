@@ -6,7 +6,7 @@ import 'package:whatsapp_clone/features/auth/views/login.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class VerificationPage extends ConsumerStatefulWidget {
   final Phone phone;
@@ -42,11 +42,11 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
     });
 
     final resendTime = ref.watch(resendTimerControllerProvider);
+    final colorTheme = Theme.of(context).custom.colorTheme;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Verifying your number'),
-        backgroundColor: AppColors.backgroundColor,
         centerTitle: true,
       ),
       body: Center(
@@ -61,15 +61,15 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                     text: 'Waiting to automatically detect an SMS sent to ',
                     style: Theme.of(context)
                         .textTheme
-                        .caption!
-                        .copyWith(fontSize: 11.0, color: AppColors.textColor1),
+                        .bodySmall!
+                        .copyWith(fontSize: 11.0, color: colorTheme.textColor1),
                   ),
                   TextSpan(
                     text: '${widget.phone.formattedNumber}.',
-                    style: Theme.of(context).textTheme.caption!.copyWith(
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         fontSize: 11.0,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textColor1),
+                        color: colorTheme.textColor1),
                   ),
                 ],
               ),
@@ -90,8 +90,8 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                 'Wrong Number?',
                 style: Theme.of(context)
                     .textTheme
-                    .caption!
-                    .copyWith(fontSize: 11.0, color: AppColors.blueColor),
+                    .bodySmall!
+                    .copyWith(fontSize: 11.0, color: colorTheme.blueColor),
               ),
             ),
             const SizedBox(height: 8.0),
@@ -105,7 +105,10 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
             const SizedBox(height: 24.0),
             Text(
               'Enter 6-digit code',
-              style: Theme.of(context).textTheme.caption,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: colorTheme.textColor1),
             ),
             const SizedBox(height: 8.0),
             Padding(
@@ -127,10 +130,10 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                                   widget.phone.toString(),
                                 ),
                         style: TextButton.styleFrom(
-                          textStyle: Theme.of(context).textTheme.caption,
+                          textStyle: Theme.of(context).textTheme.bodySmall,
                           alignment: Alignment.centerLeft,
-                          foregroundColor: AppColors.greenColor,
-                          disabledForegroundColor: AppColors.appBarColor,
+                          foregroundColor: colorTheme.greenColor,
+                          disabledForegroundColor: colorTheme.appBarColor,
                           padding: const EdgeInsets.only(left: 0.0),
                         ),
                         child: Row(
@@ -141,14 +144,26 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                                       .read(resendTimerControllerProvider
                                           .notifier)
                                       .isTimerActive
-                                  ? AppColors.greyColor
-                                  : AppColors.greenColor,
+                                  ? colorTheme.greyColor
+                                  : colorTheme.greenColor,
                             ),
                             const SizedBox(
                               width: 16.0,
                             ),
-                            const Text(
+                            Text(
                               'Resend SMS',
+                              style: Theme.of(context)
+                                  .custom
+                                  .textTheme
+                                  .caption
+                                  .copyWith(
+                                    color: ref
+                                            .read(resendTimerControllerProvider
+                                                .notifier)
+                                            .isTimerActive
+                                        ? colorTheme.greyColor
+                                        : colorTheme.greenColor,
+                                  ),
                             ),
                           ],
                         ),
@@ -161,15 +176,15 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                             .isTimerActive
                         ? strFormattedTime(resendTime)
                         : '',
-                    style: Theme.of(context).textTheme.caption,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Divider(
-                color: AppColors.greyColor,
+                color: colorTheme.greyColor,
               ),
             ),
           ],
@@ -237,7 +252,7 @@ class _OTPFieldState extends State<OTPField> {
         style: widget.textStyle ??
             const TextStyle(
               fontSize: 20.0,
-              color: AppColors.textColor1,
+              // color: Theme.of(context).custom.colorTheme.textColor1,
             ),
         autofocus: widget.autofocus ?? index == 0,
         keyboardType: TextInputType.number,
@@ -266,10 +281,10 @@ class _OTPFieldState extends State<OTPField> {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.50,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: AppColors.greenColor,
+            color: Theme.of(context).custom.colorTheme.greenColor,
             width: 2.0,
           ),
         ),

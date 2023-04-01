@@ -8,7 +8,7 @@ import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -71,13 +71,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final selectedCountry = ref.watch(loginControllerProvider);
+    final colorTheme = Theme.of(context).custom.colorTheme;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Enter your phone number'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundColor,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -91,14 +91,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall!
-                    .copyWith(color: AppColors.textColor1),
-                children: const [
-                  TextSpan(
+                    .copyWith(color: colorTheme.textColor1),
+                children: [
+                  const TextSpan(
                     text: 'WhatsApp will need to verify your phone number. ',
                   ),
                   TextSpan(
                     text: 'What\'s my number?',
-                    style: TextStyle(color: AppColors.blueColor),
+                    style: TextStyle(color: colorTheme.blueColor),
                   ),
                 ],
               ),
@@ -111,10 +111,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Container(
               padding: const EdgeInsets.only(top: 18.0),
               width: 0.60 * screenWidth,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: AppColors.greenColor,
+                    color: colorTheme.greenColor,
                     width: 1,
                   ),
                 ),
@@ -131,9 +131,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     onTap: () => ref
                         .read(loginControllerProvider.notifier)
                         .showCountryPage(context),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_drop_down,
-                      color: AppColors.greenColor,
+                      color: colorTheme.greenColor,
                     ),
                   ),
                 ],
@@ -156,21 +156,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
-                    cursorColor: AppColors.greenColor,
+                    cursorColor: colorTheme.greenColor,
                     controller: ref
                         .read(loginControllerProvider.notifier)
                         .phoneCodeController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       prefixText: '+ ',
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.greenColor,
+                          color: colorTheme.greenColor,
                           width: 1,
                         ),
                       ),
                       focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.greenColor,
+                          color: colorTheme.greenColor,
                           width: 2,
                         ),
                       ),
@@ -186,22 +186,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     autofocus: true,
                     style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
-                    cursorColor: AppColors.greenColor,
+                    cursorColor: colorTheme.greenColor,
                     controller: ref
                         .read(loginControllerProvider.notifier)
                         .phoneNumberController,
                     decoration: InputDecoration(
                       hintText: 'Phone number',
                       hintStyle: Theme.of(context).textTheme.bodySmall,
-                      enabledBorder: const UnderlineInputBorder(
+                      enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.greenColor,
+                          color: colorTheme.greenColor,
                           width: 1,
                         ),
                       ),
-                      focusedBorder: const UnderlineInputBorder(
+                      focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
-                          color: AppColors.greenColor,
+                          color: colorTheme.greenColor,
                           width: 2,
                         ),
                       ),

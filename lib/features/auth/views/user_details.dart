@@ -8,7 +8,8 @@ import 'package:whatsapp_clone/shared/models/phone.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/color_theme.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class UserProfileCreationPage extends ConsumerStatefulWidget {
   const UserProfileCreationPage({
@@ -35,9 +36,11 @@ class _UserProfileCreationPageState
   }
 
   void showImageSources(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.appBarColor,
+      backgroundColor: AppColorsDark.appBarColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12.0),
@@ -61,9 +64,9 @@ class _UserProfileCreationPageState
                         onTap: () => ref
                             .read(userDetailsControllerProvider.notifier)
                             .deleteImage(context),
-                        child: const Icon(
+                        child: Icon(
                           Icons.delete,
-                          color: AppColors.iconColor,
+                          color: colorTheme.iconColor,
                         ),
                       )
                     ],
@@ -92,12 +95,12 @@ class _UserProfileCreationPageState
                               borderRadius: BorderRadius.circular(50.0),
                               border: Border.all(
                                 width: 1.0,
-                                color: AppColors.greyColor,
+                                color: colorTheme.greyColor,
                               ),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.camera_alt,
-                              color: AppColors.greenColor,
+                              color: colorTheme.greenColor,
                             ),
                           ),
                           const SizedBox(
@@ -131,12 +134,12 @@ class _UserProfileCreationPageState
                               borderRadius: BorderRadius.circular(50.0),
                               border: Border.all(
                                 width: 1.0,
-                                color: AppColors.greyColor,
+                                color: colorTheme.greyColor,
                               ),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.photo_size_select_actual,
-                              color: AppColors.greenColor,
+                              color: colorTheme.greenColor,
                             ),
                           ),
                           const SizedBox(
@@ -163,122 +166,130 @@ class _UserProfileCreationPageState
   Widget build(BuildContext context) {
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
     userImg = ref.watch(userDetailsControllerProvider);
+    final colorTheme = Theme.of(context).custom.colorTheme;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Profile info'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundColor,
       ),
-      body: Column(
-        children: [
-          Text(
-            'Please provide your name and an optional profile photo',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(
-            height: 24.0,
-          ),
-          GestureDetector(
-            onTap: () => showImageSources(context),
-            child: CircleAvatar(
-              radius: 60,
-              backgroundImage: userImg != null ? FileImage(userImg!) : null,
-              backgroundColor: AppColors.appBarColor,
-              child: userImg == null ? const Icon(Icons.add_a_photo) : null,
+      body: Theme(
+        data: Theme.of(context).copyWith(
+          iconTheme: IconThemeData(
+              color: Theme.of(context).brightness == Brightness.light
+                  ? colorTheme.greyColor
+                  : colorTheme.iconColor),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12.0),
+            Text(
+              'Please provide your name and an optional profile photo',
+              style: Theme.of(context).custom.textTheme.caption,
             ),
-          ),
-          const SizedBox(
-            height: 4.0,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (value) {},
-                    controller: ref
-                        .read(userDetailsControllerProvider.notifier)
-                        .usernameController,
-                    focusNode: ref
+            const SizedBox(
+              height: 24.0,
+            ),
+            GestureDetector(
+              onTap: () => showImageSources(context),
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: userImg != null ? FileImage(userImg!) : null,
+                backgroundColor: colorTheme.appBarColor,
+                child: userImg == null ? const Icon(Icons.add_a_photo) : null,
+              ),
+            ),
+            const SizedBox(
+              height: 4.0,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (value) {},
+                      controller: ref
+                          .read(userDetailsControllerProvider.notifier)
+                          .usernameController,
+                      focusNode: ref
+                          .read(emojiPickerControllerProvider.notifier)
+                          .fieldFocusNode,
+                      autofocus: true,
+                      style: TextStyle(
+                        color: colorTheme.textColor1,
+                      ),
+                      cursorColor: colorTheme.greenColor,
+                      decoration: InputDecoration(
+                        hintText: 'Type your name here',
+                        hintStyle: Theme.of(context)
+                            .textTheme
+                            .bodyLarge!
+                            .copyWith(color: colorTheme.greyColor),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: colorTheme.greenColor,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: colorTheme.greenColor,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => ref
                         .read(emojiPickerControllerProvider.notifier)
-                        .fieldFocusNode,
-                    autofocus: true,
-                    style: const TextStyle(
-                      color: AppColors.textColor1,
-                    ),
-                    cursorColor: AppColors.greenColor,
-                    decoration: InputDecoration(
-                      hintText: 'Type your name here',
-                      hintStyle: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(color: AppColors.iconColor),
-                      enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: AppColors.greenColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: AppColors.greenColor,
-                          width: 2,
-                        ),
-                      ),
+                        .toggleEmojiPicker(),
+                    child: Icon(
+                      showEmojiPicker == 1
+                          ? Icons.keyboard
+                          : Icons.emoji_emotions,
                     ),
                   ),
-                ),
-                GestureDetector(
-                  onTap: () => ref
-                      .read(emojiPickerControllerProvider.notifier)
-                      .toggleEmojiPicker(),
-                  child: Icon(
-                    showEmojiPicker == 1
-                        ? Icons.keyboard
-                        : Icons.emoji_emotions,
-                    color: AppColors.iconColor,
+                ],
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 130,
+                vertical: 40,
+              ),
+              child: GreenElevatedButton(
+                onPressed: () => ref
+                    .read(userDetailsControllerProvider.notifier)
+                    .onNextBtnPressed(context, ref, widget.phone),
+                text: 'NEXT',
+              ),
+            ),
+            if (ref
+                    .read(emojiPickerControllerProvider.notifier)
+                    .keyboardVisible ||
+                showEmojiPicker == 1) ...[
+              Stack(
+                children: [
+                  SizedBox(
+                    height: keyboardHeight + 20,
                   ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 130,
-              vertical: 40,
-            ),
-            child: GreenElevatedButton(
-              onPressed: () => ref
-                  .read(userDetailsControllerProvider.notifier)
-                  .onNextBtnPressed(context, ref, widget.phone),
-              text: 'NEXT',
-            ),
-          ),
-          if (ref
-                  .read(emojiPickerControllerProvider.notifier)
-                  .keyboardVisible ||
-              showEmojiPicker == 1) ...[
-            Stack(
-              children: [
-                SizedBox(
-                  height: keyboardHeight + 20,
-                ),
-                Offstage(
-                  offstage: showEmojiPicker != 1,
-                  child: CustomEmojiPicker(
-                    textController: ref
-                        .read(userDetailsControllerProvider.notifier)
-                        .usernameController,
-                  ),
-                )
-              ],
-            )
+                  Offstage(
+                    offstage: showEmojiPicker != 1,
+                    child: CustomEmojiPicker(
+                      textController: ref
+                          .read(userDetailsControllerProvider.notifier)
+                          .usernameController,
+                    ),
+                  )
+                ],
+              )
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

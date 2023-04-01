@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 enum SnacBarType { error, info }
 
@@ -19,7 +19,7 @@ SnackBar _errorSnackBar(BuildContext context, String content) {
         ),
       ),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: AppColors.errorSnackBarColor);
+      backgroundColor: Theme.of(context).custom.colorTheme.errorSnackBarColor);
 }
 
 SnackBar _infoSnackBar(BuildContext context, String content) {
@@ -33,7 +33,7 @@ SnackBar _infoSnackBar(BuildContext context, String content) {
       ),
     ),
     behavior: SnackBarBehavior.floating,
-    backgroundColor: AppColors.greenColor,
+    backgroundColor: Theme.of(context).custom.colorTheme.greenColor,
   );
 }
 

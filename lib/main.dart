@@ -11,7 +11,6 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'features/home/views/base.dart';
 import 'firebase_options.dart';
 
-import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 void main() async {
@@ -43,8 +42,9 @@ class WhatsApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      // FOR NOW
-      theme: ref.read(darkThemeProvider),
+      theme: ref.read(lightThemeProvider),
+      darkTheme: ref.read(darkThemeProvider),
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<User?>(
         stream: ref.read(authRepositoryProvider).auth.authStateChanges(),
@@ -81,6 +81,8 @@ class CustomErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -95,7 +97,7 @@ class CustomErrorWidget extends StatelessWidget {
                 height: 100,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(150),
-                  color: AppColors.appBarColor,
+                  color: colorTheme.appBarColor,
                 ),
                 child: Icon(
                   Icons.error_outline_rounded,
@@ -113,7 +115,7 @@ class CustomErrorWidget extends StatelessWidget {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.appBarColor,
+                      color: colorTheme.appBarColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Padding(
@@ -140,9 +142,9 @@ class CustomErrorWidget extends StatelessWidget {
                           Text(
                             details.toString(),
                             textAlign: TextAlign.start,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12.0,
-                              color: AppColors.blueColor,
+                              color: colorTheme.blueColor,
                             ),
                           ),
                         ],

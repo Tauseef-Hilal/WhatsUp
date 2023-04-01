@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 class AuthCompletePage extends ConsumerStatefulWidget {
   final User user;
@@ -40,6 +40,7 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -47,28 +48,28 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              const Text(
+              Text(
                 'Initialising',
                 style: TextStyle(
                   fontSize: 18,
-                  color: AppColors.textColor2,
+                  color: colorTheme.textColor2,
                 ),
               ),
               const SizedBox(height: 6.0),
               Text(
                 'Please wait a moment',
-                style: Theme.of(context).textTheme.caption,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
               Expanded(
                 child: Image.asset(
                   'assets/images/landing_img.png',
-                  color: AppColors.greenColor,
+                  color: colorTheme.greenColor,
                   width: 275,
                   height: 300,
                 ),
               ),
-              const CircularProgressIndicator(
-                color: AppColors.greenColor,
+              CircularProgressIndicator(
+                color: colorTheme.greenColor,
               ),
               const SizedBox(height: 12.0),
             ],

@@ -11,7 +11,7 @@ import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
-import 'package:whatsapp_clone/theme/colors.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 final userDetailsControllerProvider =
     StateNotifierProvider.autoDispose<UserDetailsController, File?>(
@@ -69,6 +69,7 @@ class UserDetailsController extends StateNotifier<File?> {
     WidgetRef ref,
     Phone phone,
   ) async {
+    final colorTheme = Theme.of(context).custom.colorTheme;
     bool internetConnActive = await isConnected();
 
     final username = ref
@@ -84,13 +85,14 @@ class UserDetailsController extends StateNotifier<File?> {
           'internet connection and try again';
     }
 
+    if (!mounted) return;
+
     if (errorMsg.isNotEmpty) {
       return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             actionsPadding: const EdgeInsets.all(0),
-            backgroundColor: AppColors.appBarColor,
             content: Text(
               errorMsg,
               style: Theme.of(context).textTheme.bodySmall!,
@@ -103,7 +105,7 @@ class UserDetailsController extends StateNotifier<File?> {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall!
-                      .copyWith(color: AppColors.greenColor),
+                      .copyWith(color: colorTheme.greenColor),
                 ),
               ),
             ],
@@ -132,9 +134,9 @@ class UserDetailsController extends StateNotifier<File?> {
 
               if (snapshot.hasData) {
                 text = 'You\'re all set!';
-                widget = const Icon(
+                widget = Icon(
                   Icons.check_circle,
-                  color: AppColors.greenColor,
+                  color: colorTheme.greenColor,
                   size: 38.0,
                 );
 
@@ -149,9 +151,9 @@ class UserDetailsController extends StateNotifier<File?> {
                 });
               } else if (snapshot.hasError) {
                 text = 'Oops! an error occured';
-                widget = const Icon(
+                widget = Icon(
                   Icons.cancel,
-                  color: AppColors.errorSnackBarColor,
+                  color: colorTheme.errorSnackBarColor,
                   size: 38.0,
                 );
 
@@ -162,12 +164,12 @@ class UserDetailsController extends StateNotifier<File?> {
 
               return AlertDialog(
                 actionsPadding: const EdgeInsets.all(0),
-                backgroundColor: AppColors.appBarColor,
+                backgroundColor: colorTheme.appBarColor,
                 content: Row(
                   children: [
                     widget ??
-                        const CircularProgressIndicator(
-                          color: AppColors.greenColor,
+                        CircularProgressIndicator(
+                          color: colorTheme.greenColor,
                         ),
                     const SizedBox(
                       width: 24.0,
@@ -176,7 +178,7 @@ class UserDetailsController extends StateNotifier<File?> {
                       text ?? 'Connecting',
                       style: Theme.of(context)
                           .textTheme
-                          .caption!
+                          .bodySmall!
                           .copyWith(fontSize: 16.0),
                     ),
                   ],
