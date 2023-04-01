@@ -36,7 +36,7 @@ class LoginController extends StateNotifier<Country> {
   late PhoneNumberEditingController phoneNumberController;
   late final TextEditingController phoneCodeController;
 
-  void init() {
+  void init(phoneNumberListener) {
     phoneCodeController = TextEditingController(
       text: state.phoneCode,
     );
@@ -45,6 +45,8 @@ class LoginController extends StateNotifier<Country> {
       regionCode: state.countryCode,
       behavior: PhoneInputBehavior.strict,
     );
+
+    phoneNumberController.addListener(phoneNumberListener);
   }
 
   @override
@@ -137,8 +139,13 @@ class LoginController extends StateNotifier<Country> {
     String phoneNumberWithCode =
         '+${state.phoneCode} ${phoneNumberController.text}';
 
-    bool isValidPhoneNumber =
-        await PhoneNumberUtil().validate(phoneNumberWithCode);
+    bool isValidPhoneNumber = false;
+    try {
+      isValidPhoneNumber =
+          await PhoneNumberUtil().validate(phoneNumberWithCode);
+    } catch (_) {
+      // ...
+    }
 
     String errorMsg = '';
     if (state.name == 'No such country') {

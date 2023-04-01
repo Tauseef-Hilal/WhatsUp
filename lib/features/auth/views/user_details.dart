@@ -265,7 +265,7 @@ class _UserProfileCreationPageState
             Stack(
               children: [
                 SizedBox(
-                  height: keyboardHeight + 38.0,
+                  height: keyboardHeight + 20,
                 ),
                 Offstage(
                   offstage: showEmojiPicker != 1,

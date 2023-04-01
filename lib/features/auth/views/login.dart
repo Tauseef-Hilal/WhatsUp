@@ -22,7 +22,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void initState() {
-    ref.read(loginControllerProvider.notifier).init();
+    ref.read(loginControllerProvider.notifier).init(() async {
+      if (gotKeyboardHeight) return;
+
+      double keyboardSize = MediaQuery.of(context).viewInsets.bottom;
+      await SharedPref.setDouble(
+        'keyboardHeight',
+        keyboardSize,
+      );
+
+      if (keyboardSize == 0.0) return;
+      gotKeyboardHeight = true;
+    });
     super.initState();
   }
 
@@ -172,16 +183,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 SizedBox(
                   width: 0.70 * (screenWidth * 0.60),
                   child: TextField(
-                    onChanged: (value) async {
-                      if (!gotKeyboardHeight) {
-                        SharedPref.setDouble(
-                          'keyboardHeight',
-                          MediaQuery.of(context).viewInsets.bottom,
-                        );
-
-                        gotKeyboardHeight = true;
-                      }
-                    },
                     autofocus: true,
                     style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
