@@ -3,7 +3,7 @@
 WhatsApp clone created in Flutter. <br><br>
 
 ## Screenshots - Android
-<!-- <table border='0px'>
+<table border='0px'>
     <tr>
         <td>
             <img src='screenshots/emoji_picker_dark.png?raw=true' alt='Chat Screen' width='360'>
@@ -43,4 +43,4 @@ WhatsApp clone created in Flutter. <br><br>
         <td><img src='screenshots/welcome_page.png?raw=true' alt='Welcome Page' width='360'>
         </td>
     </tr>
-</table> -->
+</table>
