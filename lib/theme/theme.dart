@@ -90,7 +90,7 @@ final _customDarkTheme = CustomThemeData(isDarkTheme: true);
 final _darkTheme = ThemeData(
   brightness: Brightness.dark,
   dialogTheme: const DialogTheme(
-    backgroundColor: AppColorsDark.greenColor,
+    backgroundColor: AppColorsDark.appBarColor,
     titleTextStyle: TextStyle(color: AppColorsDark.textColor1),
     contentTextStyle: TextStyle(color: AppColorsDark.textColor1),
   ),

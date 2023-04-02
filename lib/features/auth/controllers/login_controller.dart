@@ -6,7 +6,6 @@ import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/countries.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/dialogs.dart';
-import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 final defaultCountryProvider = Provider(
@@ -176,10 +175,12 @@ class LoginController extends StateNotifier<Country> {
         builder: (context) {
           return AlertDialog(
             actionsPadding: const EdgeInsets.all(0),
-            backgroundColor: AppColorsDark.appBarColor,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? colorTheme.appBarColor
+                : colorTheme.backgroundColor,
             content: Text(errorMsg,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColorsDark.textColor1,
+                      color: colorTheme.textColor1,
                     )),
             actions: [
               TextButton(
@@ -203,7 +204,9 @@ class LoginController extends StateNotifier<Country> {
       context: context,
       builder: (context) {
         return ConfirmationDialog(
-          backgroundColor: AppColorsDark.appBarColor,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? colorTheme.appBarColor
+              : colorTheme.backgroundColor,
           actionButtonTextColor: colorTheme.greenColor,
           actionCallbacks: {
             'EDIT': () => Navigator.of(context).pop(),
@@ -224,7 +227,7 @@ class LoginController extends StateNotifier<Country> {
               Text(
                 'You entered the phone number:',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColorsDark.textColor1,
+                      color: colorTheme.textColor1,
                     ),
               ),
               const SizedBox(height: 16.0),
@@ -232,7 +235,7 @@ class LoginController extends StateNotifier<Country> {
                 phoneNumberWithCode,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColorsDark.textColor1,
+                      color: colorTheme.textColor1,
                     ),
               ),
               const SizedBox(height: 16.0),
@@ -240,7 +243,7 @@ class LoginController extends StateNotifier<Country> {
                 'Is this OK, or would you like to edit '
                 'the number?',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColorsDark.textColor1,
+                      color: colorTheme.textColor1,
                     ),
               ),
             ],

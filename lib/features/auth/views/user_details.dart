@@ -8,7 +8,6 @@ import 'package:whatsapp_clone/shared/models/phone.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
-import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 class UserProfileCreationPage extends ConsumerStatefulWidget {
@@ -40,7 +39,9 @@ class _UserProfileCreationPageState
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColorsDark.appBarColor,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? colorTheme.appBarColor
+          : colorTheme.backgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12.0),
@@ -66,7 +67,9 @@ class _UserProfileCreationPageState
                             .deleteImage(context),
                         child: Icon(
                           Icons.delete,
-                          color: colorTheme.iconColor,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? colorTheme.iconColor
+                              : colorTheme.greyColor,
                         ),
                       )
                     ],

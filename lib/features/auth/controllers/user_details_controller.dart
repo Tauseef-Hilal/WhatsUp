@@ -164,7 +164,6 @@ class UserDetailsController extends StateNotifier<File?> {
 
               return AlertDialog(
                 actionsPadding: const EdgeInsets.all(0),
-                backgroundColor: colorTheme.appBarColor,
                 content: Row(
                   children: [
                     widget ??
