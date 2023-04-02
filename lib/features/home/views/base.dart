@@ -281,7 +281,7 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
                                 Image.asset(
                                   'assets/images/$msgStatus.png',
                                   color: msgStatus != 'SEEN'
-                                      ? colorTheme.greyColor
+                                      ? colorTheme.textColor1
                                       : null,
                                   width: 15.0,
                                 ),

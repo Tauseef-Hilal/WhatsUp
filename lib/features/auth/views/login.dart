@@ -28,7 +28,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       double keyboardSize = MediaQuery.of(context).viewInsets.bottom;
       await SharedPref.setDouble(
         'keyboardHeight',
-        keyboardSize,
+        keyboardSize + 34,
       );
 
       if (keyboardSize == 0.0) return;

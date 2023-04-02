@@ -24,36 +24,39 @@ class CustomEmojiPicker extends ConsumerWidget {
 
     return SizedBox(
       height: SharedPref.getDouble('keyboardHeight'),
-      child: EmojiPicker(
-        textEditingController: textController,
-        onEmojiSelected: (_, emoji) => afterEmojiPlaced?.call(emoji),
-        config: Config(
-          columns: 8,
-          emojiSizeMax: 28,
-          verticalSpacing: 0,
-          horizontalSpacing: 0,
-          gridPadding: EdgeInsets.zero,
-          initCategory: Category.SMILEYS,
-          bgColor: Theme.of(context).brightness == Brightness.dark
-              ? colorTheme.backgroundColor
-              : colorTheme.outgoingMessageBubbleColor,
-          indicatorColor: Theme.of(context).brightness == Brightness.dark
-              ? colorTheme.indicatorColor
-              : colorTheme.greenColor,
-          iconColor: Theme.of(context).brightness == Brightness.light
-              ? colorTheme.greyColor
-              : colorTheme.iconColor,
-          iconColorSelected: colorTheme.textColor2,
-          backspaceColor: colorTheme.iconColor,
-          showRecentsTab: true,
-          recentsLimit: 28,
-          noRecents: const Text(
-            'No Recents',
-            style: TextStyle(fontSize: 20, color: Colors.black26),
-            textAlign: TextAlign.center,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: EmojiPicker(
+          textEditingController: textController,
+          onEmojiSelected: (_, emoji) => afterEmojiPlaced?.call(emoji),
+          config: Config(
+            columns: 8,
+            emojiSizeMax: 28,
+            verticalSpacing: 0,
+            horizontalSpacing: 0,
+            gridPadding: EdgeInsets.zero,
+            initCategory: Category.SMILEYS,
+            bgColor: Theme.of(context).brightness == Brightness.dark
+                ? colorTheme.backgroundColor
+                : colorTheme.outgoingMessageBubbleColor,
+            indicatorColor: Theme.of(context).brightness == Brightness.dark
+                ? colorTheme.indicatorColor
+                : colorTheme.greenColor,
+            iconColor: Theme.of(context).brightness == Brightness.light
+                ? colorTheme.greyColor
+                : colorTheme.iconColor,
+            iconColorSelected: colorTheme.textColor2,
+            backspaceColor: colorTheme.iconColor,
+            showRecentsTab: true,
+            recentsLimit: 28,
+            noRecents: const Text(
+              'No Recents',
+              style: TextStyle(fontSize: 20, color: Colors.black26),
+              textAlign: TextAlign.center,
+            ),
+            tabIndicatorAnimDuration: kTabScrollDuration,
+            categoryIcons: const CategoryIcons(),
           ),
-          tabIndicatorAnimDuration: kTabScrollDuration,
-          categoryIcons: const CategoryIcons(),
         ),
       ),
     );

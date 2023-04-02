@@ -346,7 +346,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             Stack(
               children: [
                 SizedBox(
-                  height: keyboardHeight + 32,
+                  height: keyboardHeight,
                 ),
                 Offstage(
                   offstage: showEmojiPicker != 1,

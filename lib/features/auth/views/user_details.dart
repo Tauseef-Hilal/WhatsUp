@@ -262,7 +262,7 @@ class _UserProfileCreationPageState
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 130,
-                vertical: 40,
+                vertical: 20,
               ),
               child: GreenElevatedButton(
                 onPressed: () => ref
@@ -278,7 +278,7 @@ class _UserProfileCreationPageState
               Stack(
                 children: [
                   SizedBox(
-                    height: keyboardHeight + 20,
+                    height: keyboardHeight,
                   ),
                   Offstage(
                     offstage: showEmojiPicker != 1,

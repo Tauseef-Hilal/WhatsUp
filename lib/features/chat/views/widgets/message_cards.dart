@@ -128,7 +128,7 @@ class SentMessageCard extends StatelessWidget {
                   ),
                   Image.asset(
                     'assets/images/$msgStatus.png',
-                    color: msgStatus != 'SEEN' ? colorTheme.greyColor : null,
+                    color: msgStatus != 'SEEN' ? colorTheme.textColor1 : null,
                     width: 15.0,
                   ),
                 ],
