@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
@@ -35,6 +36,8 @@ String formattedTimestamp(Timestamp timestamp, [bool timeOnly = false]) {
 }
 
 Future<File?> capturePhoto() async {
+  if (Platform.isIOS && !await hasPermission(Permission.camera)) return null;
+
   final ImagePicker picker = ImagePicker();
   final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
@@ -42,6 +45,8 @@ Future<File?> capturePhoto() async {
 }
 
 Future<File?> pickImageFromGallery() async {
+  if (Platform.isIOS && !await hasPermission(Permission.camera)) return null;
+
   final ImagePicker picker = ImagePicker();
   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
@@ -64,6 +69,11 @@ Future<File?> pickFile([FileType fileType = FileType.any]) async {
       await FilePicker.platform.pickFiles(type: fileType);
 
   return result != null ? File(result.files.single.path!) : null;
+}
+
+Future<Contact?> pickContact() async {
+  if (!await hasPermission(Permission.contacts)) return null;
+  return await FlutterContacts.openExternalPick();
 }
 
 Future<bool> hasPermission(Permission permission) async {

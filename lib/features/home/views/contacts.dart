@@ -60,44 +60,63 @@ class _CountryPageState extends ConsumerState<ContactsPage> {
               padding: EdgeInsets.all(8.0),
               child: Icon(Icons.more_vert),
             ),
-            itemBuilder: (context) => <PopupMenuEntry>[
-              PopupMenuItem(
-                  onTap: () => ref
-                      .read(contactPickerControllerProvider.notifier)
-                      .shareInviteLink(
-                        context.findRenderObject() as RenderBox?,
-                      ),
-                  child: Text(
-                    'Invite a friend',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )),
-              PopupMenuItem(
-                  onTap: ref
-                      .read(contactPickerControllerProvider.notifier)
-                      .openContacts,
-                  child: Text(
-                    'Contacts',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )),
-              PopupMenuItem(
-                  onTap: () {
-                    ref
+            itemBuilder: (context) {
+              TextStyle popupMenuTextStyle = Theme.of(context)
+                  .custom
+                  .textTheme
+                  .bodyText2
+                  .copyWith(color: Colors.white);
+              return <PopupMenuEntry>[
+                PopupMenuItem(
+                    onTap: () => ref
                         .read(contactPickerControllerProvider.notifier)
-                        .refreshContactsList(user: widget.user);
-                  },
-                  child: Text(
-                    'Refresh',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )),
-              PopupMenuItem(
-                  onTap: ref
-                      .read(contactPickerControllerProvider.notifier)
-                      .showHelp,
-                  child: Text(
-                    'Help',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )),
-            ],
+                        .shareInviteLink(
+                          context.findRenderObject() as RenderBox?,
+                        ),
+                    child: Text(
+                      'Invite a friend',
+                      style: Theme.of(context)
+                          .custom
+                          .textTheme
+                          .bodyText2
+                          .copyWith(color: Colors.white),
+                    )),
+                PopupMenuItem(
+                    onTap: ref
+                        .read(contactPickerControllerProvider.notifier)
+                        .openContacts,
+                    child: Text(
+                      'Contacts',
+                      style: Theme.of(context)
+                          .custom
+                          .textTheme
+                          .bodyText2
+                          .copyWith(color: Colors.white),
+                    )),
+                PopupMenuItem(
+                    onTap: () {
+                      ref
+                          .read(contactPickerControllerProvider.notifier)
+                          .refreshContactsList(user: widget.user);
+                    },
+                    child: Text(
+                      'Refresh',
+                      style: Theme.of(context)
+                          .custom
+                          .textTheme
+                          .bodyText2
+                          .copyWith(color: Colors.white),
+                    )),
+                PopupMenuItem(
+                    onTap: ref
+                        .read(contactPickerControllerProvider.notifier)
+                        .showHelp,
+                    child: Text(
+                      'Help',
+                      style: popupMenuTextStyle,
+                    )),
+              ];
+            },
           ),
         ],
       ),

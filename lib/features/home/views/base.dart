@@ -62,7 +62,9 @@ class _HomePageState extends ConsumerState<HomePage>
     _tabController.addListener(_handleTabIndex);
 
     // Add listener to contact data changes
-    addListenerToContactChanges();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await addListenerToContactChanges();
+    });
 
     _floatingButtons = [
       FloatingActionButton(
@@ -183,7 +185,7 @@ class _HomePageState extends ConsumerState<HomePage>
         body: TabBarView(
           controller: _tabController,
           children: [
-            RecentChats(user: widget.user),
+            RecentChatsBody(user: widget.user),
             const Center(
               child: Text('Coming soon'),
             ),
@@ -198,8 +200,8 @@ class _HomePageState extends ConsumerState<HomePage>
   }
 }
 
-class RecentChats extends ConsumerStatefulWidget {
-  const RecentChats({
+class RecentChatsBody extends ConsumerStatefulWidget {
+  const RecentChatsBody({
     Key? key,
     required this.user,
   }) : super(key: key);
@@ -207,10 +209,10 @@ class RecentChats extends ConsumerStatefulWidget {
   final User user;
 
   @override
-  ConsumerState<RecentChats> createState() => _RecentChatsState();
+  ConsumerState<RecentChatsBody> createState() => _RecentChatsBodyState();
 }
 
-class _RecentChatsState extends ConsumerState<RecentChats> {
+class _RecentChatsBodyState extends ConsumerState<RecentChatsBody> {
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
@@ -225,136 +227,179 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
           }
 
           final chats = snapshot.data!;
-          return ListView(
+          return RecentChats(
+            chats: chats,
+            widget: widget,
+            ref: ref,
+            colorTheme: colorTheme,
+          );
+        });
+  }
+}
+
+class RecentChats extends StatelessWidget {
+  const RecentChats({
+    super.key,
+    required this.chats,
+    required this.widget,
+    required this.ref,
+    required this.colorTheme,
+  });
+
+  final List<RecentChat> chats;
+  final RecentChatsBody widget;
+  final WidgetRef ref;
+  final ColorTheme colorTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: ListView.builder(
+            itemCount: chats.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              RecentChat chat = chats[index];
+              Message msg = chat.message;
+              String msgContent = chat.message.content;
+              String msgStatus = '';
+
+              if (msg.senderId == widget.user.id) {
+                msgStatus = msg.status.value;
+              }
+
+              return FutureBuilder(
+                future: ref
+                    .read(contactsRepositoryProvider)
+                    .getContactByPhone(chat.user.phone.number),
+                builder: (context, snapshot) {
+                  return RecentChatWidget(
+                    widget: widget,
+                    chat: chat,
+                    colorTheme: colorTheme,
+                    title:
+                        snapshot.data?.name ?? chat.user.phone.formattedNumber,
+                    msgStatus: msgStatus,
+                    msgContent: msgContent,
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: ListView.builder(
-                  itemCount: chats.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    RecentChat chat = chats[index];
-                    Message msg = chat.message;
-                    String msgContent = chat.message.content;
-                    String msgStatus = '';
-
-                    if (msg.senderId == widget.user.id) {
-                      msgStatus = msg.status.value;
-                    }
-
-                    return FutureBuilder(
-                      future: ref
-                          .read(contactsRepositoryProvider)
-                          .getContactByPhone(chat.user.phone.number),
-                      builder: (context, snapshot) {
-                        return ListTile(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ChatPage(
-                                  self: widget.user,
-                                  other: chat.user,
-                                  otherUserContactName: snapshot.data?.name ??
-                                      chat.user.phone.formattedNumber,
-                                ),
-                              ),
-                            );
-                          },
-                          leading: CircleAvatar(
-                            radius: 28.0,
-                            backgroundImage: CachedNetworkImageProvider(
-                              chat.user.avatarUrl,
-                            ),
-                          ),
-                          title: Text(
-                            snapshot.data?.name ??
-                                chat.user.phone.formattedNumber,
-                            style: Theme.of(context)
-                                .custom
-                                .textTheme
-                                .titleMedium
-                                .copyWith(color: colorTheme.textColor1),
-                          ),
-                          subtitle: Row(
-                            children: [
-                              if (msgStatus.isNotEmpty) ...[
-                                Image.asset(
-                                  'assets/images/$msgStatus.png',
-                                  color: msgStatus != 'SEEN'
-                                      ? colorTheme.textColor1
-                                      : null,
-                                  width: 15.0,
-                                ),
-                                const SizedBox(
-                                  width: 2.0,
-                                )
-                              ],
-                              Text(
-                                  msgContent.length > 20
-                                      ? '${chat.message.content.substring(0, 20)}...'
-                                      : chat.message.content,
-                                  style: Theme.of(context)
-                                      .custom
-                                      .textTheme
-                                      .subtitle2)
-                            ],
-                          ),
-                          trailing: Text(
-                            formattedTimestamp(
-                              chat.message.timestamp,
-                            ),
-                            style: Theme.of(context)
-                                .custom
-                                .textTheme
-                                .caption
-                                .copyWith(
-                                  color: Theme.of(context)
-                                      .custom
-                                      .colorTheme
-                                      .greyColor,
-                                ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+              Icon(
+                Icons.lock,
+                size: 18,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? colorTheme.greyColor
+                    : colorTheme.iconColor,
               ),
-              const Divider(),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(width: 4),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodySmall,
                   children: [
-                    Icon(
-                      Icons.lock,
-                      size: 18,
-                      color: Theme.of(context).brightness == Brightness.light
-                          ? colorTheme.greyColor
-                          : colorTheme.iconColor,
+                    TextSpan(
+                      text: 'Your personal messages are ',
+                      style: TextStyle(color: colorTheme.greyColor),
                     ),
-                    const SizedBox(width: 4),
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: Theme.of(context).textTheme.bodySmall,
-                        children: [
-                          TextSpan(
-                            text: 'Your personal messages are ',
-                            style: TextStyle(color: colorTheme.greyColor),
-                          ),
-                          TextSpan(
-                            text: 'end-to-end encrypted',
-                            style: TextStyle(color: colorTheme.greenColor),
-                          ),
-                        ],
-                      ),
+                    TextSpan(
+                      text: 'end-to-end encrypted',
+                      style: TextStyle(color: colorTheme.greenColor),
                     ),
                   ],
                 ),
               ),
             ],
-          );
-        });
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class RecentChatWidget extends StatelessWidget {
+  const RecentChatWidget({
+    super.key,
+    required this.widget,
+    required this.chat,
+    required this.colorTheme,
+    required this.title,
+    required this.msgStatus,
+    required this.msgContent,
+  });
+
+  final RecentChatsBody widget;
+  final RecentChat chat;
+  final ColorTheme colorTheme;
+  final String title;
+  final String msgStatus;
+  final String msgContent;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChatPage(
+              self: widget.user,
+              other: chat.user,
+              otherUserContactName: title,
+            ),
+          ),
+        );
+      },
+      leading: CircleAvatar(
+        radius: 28.0,
+        backgroundImage: CachedNetworkImageProvider(
+          chat.user.avatarUrl,
+        ),
+      ),
+      title: Text(
+        title,
+        style: Theme.of(context)
+            .custom
+            .textTheme
+            .titleMedium
+            .copyWith(color: colorTheme.textColor1),
+      ),
+      subtitle: Row(
+        children: [
+          if (msgStatus.isNotEmpty) ...[
+            Image.asset(
+              'assets/images/$msgStatus.png',
+              color: msgStatus != 'SEEN' ? colorTheme.textColor1 : null,
+              width: 15.0,
+            ),
+            const SizedBox(
+              width: 2.0,
+            )
+          ],
+          Text(
+              msgContent.length > 20
+                  ? '${chat.message.content.substring(0, 20)}...'
+                  : chat.message.content,
+              style: Theme.of(context).custom.textTheme.subtitle2)
+        ],
+      ),
+      trailing: Text(
+        formattedTimestamp(
+          chat.message.timestamp,
+        ),
+        style: Theme.of(context).custom.textTheme.caption.copyWith(
+              color: Theme.of(context).custom.colorTheme.greyColor,
+            ),
+      ),
+    );
   }
 }

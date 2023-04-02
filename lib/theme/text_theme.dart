@@ -20,6 +20,9 @@ class CustomTextTheme {
   final bodyText1 = const TextStyle(
     fontSize: 16,
   );
+  final bodyText2 = const TextStyle(
+    fontSize: 15,
+  );
   final caption = const TextStyle(
     fontSize: 12,
   );

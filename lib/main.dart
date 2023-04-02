@@ -56,7 +56,17 @@ class WhatsApp extends ConsumerWidget {
                   .getUserById(snapshot.data!.uid),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Container();
+                  // JUST PUT IT HERE :)
+                  return Scaffold(
+                    backgroundColor:
+                        Theme.of(context).custom.colorTheme.backgroundColor,
+                    body: const Center(
+                      child: Image(
+                        image: AssetImage('assets/images/landing_img.png'),
+                        width: 60,
+                      ),
+                    ),
+                  );
                 }
 
                 return HomePage(user: snapshot.data!);

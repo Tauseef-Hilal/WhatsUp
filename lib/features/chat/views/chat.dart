@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
@@ -125,7 +126,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
             const SizedBox(
               height: 8.0,
             ),
-            ChatInput(
+            ChatInputContainer(
               self: self,
               other: other,
             ),
@@ -139,17 +140,18 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 }
 
-class ChatInput extends ConsumerStatefulWidget {
-  const ChatInput({super.key, required this.self, required this.other});
+class ChatInputContainer extends ConsumerStatefulWidget {
+  const ChatInputContainer(
+      {super.key, required this.self, required this.other});
 
   final User self;
   final User other;
 
   @override
-  ConsumerState<ChatInput> createState() => _ChatInputState();
+  ConsumerState<ChatInputContainer> createState() => _ChatInputContainerState();
 }
 
-class _ChatInputState extends ConsumerState<ChatInput> {
+class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
   final double keyboardHeight = SharedPref.getDouble('keyboardHeight');
 
   @override
@@ -293,7 +295,9 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                                     left: 16.0,
                                   ),
                                   child: InkWell(
-                                    onTap: () {},
+                                    onTap: () async {
+                                      await capturePhoto();
+                                    },
                                     child: const Icon(
                                       Icons.camera_alt_rounded,
                                       size: 22.0,
@@ -372,6 +376,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
       context: context,
       builder: (context) {
         return Dialog(
+          alignment: Alignment.center,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
               Radius.circular(16.0),
@@ -380,13 +385,13 @@ class _ChatInputState extends ConsumerState<ChatInput> {
           insetPadding: EdgeInsets.only(
             left: 12.0,
             right: 12.0,
-            top: MediaQuery.of(context).size.height - 500,
+            top: MediaQuery.of(context).size.height * 0.4,
           ),
           elevation: 0,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 32.0,
-              vertical: 16.0,
+              vertical: 18.0,
             ),
             child: GridView.count(
               crossAxisCount: 3,
@@ -394,8 +399,9 @@ class _ChatInputState extends ConsumerState<ChatInput> {
               children: [
                 LabelledButton(
                   onTap: () async {
-                    if (!await hasPermission(Permission.storage)) return;
                     await pickFile();
+                    if (!mounted) return;
+                    Navigator.pop(context);
                   },
                   backgroundColor: Colors.deepPurpleAccent,
                   label: 'Document',
@@ -406,7 +412,11 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                   ),
                 ),
                 LabelledButton(
-                  onTap: () {},
+                  onTap: () async {
+                    await capturePhoto();
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  },
                   label: 'Camera',
                   backgroundColor: Colors.redAccent[400],
                   child: const Icon(
@@ -417,8 +427,9 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    if (!await hasPermission(Permission.storage)) return;
                     await pickImageFromGallery();
+                    if (!mounted) return;
+                    Navigator.pop(context);
                   },
                   label: 'Gallery',
                   backgroundColor: Colors.purple[400],
@@ -428,21 +439,27 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                     color: Colors.white,
                   ),
                 ),
-                LabelledButton(
-                  onTap: () async {
-                    if (!await hasPermission(Permission.storage)) return;
-                    await pickFile(FileType.audio);
-                  },
-                  label: 'Audio',
-                  backgroundColor: Colors.orange[900],
-                  child: const Icon(
-                    Icons.headphones_rounded,
-                    size: 28,
-                    color: Colors.white,
+                if (!Platform.isIOS) ...[
+                  LabelledButton(
+                    onTap: () async {
+                      await pickFile(FileType.audio);
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                    },
+                    label: 'Audio',
+                    backgroundColor: Colors.orange[900],
+                    child: const Icon(
+                      Icons.headphones_rounded,
+                      size: 28,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
+                ],
                 LabelledButton(
-                  onTap: () {},
+                  onTap: () {
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  },
                   label: 'Location',
                   backgroundColor: Colors.green[600],
                   child: const Icon(
@@ -452,7 +469,10 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                   ),
                 ),
                 LabelledButton(
-                  onTap: () {},
+                  onTap: () {
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  },
                   label: 'Payment',
                   backgroundColor: Colors.teal[600],
                   child: CircleAvatar(
@@ -466,7 +486,12 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                   ),
                 ),
                 LabelledButton(
-                  onTap: () {},
+                  onTap: () async {
+                    await pickContact();
+
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  },
                   label: 'Contact',
                   backgroundColor: Colors.blue[600],
                   child: const Icon(
