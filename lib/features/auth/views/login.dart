@@ -28,7 +28,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       double keyboardSize = MediaQuery.of(context).viewInsets.bottom;
       await SharedPref.setDouble(
         'keyboardHeight',
-        keyboardSize + 34,
+        keyboardSize + MediaQuery.of(context).viewPadding.bottom,
       );
 
       if (keyboardSize == 0.0) return;
@@ -224,7 +224,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 130, vertical: 55),
+            padding: const EdgeInsets.symmetric(horizontal: 130, vertical: 20),
             child: GreenElevatedButton(
               onPressed: () => ref
                   .read(loginControllerProvider.notifier)
