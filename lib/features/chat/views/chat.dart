@@ -81,8 +81,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
         ),
         leadingWidth: 32.0,
         leading: IconButton(
-          onPressed: () =>
-              ref.read(chatControllerProvider).navigateToHome(context, self),
+          onPressed: () => ref
+              .read(chatControllerProvider.notifier)
+              .navigateToHome(context, self),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
@@ -426,11 +427,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                   ),
                 ),
                 LabelledButton(
-                  onTap: () async {
-                    await pickImageFromGallery();
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                  },
+                  onTap: () async {},
                   label: 'Gallery',
                   backgroundColor: Colors.purple[400],
                   child: const Icon(
@@ -526,7 +523,7 @@ class ChatStream extends ConsumerStatefulWidget {
 class _ChatStreamState extends ConsumerState<ChatStream> {
   final _scrollController = ScrollController();
   bool initialScroll = true;
-  bool showDownArrayBtn = false;
+  bool showScrollBtn = false;
 
   @override
   void initState() {
@@ -563,9 +560,9 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
   void _scrollListener() {
     if (maxScrollExtentAcquired()) {
-      showDownArrayBtn = false;
+      showScrollBtn = false;
     } else {
-      showDownArrayBtn = true;
+      showScrollBtn = true;
     }
 
     setState(() {});
@@ -600,7 +597,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
           if (message.senderId == widget.self.id) {
             if (message.status == MessageStatus.pending) {
-              message.status = MessageStatus.sent;
+              // ...
             }
 
             continue;
@@ -613,7 +610,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (showDownArrayBtn) return;
+          if (showScrollBtn) return;
 
           if (initialScroll) {
             _scrollToBottom();
@@ -653,7 +650,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                     : ReceivedMessageCard(message: message);
               },
             ),
-            if (showDownArrayBtn) ...[
+            if (showScrollBtn) ...[
               Positioned(
                 bottom: 2.0,
                 right: 2.0,

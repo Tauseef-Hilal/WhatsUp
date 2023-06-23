@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +16,10 @@ final chatControllerProvider =
 );
 
 class ChatController {
-  ChatController({this.hideElements = false, required this.messageController});
+  ChatController({
+    this.hideElements = false,
+    required this.messageController,
+  });
 
   final bool hideElements;
   final TextEditingController messageController;
@@ -23,18 +28,10 @@ class ChatController {
     messageController.dispose();
   }
 
-  void navigateToHome(BuildContext context, User user) {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(user: user),
-        ),
-        (route) => false);
-  }
-
   ChatController copyWith({
     bool? hideElements,
     TextEditingController? controller,
+    List<File>? attachments,
   }) {
     return ChatController(
       hideElements: hideElements ?? this.hideElements,
@@ -55,25 +52,35 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
     super.dispose();
   }
 
+  void navigateToHome(BuildContext context, User user) {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(user: user),
+        ),
+        (route) => false);
+  }
+
   void onTextChanged(String value) {
     if (value.isEmpty) {
       state = state.copyWith(hideElements: false);
     } else if (value != ' ') {
       state = state.copyWith(hideElements: true);
     } else {
-      state.messageController.text = '';
+      state = state.copyWith(controller: TextEditingController());
     }
   }
 
   void onSendBtnPressed(WidgetRef ref, User sender, User receiver) async {
     MessageStatus status = MessageStatus.sent;
+    String messageId = const Uuid().v4();
 
     if (!await isConnected()) {
       status = MessageStatus.pending;
     }
 
     final msg = Message(
-      id: const Uuid().v4(),
+      id: messageId,
       content: state.messageController.text.trim(),
       status: status,
       senderId: sender.id,
@@ -85,7 +92,9 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
         .read(firebaseFirestoreRepositoryProvider)
         .sendMessage(msg, sender, receiver);
 
-    state.messageController.text = '';
-    state = state.copyWith(hideElements: false);
+    state = state.copyWith(
+      hideElements: false,
+      controller: TextEditingController(),
+    );
   }
 }

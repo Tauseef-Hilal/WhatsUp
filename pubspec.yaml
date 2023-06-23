@@ -21,12 +21,12 @@ dependencies:
   country_picker: ^2.0.20
   permission_handler: ^10.2.0
   shared_preferences: ^2.0.20
-  intl: ^0.17.0
+  intl: ^0.18.1
   emoji_picker_flutter: ^1.5.2
   flutter_keyboard_visibility: ^5.4.0
-  phone_number: ^1.0.0
+  phone_number: ^2.0.1
   uuid: ^3.0.7
-  share_plus: ^6.3.1
+  share_plus: ^7.0.2
   url_launcher: ^6.1.10
   flutter_contacts: ^1.1.6
   cached_network_image: ^3.2.3

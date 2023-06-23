@@ -28,11 +28,17 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '10.7.0'
+  pod 'PhoneNumberKit/PhoneNumberKitCore', :git => 'https://github.com/marmelroy/PhoneNumberKit', :tag => '3.5.10'
+
+  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '10.10.0'
+
   use_frameworks!
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
 end
 
 post_install do |installer|
@@ -65,7 +71,7 @@ post_install do |installer|
         'PERMISSION_CAMERA=1',
 
         ## dart: PermissionGroup.microphone
-        # 'PERMISSION_MICROPHONE=1',
+        'PERMISSION_MICROPHONE=1',
 
         ## dart: PermissionGroup.speech
         # 'PERMISSION_SPEECH_RECOGNIZER=1',

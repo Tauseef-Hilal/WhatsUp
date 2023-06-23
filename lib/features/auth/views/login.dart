@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
@@ -25,13 +27,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.read(loginControllerProvider.notifier).init(() async {
       if (gotKeyboardHeight) return;
 
-      double keyboardSize = MediaQuery.of(context).viewInsets.bottom;
-      await SharedPref.setDouble(
-        'keyboardHeight',
-        keyboardSize + MediaQuery.of(context).viewPadding.bottom,
-      );
+      var mediaQueryData = MediaQuery.of(context);
+      double keyboardSize =
+          mediaQueryData.viewInsets.bottom + mediaQueryData.viewPadding.bottom;
 
-      if (keyboardSize == 0.0) return;
+      if (Platform.isAndroid) {
+        keyboardSize += 30;
+      }
+
+      await SharedPref.setDouble('keyboardHeight', keyboardSize);
+
+      if (keyboardSize < 300) return;
       gotKeyboardHeight = true;
     });
     super.initState();

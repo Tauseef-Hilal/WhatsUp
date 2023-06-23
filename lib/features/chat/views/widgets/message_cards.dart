@@ -35,10 +35,18 @@ class ReceivedMessageCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Text(
-              message.content + ' ' * 12,
-              style: Theme.of(context).custom.textTheme.bodyText1,
-              softWrap: true,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    message.content + ' ' * 12,
+                    style: Theme.of(context).custom.textTheme.bodyText1,
+                    softWrap: true,
+                  ),
+                ),
+              ],
             ),
             Positioned(
               right: 0,
@@ -101,10 +109,18 @@ class SentMessageCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Text(
-              message.content + ' ' * 16,
-              style: Theme.of(context).custom.textTheme.bodyText1,
-              softWrap: true,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    message.content + ' ' * 16,
+                    style: Theme.of(context).custom.textTheme.bodyText1,
+                    softWrap: true,
+                  ),
+                ),
+              ],
             ),
             Positioned(
               right: 0,

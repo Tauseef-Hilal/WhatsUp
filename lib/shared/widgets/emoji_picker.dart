@@ -47,7 +47,7 @@ class CustomEmojiPicker extends ConsumerWidget {
                 : colorTheme.iconColor,
             iconColorSelected: colorTheme.textColor2,
             backspaceColor: colorTheme.iconColor,
-            showRecentsTab: true,
+            recentTabBehavior: RecentTabBehavior.RECENT,
             recentsLimit: 28,
             noRecents: const Text(
               'No Recents',

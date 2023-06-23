@@ -76,6 +76,7 @@ class FirebaseFirestoreRepo {
       for (var doc in event.docs) {
         chats.add(RecentChat.fromMap(doc.data()['recentChat']));
       }
+
       return chats;
     });
   }
@@ -94,6 +95,7 @@ class FirebaseFirestoreRepo {
       for (var doc in event.docs) {
         messages.add(Message.fromMap(doc.data()));
       }
+
       return messages;
     });
   }

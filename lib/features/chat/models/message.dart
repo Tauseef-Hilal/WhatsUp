@@ -29,8 +29,6 @@ class Message {
   final String receiverId;
   final Timestamp timestamp;
   MessageStatus status;
-  // To be added later
-  // final List attachments;
 
   Message({
     required this.id,

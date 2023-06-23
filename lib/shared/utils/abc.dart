@@ -45,12 +45,21 @@ Future<File?> capturePhoto() async {
 }
 
 Future<File?> pickImageFromGallery() async {
-  if (Platform.isIOS && !await hasPermission(Permission.camera)) return null;
+  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
 
   final ImagePicker picker = ImagePicker();
   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
   return image != null ? File(image.path) : null;
+}
+
+Future<List<File>?> pickImagesFromGallery() async {
+  if (Platform.isIOS && !await hasPermission(Permission.camera)) return null;
+
+  final ImagePicker picker = ImagePicker();
+  final List<XFile> images = await picker.pickMultiImage();
+
+  return images.map((e) => File(e.path)).toList();
 }
 
 Future<bool> isConnected() async {
