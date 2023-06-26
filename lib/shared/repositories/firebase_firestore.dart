@@ -88,7 +88,7 @@ class FirebaseFirestoreRepo {
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('timestamp')
+        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((event) {
       final messages = <Message>[];

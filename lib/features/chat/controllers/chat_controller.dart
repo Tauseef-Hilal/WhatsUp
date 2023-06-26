@@ -8,7 +8,6 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatControllerNotifier, ChatController>(
@@ -16,10 +15,7 @@ final chatControllerProvider =
 );
 
 class ChatController {
-  ChatController({
-    this.hideElements = false,
-    required this.messageController,
-  });
+  ChatController({this.hideElements = false, required this.messageController});
 
   final bool hideElements;
   final TextEditingController messageController;
@@ -75,9 +71,9 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
     MessageStatus status = MessageStatus.sent;
     String messageId = const Uuid().v4();
 
-    if (!await isConnected()) {
-      status = MessageStatus.pending;
-    }
+    // if (!await isConnected()) {
+    //   status = MessageStatus.pending;
+    // }
 
     final msg = Message(
       id: messageId,

@@ -1,13 +1,17 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
+import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
@@ -141,9 +145,266 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 }
 
+class AttachmentWidget extends ConsumerStatefulWidget {
+  const AttachmentWidget({
+    super.key,
+    required this.attachments,
+    required this.self,
+    required this.other,
+  });
+
+  final List<File> attachments;
+  final User self;
+  final User other;
+
+  @override
+  ConsumerState<AttachmentWidget> createState() => _AttachmentWidgetState();
+}
+
+class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
+  late File current;
+  late List<TextEditingController> controllers;
+
+  @override
+  void initState() {
+    controllers =
+        widget.attachments.map((_) => TextEditingController()).toList();
+    current = widget.attachments[0];
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in controllers) {
+      controller.dispose();
+    }
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: colorTheme.backgroundColor,
+      body: SafeArea(
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            iconTheme: IconThemeData(
+              color: colorTheme.iconColor,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const CircleAvatar(
+                      backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                      child: Icon(Icons.close),
+                    ),
+                  ),
+                  trailing: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.crop),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.sticky_note_2),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.text_format_outlined),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.draw),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Image.file(
+                    current,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.attachments.map(
+                      (file) {
+                        return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                current = file;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Image.file(file, height: 50),
+                            ));
+                      },
+                    ).toList(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(24.0),
+                            ),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? colorTheme.appBarColor
+                                    : colorTheme.backgroundColor,
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: GestureDetector(
+                                    onTap: ref
+                                        .read(emojiPickerControllerProvider
+                                            .notifier)
+                                        .toggleEmojiPicker,
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 24.0,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8.0,
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    controller: controllers[
+                                        widget.attachments.indexOf(current)],
+                                    maxLines: 6,
+                                    minLines: 1,
+                                    cursorColor: colorTheme.greenColor,
+                                    cursorHeight: 20,
+                                    style: Theme.of(context)
+                                        .custom
+                                        .textTheme
+                                        .bodyText1,
+                                    decoration: InputDecoration(
+                                      hintText: 'Message',
+                                      hintStyle: Theme.of(context)
+                                          .custom
+                                          .textTheme
+                                          .bodyText1
+                                          .copyWith(),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8.0,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 4.0,
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          for (var i = 0; i < controllers.length; i++) {
+                            final controller = controllers[i];
+                            final attachedFile = widget.attachments[i];
+
+                            MessageStatus status = MessageStatus.sent;
+                            String messageId = const Uuid().v4();
+
+                            // if (!await isConnected()) {
+                            //   status = MessageStatus.pending;
+                            // }
+                            final fileName = attachedFile.path.split("/").last;
+                            final url = await ref
+                                .read(firebaseStorageRepoProvider)
+                                .uploadFileToFirebase(
+                                  attachedFile,
+                                  "attachments/${messageId}__$fileName",
+                                );
+
+                            final msg = Message(
+                              id: messageId,
+                              content: controller.text.trim(),
+                              status: status,
+                              senderId: widget.self.id,
+                              receiverId: widget.other.id,
+                              timestamp: Timestamp.now(),
+                              attachment: Attachment(
+                                type: AttachmentType.document,
+                                url: url,
+                                fileName:
+                                    "${messageId}__${attachedFile.path.split("/").last}",
+                                fileSize: "",
+                              ),
+                            );
+
+                            ref
+                                .read(firebaseFirestoreRepositoryProvider)
+                                .sendMessage(msg, widget.self, widget.other);
+                          }
+
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
+                        },
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: colorTheme.greenColor,
+                          child: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ChatInputContainer extends ConsumerStatefulWidget {
-  const ChatInputContainer(
-      {super.key, required this.self, required this.other});
+  const ChatInputContainer({
+    super.key,
+    required this.self,
+    required this.other,
+  });
 
   final User self;
   final User other;
@@ -202,9 +463,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                             padding: const EdgeInsets.only(bottom: 12.0),
                             child: GestureDetector(
                               onTap: ref
-                                  .read(
-                                    emojiPickerControllerProvider.notifier,
-                                  )
+                                  .read(emojiPickerControllerProvider.notifier)
                                   .toggleEmojiPicker,
                               child: Icon(
                                 showEmojiPicker == 1
@@ -307,7 +566,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                 ),
                               ]
                             ],
-                          ),
+                          )
                         ],
                       ),
                     ),
@@ -427,7 +686,21 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                   ),
                 ),
                 LabelledButton(
-                  onTap: () async {},
+                  onTap: () async {
+                    final images = await pickImagesFromGallery();
+                    if (images == null) return;
+                    if (!mounted) return;
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AttachmentWidget(
+                          attachments: images,
+                          self: widget.self,
+                          other: widget.other,
+                        ),
+                      ),
+                    );
+                  },
                   label: 'Gallery',
                   backgroundColor: Colors.purple[400],
                   child: const Icon(
@@ -436,22 +709,20 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                     color: Colors.white,
                   ),
                 ),
-                if (!Platform.isIOS) ...[
-                  LabelledButton(
-                    onTap: () async {
-                      await pickFile(FileType.audio);
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                    },
-                    label: 'Audio',
-                    backgroundColor: Colors.orange[900],
-                    child: const Icon(
-                      Icons.headphones_rounded,
-                      size: 28,
-                      color: Colors.white,
-                    ),
+                LabelledButton(
+                  onTap: () async {
+                    await pickFile(FileType.audio);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  },
+                  label: 'Audio',
+                  backgroundColor: Colors.orange[900],
+                  child: const Icon(
+                    Icons.headphones_rounded,
+                    size: 28,
+                    color: Colors.white,
                   ),
-                ],
+                ),
                 LabelledButton(
                   onTap: () {
                     if (!mounted) return;
@@ -521,36 +792,6 @@ class ChatStream extends ConsumerStatefulWidget {
 }
 
 class _ChatStreamState extends ConsumerState<ChatStream> {
-  final _scrollController = ScrollController();
-  bool initialScroll = true;
-  bool showScrollBtn = false;
-
-  @override
-  void initState() {
-    _scrollController.addListener(_scrollListener);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToBottom([bool animate = false]) {
-    if (!animate) {
-      _scrollController.jumpTo(
-        _scrollController.position.maxScrollExtent,
-      );
-      return;
-    }
-
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
-    );
-  }
 
   void _sendUpdates(Message message) {
     ref
@@ -558,30 +799,8 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         .sendMessage(message, widget.self, widget.other);
   }
 
-  void _scrollListener() {
-    if (maxScrollExtentAcquired()) {
-      showScrollBtn = false;
-    } else {
-      showScrollBtn = true;
-    }
-
-    setState(() {});
-  }
-
-  bool maxScrollExtentAcquired() =>
-      _scrollController.position.pixels >=
-      _scrollController.position.maxScrollExtent;
-
   @override
   Widget build(BuildContext context) {
-    ref.listen(emojiPickerControllerProvider, ((previous, next) {
-      if ((ref.read(emojiPickerControllerProvider.notifier).keyboardVisible ||
-              next == 1) &&
-          maxScrollExtentAcquired()) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-      }
-    }));
-
     return StreamBuilder<List<Message>>(
       stream: ref
           .read(firebaseFirestoreRepositoryProvider)
@@ -609,30 +828,20 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           );
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (showScrollBtn) return;
-
-          if (initialScroll) {
-            _scrollToBottom();
-            initialScroll = false;
-          } else {
-            _scrollToBottom(true);
-          }
-        });
-
         return Stack(
           children: [
             ListView.builder(
+              reverse: true,
               physics: const BouncingScrollPhysics(),
               itemCount: messages.length,
               shrinkWrap: true,
-              controller: _scrollController,
               itemBuilder: (context, index) {
                 Message message = messages[index];
                 String msgStatus = message.status.value;
 
-                if (index == 0 ||
-                    messages[index - 1].senderId != messages[index].senderId) {
+                if (index == messages.length - 1 ||
+                    (messages[index].senderId !=
+                        messages[index + 1].senderId)) {
                   return message.senderId == widget.self.id
                       ? SentMessageCard(
                           message: message,
@@ -650,20 +859,20 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                     : ReceivedMessageCard(message: message);
               },
             ),
-            if (showScrollBtn) ...[
-              Positioned(
-                bottom: 2.0,
-                right: 2.0,
-                child: GestureDetector(
-                  onTap: _scrollToBottom,
-                  child: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).custom.colorTheme.appBarColor,
-                    child: const Icon(Icons.keyboard_double_arrow_down),
-                  ),
-                ),
-              )
-            ],
+            // if (showScrollBtn) ...[
+            //   Positioned(
+            //     bottom: 2.0,
+            //     right: 2.0,
+            //     child: GestureDetector(
+            //       onTap: () {},
+            //       child: CircleAvatar(
+            //         backgroundColor:
+            //             Theme.of(context).custom.colorTheme.appBarColor,
+            //         child: const Icon(Icons.keyboard_double_arrow_down),
+            //       ),
+            //     ),
+            //   )
+            // ],
           ],
         );
       },

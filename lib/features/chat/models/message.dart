@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 
 enum MessageStatus {
   pending('PENDING'),
@@ -28,15 +29,17 @@ class Message {
   final String senderId;
   final String receiverId;
   final Timestamp timestamp;
+  final Attachment? attachment;
   MessageStatus status;
 
   Message({
     required this.id,
     required this.content,
-    required this.status,
     required this.senderId,
     required this.receiverId,
     required this.timestamp,
+    required this.status,
+    this.attachment,
   });
 
   factory Message.fromMap(Map<String, dynamic> msgData) {
@@ -47,6 +50,11 @@ class Message {
       senderId: msgData['senderId'],
       receiverId: msgData['receiverId'],
       timestamp: msgData['timestamp'],
+
+      // For compatibility
+      attachment: msgData["attachment"] != null
+          ? Attachment.fromMap(msgData["attachment"])
+          : null,
     );
   }
 
@@ -63,6 +71,7 @@ class Message {
       'senderId': senderId,
       'receiverId': receiverId,
       'timestamp': timestamp,
+      "attachment": attachment?.toMap(),
     };
   }
 }

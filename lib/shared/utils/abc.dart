@@ -54,7 +54,7 @@ Future<File?> pickImageFromGallery() async {
 }
 
 Future<List<File>?> pickImagesFromGallery() async {
-  if (Platform.isIOS && !await hasPermission(Permission.camera)) return null;
+  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
 
   final ImagePicker picker = ImagePicker();
   final List<XFile> images = await picker.pickMultiImage();
