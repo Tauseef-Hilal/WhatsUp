@@ -145,260 +145,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 }
 
-class AttachmentWidget extends ConsumerStatefulWidget {
-  const AttachmentWidget({
-    super.key,
-    required this.attachments,
-    required this.self,
-    required this.other,
-  });
-
-  final List<File> attachments;
-  final User self;
-  final User other;
-
-  @override
-  ConsumerState<AttachmentWidget> createState() => _AttachmentWidgetState();
-}
-
-class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
-  late File current;
-  late List<TextEditingController> controllers;
-
-  @override
-  void initState() {
-    controllers =
-        widget.attachments.map((_) => TextEditingController()).toList();
-    current = widget.attachments[0];
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    for (var controller in controllers) {
-      controller.dispose();
-    }
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorTheme = Theme.of(context).custom.colorTheme;
-
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: colorTheme.backgroundColor,
-      body: SafeArea(
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            iconTheme: IconThemeData(
-              color: colorTheme.iconColor,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const CircleAvatar(
-                      backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                      child: Icon(Icons.close),
-                    ),
-                  ),
-                  trailing: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.crop),
-                      ),
-                      SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.sticky_note_2),
-                      ),
-                      SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.text_format_outlined),
-                      ),
-                      SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.draw),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Image.file(
-                    current,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: widget.attachments.map(
-                      (file) {
-                        return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                current = file;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Image.file(file, height: 50),
-                            ));
-                      },
-                    ).toList(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(24.0),
-                            ),
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? colorTheme.appBarColor
-                                    : colorTheme.backgroundColor,
-                          ),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: GestureDetector(
-                                    onTap: ref
-                                        .read(emojiPickerControllerProvider
-                                            .notifier)
-                                        .toggleEmojiPicker,
-                                    child: const Icon(
-                                      Icons.add,
-                                      size: 24.0,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 8.0,
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    controller: controllers[
-                                        widget.attachments.indexOf(current)],
-                                    maxLines: 6,
-                                    minLines: 1,
-                                    cursorColor: colorTheme.greenColor,
-                                    cursorHeight: 20,
-                                    style: Theme.of(context)
-                                        .custom
-                                        .textTheme
-                                        .bodyText1,
-                                    decoration: InputDecoration(
-                                      hintText: 'Message',
-                                      hintStyle: Theme.of(context)
-                                          .custom
-                                          .textTheme
-                                          .bodyText1
-                                          .copyWith(),
-                                      border: InputBorder.none,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 8.0,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 4.0,
-                      ),
-                      InkWell(
-                        onTap: () async {
-                          for (var i = 0; i < controllers.length; i++) {
-                            final controller = controllers[i];
-                            final attachedFile = widget.attachments[i];
-
-                            MessageStatus status = MessageStatus.sent;
-                            String messageId = const Uuid().v4();
-
-                            // if (!await isConnected()) {
-                            //   status = MessageStatus.pending;
-                            // }
-                            final fileName = attachedFile.path.split("/").last;
-                            final url = await ref
-                                .read(firebaseStorageRepoProvider)
-                                .uploadFileToFirebase(
-                                  attachedFile,
-                                  "attachments/${messageId}__$fileName",
-                                );
-
-                            final msg = Message(
-                              id: messageId,
-                              content: controller.text.trim(),
-                              status: status,
-                              senderId: widget.self.id,
-                              receiverId: widget.other.id,
-                              timestamp: Timestamp.now(),
-                              attachment: Attachment(
-                                type: AttachmentType.document,
-                                url: url,
-                                fileName:
-                                    "${messageId}__${attachedFile.path.split("/").last}",
-                                fileSize: "",
-                              ),
-                            );
-
-                            ref
-                                .read(firebaseFirestoreRepositoryProvider)
-                                .sendMessage(msg, widget.self, widget.other);
-                          }
-
-                          if (!mounted) return;
-                          Navigator.of(context).pop();
-                        },
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: colorTheme.greenColor,
-                          child: const Icon(
-                            Icons.send,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class ChatInputContainer extends ConsumerStatefulWidget {
   const ChatInputContainer({
     super.key,
@@ -447,9 +193,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(24.0),
-                      ),
+                      borderRadius: BorderRadius.circular(24.0),
                       color: Theme.of(context).brightness == Brightness.dark
                           ? colorTheme.appBarColor
                           : colorTheme.backgroundColor,
@@ -577,9 +321,44 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 hideElements
                     ? InkWell(
-                        onTap: () => ref
-                            .read(chatControllerProvider.notifier)
-                            .onSendBtnPressed(ref, widget.self, widget.other),
+                        onTap: () async {
+                          // if (!await isConnected()) {
+                          //   if (!mounted) return;
+                          //   showDialog(
+                          //       context: context,
+                          //       builder: (context) {
+                          //         return AlertDialog(
+                          //           title: Row(
+                          //             children: [
+                          //               Icon(
+                          //                 Icons.cancel,
+                          //                 color: Theme.of(context)
+                          //                     .custom
+                          //                     .colorTheme
+                          //                     .errorSnackBarColor,
+                          //                 size: 38.0,
+                          //               ),
+                          //               const SizedBox(
+                          //                 width: 8,
+                          //               ),
+                          //               Text(
+                          //                 "No Internet! Please try again later",
+                          //                 style: Theme.of(context)
+                          //                     .textTheme
+                          //                     .bodySmall!
+                          //                     .copyWith(fontSize: 16.0),
+                          //               ),
+                          //             ],
+                          //           ),
+                          //         );
+                          //       });
+                          //   return;
+                          // }
+
+                          ref
+                              .read(chatControllerProvider.notifier)
+                              .onSendBtnPressed(ref, widget.self, widget.other);
+                        },
                         child: CircleAvatar(
                           radius: 24,
                           backgroundColor: colorTheme.greenColor,
@@ -637,10 +416,8 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
       builder: (context) {
         return Dialog(
           alignment: Alignment.center,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(16.0),
-            ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
           ),
           insetPadding: EdgeInsets.only(
             left: 12.0,
@@ -673,9 +450,19 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    await capturePhoto();
+                    final image = await capturePhoto();
+                    if (image == null) return;
                     if (!mounted) return;
-                    Navigator.pop(context);
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AttachmentWidget(
+                          attachments: [image],
+                          self: widget.self,
+                          other: widget.other,
+                        ),
+                      ),
+                    );
                   },
                   label: 'Camera',
                   backgroundColor: Colors.redAccent[400],
@@ -688,9 +475,10 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 LabelledButton(
                   onTap: () async {
                     final images = await pickImagesFromGallery();
-                    if (images == null) return;
+                    if (images == null || images.isEmpty) return;
                     if (!mounted) return;
 
+                    Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => AttachmentWidget(
@@ -792,11 +580,10 @@ class ChatStream extends ConsumerStatefulWidget {
 }
 
 class _ChatStreamState extends ConsumerState<ChatStream> {
-
   void _sendUpdates(Message message) {
     ref
         .read(firebaseFirestoreRepositoryProvider)
-        .sendMessage(message, widget.self, widget.other);
+        .updateMessage(message, {"status": "SEEN"});
   }
 
   @override
@@ -813,16 +600,8 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         final messages = snapshot.data!;
         for (var message in messages) {
           if (message.status == MessageStatus.seen) continue;
+          if (message.senderId == widget.self.id) continue;
 
-          if (message.senderId == widget.self.id) {
-            if (message.status == MessageStatus.pending) {
-              // ...
-            }
-
-            continue;
-          }
-
-          message.status = MessageStatus.seen;
           WidgetsBinding.instance.addPostFrameCallback(
             (_) => _sendUpdates(message),
           );
@@ -837,26 +616,31 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
               shrinkWrap: true,
               itemBuilder: (context, index) {
                 Message message = messages[index];
-                String msgStatus = message.status.value;
 
                 if (index == messages.length - 1 ||
                     (messages[index].senderId !=
                         messages[index + 1].senderId)) {
                   return message.senderId == widget.self.id
-                      ? SentMessageCard(
+                      ? MessageCard(
                           message: message,
-                          msgStatus: msgStatus,
                           special: true,
+                          type: MessageCardType.sentMessageCard,
                         )
-                      : ReceivedMessageCard(
+                      : MessageCard(
                           message: message,
                           special: true,
+                          type: MessageCardType.receiverMessageCard,
                         );
                 }
 
                 return message.senderId == widget.self.id
-                    ? SentMessageCard(message: message, msgStatus: msgStatus)
-                    : ReceivedMessageCard(message: message);
+                    ? MessageCard(
+                        message: message,
+                        type: MessageCardType.sentMessageCard,
+                      )
+                    : MessageCard(
+                        message: message,
+                        type: MessageCardType.receiverMessageCard);
               },
             ),
             // if (showScrollBtn) ...[
@@ -876,6 +660,252 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           ],
         );
       },
+    );
+  }
+}
+
+class AttachmentWidget extends ConsumerStatefulWidget {
+  const AttachmentWidget({
+    super.key,
+    required this.attachments,
+    required this.self,
+    required this.other,
+  });
+
+  final List<File> attachments;
+  final User self;
+  final User other;
+
+  @override
+  ConsumerState<AttachmentWidget> createState() => _AttachmentWidgetState();
+}
+
+class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
+  late File current;
+  late List<TextEditingController> controllers;
+
+  @override
+  void initState() {
+    controllers =
+        widget.attachments.map((_) => TextEditingController()).toList();
+    current = widget.attachments[0];
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in controllers) {
+      controller.dispose();
+    }
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: colorTheme.backgroundColor,
+      body: SafeArea(
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            iconTheme: IconThemeData(
+              color: colorTheme.iconColor,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const CircleAvatar(
+                      backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                      child: Icon(Icons.close),
+                    ),
+                  ),
+                  trailing: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.crop),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.sticky_note_2),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.text_format_outlined),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.draw),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Image.file(
+                    current,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.attachments.map(
+                      (file) {
+                        return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                current = file;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Image.file(file, height: 50),
+                            ));
+                      },
+                    ).toList(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24.0),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? colorTheme.appBarColor
+                                    : colorTheme.backgroundColor,
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: GestureDetector(
+                                    onTap: ref
+                                        .read(emojiPickerControllerProvider
+                                            .notifier)
+                                        .toggleEmojiPicker,
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 24.0,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8.0,
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    controller: controllers[
+                                        widget.attachments.indexOf(current)],
+                                    maxLines: 6,
+                                    minLines: 1,
+                                    cursorColor: colorTheme.greenColor,
+                                    cursorHeight: 20,
+                                    style: Theme.of(context)
+                                        .custom
+                                        .textTheme
+                                        .bodyText1,
+                                    decoration: InputDecoration(
+                                      hintText: 'Message',
+                                      hintStyle: Theme.of(context)
+                                          .custom
+                                          .textTheme
+                                          .bodyText1
+                                          .copyWith(),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8.0,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 4.0,
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          for (var i = 0; i < controllers.length; i++) {
+                            final attachedFile = widget.attachments[i];
+                            String messageId = const Uuid().v4();
+                            String fileName = attachedFile.path.split("/").last;
+                            fileName = "${messageId}__$fileName";
+
+                            attachedFile.copy(await ref
+                                .read(firebaseStorageRepoProvider)
+                                .getMediaFilePath(fileName));
+
+                            ref
+                                .read(chatControllerProvider.notifier)
+                                .sendMessageWithAttachments(
+                                  Message(
+                                    id: messageId,
+                                    content: controllers[i].text.trim(),
+                                    status: MessageStatus.pending,
+                                    senderId: widget.self.id,
+                                    receiverId: widget.other.id,
+                                    timestamp: Timestamp.now(),
+                                    attachment: Attachment(
+                                      type: AttachmentType.document,
+                                      url: "uploading",
+                                      fileName: fileName,
+                                      fileSize: "",
+                                      file: attachedFile,
+                                    ),
+                                  ),
+                                  widget.self,
+                                  widget.other,
+                                );
+                          }
+
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
+                        },
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: colorTheme.greenColor,
+                          child: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

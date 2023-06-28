@@ -23,10 +23,10 @@ enum AttachmentType {
 }
 
 class Attachment {
-  final String url;
   final String fileName;
   final String fileSize;
   final AttachmentType type;
+  String url;
   File? file;
 
   Attachment({

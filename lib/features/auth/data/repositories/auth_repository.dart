@@ -47,8 +47,6 @@ class FirebaseAuthRepository implements AuthenticationRepository {
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) {
         // NOT IMPLEMENTED YET
-        ref.read(verificationCodeProvider.notifier).state =
-            credential.verificationId!;
       },
       verificationFailed: (FirebaseAuthException e) {
         showSnackBar(

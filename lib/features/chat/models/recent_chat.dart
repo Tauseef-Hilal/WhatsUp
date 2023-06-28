@@ -4,6 +4,7 @@ import 'package:whatsapp_clone/shared/models/user.dart';
 class RecentChat {
   final Message message;
   final User user;
+  bool isNewForUser = false;
 
   RecentChat({
     required this.message,

@@ -226,9 +226,8 @@ class _RecentChatsBodyState extends ConsumerState<RecentChatsBody> {
             return Container();
           }
 
-          final chats = snapshot.data!;
           return RecentChats(
-            chats: chats,
+            chats: snapshot.data!,
             widget: widget,
             ref: ref,
             colorTheme: colorTheme,
@@ -385,6 +384,12 @@ class RecentChatWidget extends StatelessWidget {
               width: 2.0,
             )
           ],
+          if (chat.message.attachment != null) ...[
+            const Icon(Icons.image),
+            const SizedBox(
+              width: 2.0,
+            )
+          ],
           Text(
               msgContent.length > 20
                   ? '${chat.message.content.substring(0, 20)}...'
@@ -392,13 +397,29 @@ class RecentChatWidget extends StatelessWidget {
               style: Theme.of(context).custom.textTheme.subtitle2)
         ],
       ),
-      trailing: Text(
-        formattedTimestamp(
-          chat.message.timestamp,
-        ),
-        style: Theme.of(context).custom.textTheme.caption.copyWith(
-              color: Theme.of(context).custom.colorTheme.greyColor,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            formattedTimestamp(
+              chat.message.timestamp,
             ),
+            style: Theme.of(context).custom.textTheme.caption.copyWith(
+                  color: chat.isNewForUser
+                      ? Colors.greenAccent
+                      : Theme.of(context).custom.colorTheme.greyColor,
+                ),
+          ),
+          if (chat.isNewForUser) ...[
+            const Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Icon(
+                Icons.circle,
+                color: Colors.greenAccent,
+              ),
+            )
+          ],
+        ],
       ),
     );
   }

@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
-import 'package:whatsapp_clone/features/home/views/base.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
+
+import '../../home/views/base.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatControllerNotifier, ChatController>(
@@ -68,29 +70,55 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
   }
 
   void onSendBtnPressed(WidgetRef ref, User sender, User receiver) async {
-    MessageStatus status = MessageStatus.sent;
-    String messageId = const Uuid().v4();
-
-    // if (!await isConnected()) {
-    //   status = MessageStatus.pending;
-    // }
-
-    final msg = Message(
-      id: messageId,
-      content: state.messageController.text.trim(),
-      status: status,
-      senderId: sender.id,
-      receiverId: receiver.id,
-      timestamp: Timestamp.now(),
+    sendMessageNoAttachments(
+      Message(
+        id: const Uuid().v4(),
+        content: state.messageController.text.trim(),
+        status: MessageStatus.pending,
+        senderId: sender.id,
+        receiverId: receiver.id,
+        timestamp: Timestamp.now(),
+      ),
+      sender,
+      receiver,
     );
-
-    ref
-        .read(firebaseFirestoreRepositoryProvider)
-        .sendMessage(msg, sender, receiver);
 
     state = state.copyWith(
       hideElements: false,
       controller: TextEditingController(),
     );
+  }
+
+  void sendMessageNoAttachments(Message message, User sender, User receiver) {
+    final firestore = ref.read(firebaseFirestoreRepositoryProvider);
+
+    firestore.sendMessage(message, sender, receiver).then((_) {
+      firestore.updateMessage(message, {"status": "SENT"});
+    });
+  }
+
+  void sendMessageWithAttachments(Message message, User sender, User receiver) {
+    final firestore = ref.read(firebaseFirestoreRepositoryProvider);
+    firestore.sendMessage(message, sender, receiver, false);
+
+    ref
+        .read(firebaseStorageRepoProvider)
+        .uploadFileToFirebase(
+          message.attachment!.file!,
+          "attachments/${message.attachment!.fileName}",
+        )
+        .then((url) {
+      firestore.updateMessage(
+          message,
+          message.toMap()
+            ..addAll({
+              "status": "SENT",
+              "attachment": message.attachment!.toMap()..addAll({"url": url})
+            }));
+    }).onError((_, __) {
+      firestore.updateMessage(message, {
+        "attachment": message.attachment!.toMap()..addAll({"url": ""})
+      });
+    });
   }
 }

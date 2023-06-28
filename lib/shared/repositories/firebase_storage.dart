@@ -27,6 +27,13 @@ class FirebaseStorageRepo {
     final ref = firebaseStorage.refFromURL(url);
     // final fileSize = (metaData.size ?? 0 / 1024) / 1024;
 
+    final path = await getMediaFilePath(ref.name);
+    final file = File(path);
+
+    return (file, ref.writeToFile(file));
+  }
+
+  Future<String> getMediaFilePath(String fileName) async {
     final appDir = await getApplicationDocumentsDirectory();
     final path = appDir.path;
 
@@ -35,8 +42,6 @@ class FirebaseStorageRepo {
       dir.createSync(recursive: true);
     }
 
-    final file = File("$path/media/${ref.name}");
-
-    return (file, ref.writeToFile(file));
+    return "$path/media/$fileName";
   }
 }

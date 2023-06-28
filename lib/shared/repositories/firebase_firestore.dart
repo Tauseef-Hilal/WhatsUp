@@ -35,15 +35,22 @@ class FirebaseFirestoreRepo {
     Message message,
     User target,
     User receiver,
+    bool updateRecentChats,
   ) async {
-    final docRef = firestore
+    final receiverDocRef = firestore
         .collection('users')
         .doc(target.id)
         .collection('chats')
         .doc(receiver.id);
 
-    await docRef.collection('messages').doc(message.id).set(message.toMap());
-    await docRef.set({
+    await receiverDocRef
+        .collection('messages')
+        .doc(message.id)
+        .set(message.toMap());
+
+    if (!updateRecentChats) return;
+
+    await receiverDocRef.set({
       'recentChat': RecentChat(
         message: message,
         user: receiver,
@@ -51,9 +58,49 @@ class FirebaseFirestoreRepo {
     });
   }
 
-  Future<void> sendMessage(Message message, User sender, User receiver) async {
-    _updateChats(message, sender, receiver);
-    _updateChats(message, receiver, sender);
+  Future<void> sendMessage(
+    Message message,
+    User sender,
+    User receiver, [
+    bool updateRecentChats = true,
+  ]) async {
+    await _updateChats(message, sender, receiver, updateRecentChats);
+    await _updateChats(message, receiver, sender, updateRecentChats);
+  }
+
+  Future<void> updateMessage(Message message, Map<String, dynamic> data) async {
+    var chatDoc = firestore
+        .collection('users')
+        .doc(message.senderId)
+        .collection('chats')
+        .doc(message.receiverId);
+    var recent = (await chatDoc.get()).data()!['recentChat'];
+    await chatDoc.set({
+      'recentChat': recent
+        ..addAll(
+          {'message': recent['message']..addAll(data)},
+        )
+    }, SetOptions(merge: true));
+
+    var msgDoc = chatDoc.collection('messages').doc(message.id);
+    await msgDoc.set(data, SetOptions(merge: true));
+
+    chatDoc = firestore
+        .collection('users')
+        .doc(message.receiverId)
+        .collection('chats')
+        .doc(message.senderId);
+
+    recent = (await chatDoc.get()).data()!['recentChat'];
+    await chatDoc.set({
+      'recentChat': recent
+        ..addAll(
+          {'message': recent['message']..addAll(data)},
+        )
+    }, SetOptions(merge: true));
+
+    msgDoc = chatDoc.collection('messages').doc(message.id);
+    await msgDoc.set(data, SetOptions(merge: true));
   }
 
   Future<User?> getUserById(String id) async {
@@ -69,12 +116,17 @@ class FirebaseFirestoreRepo {
         .collection('users')
         .doc(targetUserId)
         .collection('chats')
-        .orderBy('recentChat.message.timestamp')
+        .orderBy('recentChat.message.timestamp', descending: true)
         .snapshots()
         .map((event) {
       final chats = <RecentChat>[];
       for (var doc in event.docs) {
-        chats.add(RecentChat.fromMap(doc.data()['recentChat']));
+        final isNew =
+            doc.data()['recentChat']["message"]["senderId"] != targetUserId &&
+                doc.data()['recentChat']["message"]["status"] != "SEEN";
+        chats.add(
+          RecentChat.fromMap(doc.data()['recentChat'])..isNewForUser = isNew,
+        );
       }
 
       return chats;
@@ -93,6 +145,13 @@ class FirebaseFirestoreRepo {
         .map((event) {
       final messages = <Message>[];
       for (var doc in event.docs) {
+        final data = doc.data();
+        if (data['attachment'] != null &&
+            data['senderId'] != targetUserId &&
+            (data['attachment']['url'].isEmpty ||
+                data['attachment']['url'] == 'uploading')) {
+          continue;
+        }
         messages.add(Message.fromMap(doc.data()));
       }
 
