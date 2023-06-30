@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
+import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_viewer.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
@@ -456,6 +457,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                       MaterialPageRoute(
                         builder: (_) => AttachmentWidget(
                           attachments: [image],
+                          attachmentType: AttachmentType.image,
                         ),
                       ),
                     );
@@ -479,6 +481,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                       MaterialPageRoute(
                         builder: (_) => AttachmentWidget(
                           attachments: images,
+                          attachmentType: AttachmentType.image,
                         ),
                       ),
                     );

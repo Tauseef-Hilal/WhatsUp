@@ -33,8 +33,8 @@ class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
-    final hasAttachment = widget.message.attachment != null;
     final size = MediaQuery.of(context).size;
+    final hasAttachment = widget.message.attachment != null;
     final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
     final messageHasText = widget.message.content.isNotEmpty;
     final hasSingleEmoji = containsSingleEmoji(widget.message.content);

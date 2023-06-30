@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 final firebaseStorageRepoProvider =
     Provider((ref) => FirebaseStorageRepo(FirebaseStorage.instance));
@@ -13,6 +14,10 @@ class FirebaseStorageRepo {
   FirebaseStorageRepo(this.firebaseStorage);
 
   Future<String> uploadFileToFirebase(File file, String path) async {
+    if (!await isConnected()) {
+      throw Exception("No Internet");
+    }
+    
     final snap = await firebaseStorage.ref().child(path).putFile(file);
     return await snap.ref.getDownloadURL();
   }
@@ -24,6 +29,10 @@ class FirebaseStorageRepo {
 
   Future<(File, DownloadTask)> downloadFileFromFirebase(
       String url, String fileName) async {
+    if (!await isConnected()) {
+      throw Exception("No Internet");
+    }
+    
     final ref = firebaseStorage.refFromURL(url);
     // final fileSize = (metaData.size ?? 0 / 1024) / 1024;
 

@@ -22,10 +22,31 @@ enum AttachmentType {
   }
 }
 
+enum UploadStatus {
+  notUploading("NOT_UPLOADING"),
+  uploading("UPLOADING"),
+  uploaded("UPLOADED");
+
+  const UploadStatus(this.value);
+  final String value;
+  factory UploadStatus.fromValue(String value) {
+    final res = UploadStatus.values.where(
+      (element) => element.value == value,
+    );
+
+    if (res.isEmpty) {
+      throw 'ValueError: $value is not a valid upload status';
+    }
+
+    return res.first;
+  }
+}
+
 class Attachment {
   final String fileName;
   final String fileSize;
   final AttachmentType type;
+  UploadStatus uploadStatus;
   String url;
   File? file;
 
@@ -34,6 +55,7 @@ class Attachment {
     required this.url,
     required this.fileName,
     required this.fileSize,
+    this.uploadStatus = UploadStatus.uploading,
     this.file,
   });
 
@@ -43,6 +65,8 @@ class Attachment {
       fileName: data["fileName"],
       fileSize: data["fileSize"],
       type: AttachmentType.fromValue(data["type"]),
+      uploadStatus:
+          UploadStatus.fromValue(data["uploadStatus"] ?? "NOT_UPLOADING"),
     );
   }
 
@@ -57,6 +81,7 @@ class Attachment {
       "fileName": fileName,
       "fileSize": fileSize,
       "type": type.value,
+      "uploadStatus": uploadStatus.value,
     };
   }
 }

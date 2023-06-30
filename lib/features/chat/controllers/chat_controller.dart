@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
@@ -103,28 +104,35 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
     firestore.sendMessage(message, sender, receiver, false);
 
-    ref
-        .read(firebaseStorageRepoProvider)
-        .uploadFileToFirebase(
-          message.attachment!.file!,
-          "attachments/${message.attachment!.fileName}",
-        )
-        .then((url) {
-      firestore.updateMessage(
-          message,
-          message.toMap()
-            ..addAll({
-              "status": "SENT",
-              "attachment": message.attachment!.toMap()..addAll({"url": url})
-            }));
-    }).onError((_, __) {
-      firestore.updateMessage(
-          message,
-          message.toMap()
-            ..addAll({
-              "status": "PENDING",
-              "attachment": message.attachment!.toMap()..addAll({"url": ""})
-            }));
-    });
+    // ref
+    //     .read(firebaseStorageRepoProvider)
+    //     .uploadFileToFirebase(
+    //       message.attachment!.file!,
+    //       "attachments/${message.attachment!.fileName}",
+    //     )
+    //     .then((url) {
+    //   firestore.updateMessage(
+    //       message,
+    //       message.toMap()
+    //         ..addAll({
+    //           "status": "SENT",
+    //           "attachment": message.attachment!.toMap()
+    //             ..addAll({
+    //               "url": url,
+    //               "uploadStatus": UploadStatus.uploaded.value,
+    //             })
+    //         }));
+    // }).onError((_, __) {
+    //   firestore.updateMessage(
+    //       message,
+    //       message.toMap()
+    //         ..addAll({
+    //           "status": "PENDING",
+    //           "attachment": message.attachment!.toMap()
+    //             ..addAll({
+    //               "uploadStatus": UploadStatus.notUploading.value,
+    //             })
+    //         }));
+    // });
   }
 }
