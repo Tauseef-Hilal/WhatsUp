@@ -31,6 +31,7 @@ dependencies:
   cached_network_image: ^3.2.3
   path_provider: ^2.0.15
   firebase_storage: ^11.2.4
+  flutter_emoji: ^2.4.0
 
 dev_dependencies:
   flutter_test:

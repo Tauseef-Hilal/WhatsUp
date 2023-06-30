@@ -526,6 +526,7 @@ class DownloadingImage extends ConsumerStatefulWidget {
 }
 
 class _DownloadingImageState extends ConsumerState<DownloadingImage> {
+  
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(

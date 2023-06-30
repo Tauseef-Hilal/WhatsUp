@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_emoji/flutter_emoji.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
@@ -24,6 +25,11 @@ class MessageCard extends StatefulWidget {
 }
 
 class _MessageCardState extends State<MessageCard> {
+  bool containsSingleEmoji(String text) {
+    return EmojiParser().parseEmojis(text).length == 1 &&
+        text.runes.length == 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
@@ -31,7 +37,9 @@ class _MessageCardState extends State<MessageCard> {
     final size = MediaQuery.of(context).size;
     final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
     final messageHasText = widget.message.content.isNotEmpty;
-    final textPadding = '\u00A0' * (isSentMessageCard ? 16 : 12);
+    final hasSingleEmoji = containsSingleEmoji(widget.message.content);
+    final textPadding =
+        '\u00A0' * (hasSingleEmoji ? 2 : (isSentMessageCard ? 16 : 12));
 
     return Align(
       alignment:
@@ -71,13 +79,23 @@ class _MessageCardState extends State<MessageCard> {
                     padding: isSentMessageCard
                         ? hasAttachment
                             ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                            : const EdgeInsets.only(top: 4.0)
+                            : EdgeInsets.only(
+                                top: 4.0,
+                                bottom: hasSingleEmoji ? 10.0 : 0,
+                              )
                         : hasAttachment
                             ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                            : const EdgeInsets.only(right: 0.0, top: 4.0),
+                            : EdgeInsets.only(
+                                top: 4.0,
+                                bottom: hasSingleEmoji ? 10.0 : 0,
+                              ),
                     child: Text(
                       '${widget.message.content} $textPadding',
-                      style: Theme.of(context).custom.textTheme.bodyText1,
+                      style: Theme.of(context)
+                          .custom
+                          .textTheme
+                          .bodyText1
+                          .copyWith(fontSize: hasSingleEmoji ? 40 : 16),
                       softWrap: true,
                     ),
                   )
