@@ -11,10 +11,10 @@ class ContactsPage extends ConsumerStatefulWidget {
   const ContactsPage({super.key, required this.user});
 
   @override
-  ConsumerState<ContactsPage> createState() => _CountryPageState();
+  ConsumerState<ContactsPage> createState() => _ContactsPageState();
 }
 
-class _CountryPageState extends ConsumerState<ContactsPage> {
+class _ContactsPageState extends ConsumerState<ContactsPage> {
   @override
   void initState() {
     ref.read(contactPickerControllerProvider.notifier).init(user: widget.user);

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +13,10 @@ final chatControllerProvider =
 );
 
 class ChatController {
-  ChatController({this.hideElements = false, required this.messageController});
+  ChatController({
+    this.hideElements = false,
+    required this.messageController,
+  });
 
   final bool hideElements;
   final TextEditingController messageController;
@@ -27,7 +28,6 @@ class ChatController {
   ChatController copyWith({
     bool? hideElements,
     TextEditingController? controller,
-    List<File>? attachments,
   }) {
     return ChatController(
       hideElements: hideElements ?? this.hideElements,
@@ -38,9 +38,18 @@ class ChatController {
 
 class ChatControllerNotifier extends StateNotifier<ChatController> {
   ChatControllerNotifier({required this.ref})
-      : super(ChatController(messageController: TextEditingController()));
+      : super(
+          ChatController(messageController: TextEditingController()),
+        );
 
   final AutoDisposeStateNotifierProviderRef ref;
+  late final User self;
+  late final User other;
+
+  init(User self, User other) {
+    this.self = self;
+    this.other = other;
+  }
 
   @override
   void dispose() {

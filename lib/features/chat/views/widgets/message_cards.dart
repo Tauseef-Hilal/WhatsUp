@@ -5,7 +5,7 @@ import 'package:whatsapp_clone/theme/theme.dart';
 
 import 'attachment_viewer.dart';
 
-enum MessageCardType { sentMessageCard, receiverMessageCard }
+enum MessageCardType { sentMessageCard, receivedMessageCard }
 
 class MessageCard extends StatefulWidget {
   const MessageCard({
@@ -31,6 +31,7 @@ class _MessageCardState extends State<MessageCard> {
     final size = MediaQuery.of(context).size;
     final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
     final messageHasText = widget.message.content.isNotEmpty;
+    final textPadding = '\u00A0' * (isSentMessageCard ? 16 : 12);
 
     return Align(
       alignment:
@@ -38,7 +39,7 @@ class _MessageCardState extends State<MessageCard> {
       child: Container(
         constraints: BoxConstraints(
           minHeight: 36,
-          minWidth: isSentMessageCard ? 100 : 80,
+          minWidth: 80,
           maxWidth: size.width * 0.75,
         ),
         decoration: BoxDecoration(
@@ -69,13 +70,13 @@ class _MessageCardState extends State<MessageCard> {
                   Padding(
                     padding: isSentMessageCard
                         ? hasAttachment
-                            ? const EdgeInsets.only(right: 4.0, top: 4.0)
-                            : const EdgeInsets.only(right: 4.0)
+                            ? const EdgeInsets.only(left: 4.0, top: 4.0)
+                            : const EdgeInsets.only(top: 4.0)
                         : hasAttachment
                             ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                            : const EdgeInsets.only(left: 4.0),
+                            : const EdgeInsets.only(right: 0.0, top: 4.0),
                     child: Text(
-                      widget.message.content + ' ' * 12,
+                      '${widget.message.content} $textPadding',
                       style: Theme.of(context).custom.textTheme.bodyText1,
                       softWrap: true,
                     ),
@@ -86,35 +87,52 @@ class _MessageCardState extends State<MessageCard> {
             Positioned(
               right: 0,
               bottom: 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    formattedTimestamp(
-                      widget.message.timestamp,
-                      true,
-                    ),
-                    style: Theme.of(context).custom.textTheme.caption.copyWith(
-                        fontSize: 11,
-                        color: messageHasText
-                            ? colorTheme.textColor2
-                            : colorTheme.textColor1),
-                  ),
-                  if (isSentMessageCard) ...[
-                    const SizedBox(
-                      width: 2.0,
-                    ),
-                    Image.asset(
-                      'assets/images/${widget.message.status.value}.png',
-                      color: widget.message.status.value != 'SEEN'
-                          ? messageHasText
-                              ? colorTheme.textColor2
-                              : colorTheme.textColor1
-                          : null,
-                      width: 15.0,
-                    )
+              child: Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    if (!messageHasText) ...[
+                      const BoxShadow(
+                        offset: Offset(-2, -2),
+                        color: Color.fromARGB(225, 0, 0, 0),
+                        blurRadius: 12,
+                      )
+                    ]
                   ],
-                ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formattedTimestamp(
+                        widget.message.timestamp,
+                        true,
+                      ),
+                      style: Theme.of(context)
+                          .custom
+                          .textTheme
+                          .caption
+                          .copyWith(
+                              fontSize: 11,
+                              color: messageHasText
+                                  ? colorTheme.textColor2
+                                  : colorTheme.textColor1),
+                    ),
+                    if (isSentMessageCard) ...[
+                      const SizedBox(
+                        width: 2.0,
+                      ),
+                      Image.asset(
+                        'assets/images/${widget.message.status.value}.png',
+                        color: widget.message.status.value != 'SEEN'
+                            ? messageHasText
+                                ? colorTheme.textColor2
+                                : colorTheme.textColor1
+                            : null,
+                        width: 15.0,
+                      )
+                    ],
+                  ],
+                ),
               ),
             ),
           ],

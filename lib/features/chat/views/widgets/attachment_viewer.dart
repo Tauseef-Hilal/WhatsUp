@@ -5,12 +5,14 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../../shared/models/user.dart';
 import '../../../../shared/repositories/firebase_firestore.dart';
 import '../../../../shared/repositories/firebase_storage.dart';
+import '../../../../shared/utils/abc.dart';
 import '../../../../shared/widgets/emoji_picker.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/attachement.dart';
@@ -20,24 +22,24 @@ class AttachmentWidget extends ConsumerStatefulWidget {
   const AttachmentWidget({
     super.key,
     required this.attachments,
-    required this.self,
-    required this.other,
   });
 
   final List<File> attachments;
-  final User self;
-  final User other;
 
   @override
   ConsumerState<AttachmentWidget> createState() => _AttachmentWidgetState();
 }
 
 class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
+  late User self;
+  late User other;
   late File current;
   late List<TextEditingController> controllers;
 
   @override
   void initState() {
+    self = ref.read(chatControllerProvider.notifier).self;
+    other = ref.read(chatControllerProvider.notifier).other;
     controllers =
         widget.attachments.map((_) => TextEditingController()).toList();
     current = widget.attachments[0];
@@ -222,8 +224,8 @@ class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
                                     id: messageId,
                                     content: controllers[i].text.trim(),
                                     status: MessageStatus.pending,
-                                    senderId: widget.self.id,
-                                    receiverId: widget.other.id,
+                                    senderId: self.id,
+                                    receiverId: other.id,
                                     timestamp: Timestamp.now(),
                                     attachment: Attachment(
                                       type: AttachmentType.document,
@@ -233,8 +235,8 @@ class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
                                       file: attachedFile,
                                     ),
                                   ),
-                                  widget.self,
-                                  widget.other,
+                                  self,
+                                  other,
                                 );
                           }
 
@@ -263,28 +265,82 @@ class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
 }
 
 class FullScreenImage extends StatelessWidget {
-  const FullScreenImage({super.key, required this.image});
+  const FullScreenImage({
+    super.key,
+    required this.image,
+    required this.sender,
+    required this.timestamp,
+  });
   final File image;
+  final String sender;
+  final Timestamp timestamp;
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+    String title = sender;
+    String formattedTime = formattedTimestamp(timestamp);
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: InteractiveViewer(
-            child: Center(
-              child: Hero(
-                tag: image.path,
-                child: Image.file(
-                  image,
-                  fit: BoxFit.contain,
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: Text(
+          "$title - $formattedTime",
+          style: Theme.of(context)
+              .custom
+              .textTheme
+              .bodyText1
+              .copyWith(color: colorTheme.greyColor),
+        ),
+        centerTitle: true,
+        actions: [
+          TextButton(
+            onPressed: () {},
+            child: const Text("All Media"),
+          )
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Align(
+              child: InteractiveViewer(
+                child: Hero(
+                  tag: image.path,
+                  child: Image.file(
+                    image,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+          Container(
+            color: colorTheme.appBarColor,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 32.0, horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      await Share.shareXFiles([XFile(image.path)]);
+                    },
+                    icon: const Icon(Icons.arrow_circle_up, size: 30),
+                  ),
+                  const Icon(Icons.draw, size: 30),
+                  const Icon(Icons.star_outline, size: 30),
+                  const Icon(Icons.delete, size: 30)
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -352,11 +408,24 @@ class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
                   alignment: Alignment.center,
                   children: [
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        final self =
+                            ref.read(chatControllerProvider.notifier).self;
+                        final other =
+                            ref.read(chatControllerProvider.notifier).other;
+
+                        final sender = widget.message.senderId == self.id
+                            ? "You"
+                            : other.name;
+
+                        if (!mounted) return;
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) =>
-                                FullScreenImage(image: _file!),
+                            builder: (context) => FullScreenImage(
+                              image: _file!,
+                              sender: sender,
+                              timestamp: widget.message.timestamp,
+                            ),
                           ),
                         );
                       },
@@ -382,30 +451,34 @@ class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
                                   onError: () => setState(
                                       () => isAttachmentUploading = false),
                                 )
-                              : IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      isAttachmentUploading = true;
-                                    });
-                                  },
-                                  icon: const CircleAvatar(
+                              : Center(
+                                  child: CircleAvatar(
                                     radius: 30,
                                     backgroundColor:
-                                        Color.fromARGB(150, 0, 0, 0),
-                                    child: Icon(
-                                      Icons.upload,
-                                      size: 28,
-                                      color: Colors.white,
+                                        const Color.fromARGB(150, 0, 0, 0),
+                                    child: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          isAttachmentUploading = true;
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.upload,
+                                        size: 28,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
-                                )
+                                ),
                     ],
                   ],
                 )
               : isAttachmentDownloading
                   ? DownloadingImage(
                       message: widget.message,
-                      onDone: () => setState(() {}),
+                      onDone: () => setState(() {
+                        doesAttachmentExist = attachmentExists();
+                      }),
                       onError: () =>
                           setState(() => isAttachmentDownloading = false),
                     )

@@ -33,6 +33,12 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage>
     with WidgetsBindingObserver {
   @override
+  void initState() {
+    ref.read(chatControllerProvider.notifier).init(widget.self, widget.other);
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final self = widget.self;
     final other = widget.other;
@@ -114,13 +120,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
         ),
         child: Column(
           children: [
-            Expanded(
+            const Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: ChatStream(
-                  self: self,
-                  other: other,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: ChatStream(),
               ),
             ),
             const SizedBox(
@@ -453,8 +456,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                       MaterialPageRoute(
                         builder: (_) => AttachmentWidget(
                           attachments: [image],
-                          self: widget.self,
-                          other: widget.other,
                         ),
                       ),
                     );
@@ -478,8 +479,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                       MaterialPageRoute(
                         builder: (_) => AttachmentWidget(
                           attachments: images,
-                          self: widget.self,
-                          other: widget.other,
                         ),
                       ),
                     );
@@ -563,18 +562,23 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
 class ChatStream extends ConsumerStatefulWidget {
   const ChatStream({
     Key? key,
-    required this.self,
-    required this.other,
   }) : super(key: key);
-
-  final User self;
-  final User other;
 
   @override
   ConsumerState<ChatStream> createState() => _ChatStreamState();
 }
 
 class _ChatStreamState extends ConsumerState<ChatStream> {
+  late final User self;
+  late final User other;
+
+  @override
+  void initState() {
+    self = ref.read(chatControllerProvider.notifier).self;
+    other = ref.read(chatControllerProvider.notifier).other;
+    super.initState();
+  }
+
   void _sendUpdates(Message message) {
     ref
         .read(firebaseFirestoreRepositoryProvider)
@@ -586,7 +590,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     return StreamBuilder<List<Message>>(
       stream: ref
           .read(firebaseFirestoreRepositoryProvider)
-          .getChatStream(widget.self.id, widget.other.id),
+          .getChatStream(self.id, other.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Container();
@@ -595,7 +599,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         final messages = snapshot.data!;
         for (var message in messages) {
           if (message.status == MessageStatus.seen) continue;
-          if (message.senderId == widget.self.id) continue;
+          if (message.senderId == self.id) continue;
 
           WidgetsBinding.instance.addPostFrameCallback(
             (_) => _sendUpdates(message),
@@ -615,7 +619,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                 if (index == messages.length - 1 ||
                     (messages[index].senderId !=
                         messages[index + 1].senderId)) {
-                  return message.senderId == widget.self.id
+                  return message.senderId == self.id
                       ? MessageCard(
                           key: Key(message.id),
                           message: message,
@@ -626,11 +630,11 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                           key: Key(message.id),
                           message: message,
                           special: true,
-                          type: MessageCardType.receiverMessageCard,
+                          type: MessageCardType.receivedMessageCard,
                         );
                 }
 
-                return message.senderId == widget.self.id
+                return message.senderId == self.id
                     ? MessageCard(
                         key: Key(message.id),
                         message: message,
@@ -639,7 +643,8 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                     : MessageCard(
                         key: Key(message.id),
                         message: message,
-                        type: MessageCardType.receiverMessageCard);
+                        type: MessageCardType.receivedMessageCard,
+                      );
               },
             ),
             // if (showScrollBtn) ...[
