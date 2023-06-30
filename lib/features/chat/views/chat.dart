@@ -1,17 +1,12 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
-import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/attachment_viewer.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
-import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
@@ -622,11 +617,13 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                         messages[index + 1].senderId)) {
                   return message.senderId == widget.self.id
                       ? MessageCard(
+                          key: Key(message.id),
                           message: message,
                           special: true,
                           type: MessageCardType.sentMessageCard,
                         )
                       : MessageCard(
+                          key: Key(message.id),
                           message: message,
                           special: true,
                           type: MessageCardType.receiverMessageCard,
@@ -635,10 +632,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
                 return message.senderId == widget.self.id
                     ? MessageCard(
+                        key: Key(message.id),
                         message: message,
                         type: MessageCardType.sentMessageCard,
                       )
                     : MessageCard(
+                        key: Key(message.id),
                         message: message,
                         type: MessageCardType.receiverMessageCard);
               },
@@ -660,252 +659,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           ],
         );
       },
-    );
-  }
-}
-
-class AttachmentWidget extends ConsumerStatefulWidget {
-  const AttachmentWidget({
-    super.key,
-    required this.attachments,
-    required this.self,
-    required this.other,
-  });
-
-  final List<File> attachments;
-  final User self;
-  final User other;
-
-  @override
-  ConsumerState<AttachmentWidget> createState() => _AttachmentWidgetState();
-}
-
-class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
-  late File current;
-  late List<TextEditingController> controllers;
-
-  @override
-  void initState() {
-    controllers =
-        widget.attachments.map((_) => TextEditingController()).toList();
-    current = widget.attachments[0];
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    for (var controller in controllers) {
-      controller.dispose();
-    }
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorTheme = Theme.of(context).custom.colorTheme;
-
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: colorTheme.backgroundColor,
-      body: SafeArea(
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            iconTheme: IconThemeData(
-              color: colorTheme.iconColor,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const CircleAvatar(
-                      backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                      child: Icon(Icons.close),
-                    ),
-                  ),
-                  trailing: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.crop),
-                      ),
-                      SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.sticky_note_2),
-                      ),
-                      SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.text_format_outlined),
-                      ),
-                      SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                        child: Icon(Icons.draw),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Image.file(
-                    current,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: widget.attachments.map(
-                      (file) {
-                        return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                current = file;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Image.file(file, height: 50),
-                            ));
-                      },
-                    ).toList(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24.0),
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? colorTheme.appBarColor
-                                    : colorTheme.backgroundColor,
-                          ),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: GestureDetector(
-                                    onTap: ref
-                                        .read(emojiPickerControllerProvider
-                                            .notifier)
-                                        .toggleEmojiPicker,
-                                    child: const Icon(
-                                      Icons.add,
-                                      size: 24.0,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 8.0,
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    controller: controllers[
-                                        widget.attachments.indexOf(current)],
-                                    maxLines: 6,
-                                    minLines: 1,
-                                    cursorColor: colorTheme.greenColor,
-                                    cursorHeight: 20,
-                                    style: Theme.of(context)
-                                        .custom
-                                        .textTheme
-                                        .bodyText1,
-                                    decoration: InputDecoration(
-                                      hintText: 'Message',
-                                      hintStyle: Theme.of(context)
-                                          .custom
-                                          .textTheme
-                                          .bodyText1
-                                          .copyWith(),
-                                      border: InputBorder.none,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 8.0,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 4.0,
-                      ),
-                      InkWell(
-                        onTap: () async {
-                          for (var i = 0; i < controllers.length; i++) {
-                            final attachedFile = widget.attachments[i];
-                            String messageId = const Uuid().v4();
-                            String fileName = attachedFile.path.split("/").last;
-                            fileName = "${messageId}__$fileName";
-
-                            attachedFile.copy(await ref
-                                .read(firebaseStorageRepoProvider)
-                                .getMediaFilePath(fileName));
-
-                            ref
-                                .read(chatControllerProvider.notifier)
-                                .sendMessageWithAttachments(
-                                  Message(
-                                    id: messageId,
-                                    content: controllers[i].text.trim(),
-                                    status: MessageStatus.pending,
-                                    senderId: widget.self.id,
-                                    receiverId: widget.other.id,
-                                    timestamp: Timestamp.now(),
-                                    attachment: Attachment(
-                                      type: AttachmentType.document,
-                                      url: "uploading",
-                                      fileName: fileName,
-                                      fileSize: "",
-                                      file: attachedFile,
-                                    ),
-                                  ),
-                                  widget.self,
-                                  widget.other,
-                                );
-                          }
-
-                          if (!mounted) return;
-                          Navigator.of(context).pop();
-                        },
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: colorTheme.greenColor,
-                          child: const Icon(
-                            Icons.send,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -9,11 +9,11 @@ enum MessageCardType { sentMessageCard, receiverMessageCard }
 
 class MessageCard extends StatefulWidget {
   const MessageCard({
-    Key? key,
+    super.key,
     required this.message,
     required this.type,
     this.special = false,
-  }) : super(key: key);
+  });
 
   final Message message;
   final bool special;
@@ -30,6 +30,7 @@ class _MessageCardState extends State<MessageCard> {
     final hasAttachment = widget.message.attachment != null;
     final size = MediaQuery.of(context).size;
     final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
+    final messageHasText = widget.message.content.isNotEmpty;
 
     return Align(
       alignment:
@@ -64,20 +65,22 @@ class _MessageCardState extends State<MessageCard> {
                     ),
                   )
                 ],
-                Padding(
-                  padding: isSentMessageCard
-                      ? hasAttachment
-                          ? const EdgeInsets.only(right: 4.0, top: 4.0)
-                          : const EdgeInsets.only(right: 4.0)
-                      : hasAttachment
-                          ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                          : const EdgeInsets.only(left: 4.0),
-                  child: Text(
-                    widget.message.content + ' ' * 12,
-                    style: Theme.of(context).custom.textTheme.bodyText1,
-                    softWrap: true,
-                  ),
-                ),
+                if (messageHasText) ...[
+                  Padding(
+                    padding: isSentMessageCard
+                        ? hasAttachment
+                            ? const EdgeInsets.only(right: 4.0, top: 4.0)
+                            : const EdgeInsets.only(right: 4.0)
+                        : hasAttachment
+                            ? const EdgeInsets.only(left: 4.0, top: 4.0)
+                            : const EdgeInsets.only(left: 4.0),
+                    child: Text(
+                      widget.message.content + ' ' * 12,
+                      style: Theme.of(context).custom.textTheme.bodyText1,
+                      softWrap: true,
+                    ),
+                  )
+                ],
               ],
             ),
             Positioned(
@@ -91,11 +94,11 @@ class _MessageCardState extends State<MessageCard> {
                       widget.message.timestamp,
                       true,
                     ),
-                    style: Theme.of(context)
-                        .custom
-                        .textTheme
-                        .caption
-                        .copyWith(fontSize: 11, color: colorTheme.textColor2),
+                    style: Theme.of(context).custom.textTheme.caption.copyWith(
+                        fontSize: 11,
+                        color: messageHasText
+                            ? colorTheme.textColor2
+                            : colorTheme.textColor1),
                   ),
                   if (isSentMessageCard) ...[
                     const SizedBox(
@@ -104,7 +107,9 @@ class _MessageCardState extends State<MessageCard> {
                     Image.asset(
                       'assets/images/${widget.message.status.value}.png',
                       color: widget.message.status.value != 'SEEN'
-                          ? colorTheme.textColor2
+                          ? messageHasText
+                              ? colorTheme.textColor2
+                              : colorTheme.textColor1
                           : null,
                       width: 15.0,
                     )

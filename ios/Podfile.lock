@@ -1,5 +1,5 @@
 PODS:
-  - cloud_firestore (4.8.1):
+  - cloud_firestore (4.8.2):
     - Firebase/Firestore (= 10.10.0)
     - firebase_core
     - Flutter
@@ -58,7 +58,7 @@ PODS:
   - firebase_core (2.14.0):
     - Firebase/CoreOnly (= 10.10.0)
     - Flutter
-  - firebase_storage (11.2.3):
+  - firebase_storage (11.2.4):
     - Firebase/Storage (= 10.10.0)
     - firebase_core
     - Flutter
@@ -240,7 +240,7 @@ CHECKOUT OPTIONS:
     :tag: 3.5.10
 
 SPEC CHECKSUMS:
-  cloud_firestore: eb6bea100a5957ac15e911a317a52738813e72ef
+  cloud_firestore: 818ebb1a8235177a0dcf7005c14aed5408b8342c
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   emoji_picker_flutter: df19dac03a2b39ac667dc8d1da939ef3a9e21347
@@ -248,7 +248,7 @@ SPEC CHECKSUMS:
   Firebase: facd334e557a979bd03a0b58d90fd56b52b8aba0
   firebase_auth: 9905bc3d82328b5050a8b7cb410a959f150b6549
   firebase_core: 85b6664038311940ad60584eaabc73103c61f5de
-  firebase_storage: 1fe4f5725285159f87dd30aca1a5825105a09dcd
+  firebase_storage: b840c83ddfe3af84f0560a7403b7c0c09bb13069
   FirebaseAppCheckInterop: 255b6c0292fe5da995c8b2df0c02f6a3ca7f61b4
   FirebaseAuth: 5ddbe23ebc4e647469261f5c59cd12a04f37c8e6
   FirebaseAuthInterop: 44e34efef7145776a107b9e7f79ed44beb4738fa

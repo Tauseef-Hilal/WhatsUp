@@ -9,8 +9,6 @@ import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
 
-import '../../home/views/base.dart';
-
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatControllerNotifier, ChatController>(
   (ref) => ChatControllerNotifier(ref: ref),
@@ -51,12 +49,7 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
   }
 
   void navigateToHome(BuildContext context, User user) {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(user: user),
-        ),
-        (route) => false);
+    Navigator.pop(context);
   }
 
   void onTextChanged(String value) {
@@ -116,9 +109,13 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
               "attachment": message.attachment!.toMap()..addAll({"url": url})
             }));
     }).onError((_, __) {
-      firestore.updateMessage(message, {
-        "attachment": message.attachment!.toMap()..addAll({"url": ""})
-      });
+      firestore.updateMessage(
+          message,
+          message.toMap()
+            ..addAll({
+              "status": "PENDING",
+              "attachment": message.attachment!.toMap()..addAll({"url": ""})
+            }));
     });
   }
 }

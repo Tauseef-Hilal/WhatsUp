@@ -1,13 +1,294 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
+import '../../../../shared/models/user.dart';
 import '../../../../shared/repositories/firebase_firestore.dart';
 import '../../../../shared/repositories/firebase_storage.dart';
+import '../../../../shared/widgets/emoji_picker.dart';
+import '../../controllers/chat_controller.dart';
+import '../../models/attachement.dart';
 import '../../models/message.dart';
+
+class AttachmentWidget extends ConsumerStatefulWidget {
+  const AttachmentWidget({
+    super.key,
+    required this.attachments,
+    required this.self,
+    required this.other,
+  });
+
+  final List<File> attachments;
+  final User self;
+  final User other;
+
+  @override
+  ConsumerState<AttachmentWidget> createState() => _AttachmentWidgetState();
+}
+
+class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
+  late File current;
+  late List<TextEditingController> controllers;
+
+  @override
+  void initState() {
+    controllers =
+        widget.attachments.map((_) => TextEditingController()).toList();
+    current = widget.attachments[0];
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in controllers) {
+      controller.dispose();
+    }
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: colorTheme.backgroundColor,
+      body: SafeArea(
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            iconTheme: IconThemeData(
+              color: colorTheme.iconColor,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const CircleAvatar(
+                      backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                      child: Icon(Icons.close),
+                    ),
+                  ),
+                  trailing: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.crop),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.sticky_note_2),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.text_format_outlined),
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                        child: Icon(Icons.draw),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Image.file(
+                    current,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.attachments.map(
+                      (file) {
+                        return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                current = file;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Image.file(file, height: 50),
+                            ));
+                      },
+                    ).toList(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24.0),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? colorTheme.appBarColor
+                                    : colorTheme.backgroundColor,
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: GestureDetector(
+                                    onTap: ref
+                                        .read(emojiPickerControllerProvider
+                                            .notifier)
+                                        .toggleEmojiPicker,
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 24.0,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8.0,
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    controller: controllers[
+                                        widget.attachments.indexOf(current)],
+                                    maxLines: 6,
+                                    minLines: 1,
+                                    cursorColor: colorTheme.greenColor,
+                                    cursorHeight: 20,
+                                    style: Theme.of(context)
+                                        .custom
+                                        .textTheme
+                                        .bodyText1,
+                                    decoration: InputDecoration(
+                                      hintText: 'Message',
+                                      hintStyle: Theme.of(context)
+                                          .custom
+                                          .textTheme
+                                          .bodyText1
+                                          .copyWith(),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8.0,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 4.0,
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          for (var i = 0; i < controllers.length; i++) {
+                            final attachedFile = widget.attachments[i];
+                            String messageId = const Uuid().v4();
+                            String fileName = attachedFile.path.split("/").last;
+                            fileName = "${messageId}__$fileName";
+
+                            attachedFile.copy(await ref
+                                .read(firebaseStorageRepoProvider)
+                                .getMediaFilePath(fileName));
+
+                            ref
+                                .read(chatControllerProvider.notifier)
+                                .sendMessageWithAttachments(
+                                  Message(
+                                    id: messageId,
+                                    content: controllers[i].text.trim(),
+                                    status: MessageStatus.pending,
+                                    senderId: widget.self.id,
+                                    receiverId: widget.other.id,
+                                    timestamp: Timestamp.now(),
+                                    attachment: Attachment(
+                                      type: AttachmentType.document,
+                                      url: "uploading",
+                                      fileName: fileName,
+                                      fileSize: "",
+                                      file: attachedFile,
+                                    ),
+                                  ),
+                                  widget.self,
+                                  widget.other,
+                                );
+                          }
+
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
+                        },
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: colorTheme.greenColor,
+                          child: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class FullScreenImage extends StatelessWidget {
+  const FullScreenImage({super.key, required this.image});
+  final File image;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: InteractiveViewer(
+            child: Center(
+              child: Hero(
+                tag: image.path,
+                child: Image.file(
+                  image,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class AttachmentViewer extends ConsumerStatefulWidget {
   const AttachmentViewer({
@@ -21,6 +302,8 @@ class AttachmentViewer extends ConsumerStatefulWidget {
 }
 
 class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
+  late Future<bool> doesAttachmentExist = attachmentExists();
+  File? _file;
   bool isAttachmentDownloading = false;
   bool isAttachmentUploading = false;
 
@@ -30,11 +313,25 @@ class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
     final file =
         File("${appDir.path}/media/${widget.message.attachment!.fileName}");
     if (await file.exists()) {
-      widget.message.attachment!.file = file;
+      _file = file;
       return true;
     }
 
     return false;
+  }
+
+  void onUploadDone(url) {
+    setState(() {
+      ref.read(firebaseFirestoreRepositoryProvider).updateMessage(
+            widget.message,
+            widget.message.toMap()
+              ..addAll({
+                "status": "SENT",
+                "attachment": widget.message.attachment!.toMap()
+                  ..addAll({"url": url})
+              }),
+          );
+    });
   }
 
   @override
@@ -42,51 +339,8 @@ class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
     final bool uploading = widget.message.attachment!.url == "uploading";
     final bool uploaded = widget.message.attachment!.url.isNotEmpty &&
         widget.message.attachment!.url != "uploading";
-
-    if (widget.message.attachment!.file != null) {
-      return Stack(
-        fit: StackFit.expand,
-        alignment: Alignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Image.file(
-              widget.message.attachment!.file!,
-              fit: BoxFit.cover,
-            ),
-          ),
-          if (!uploaded) ...[
-            uploading
-                ? const Center(child: CircularProgressIndicator())
-                : isAttachmentUploading
-                    ? UploadingImage(
-                        message: widget.message,
-                        onDone: () => setState(() {}),
-                        onError: () =>
-                            setState(() => isAttachmentUploading = false),
-                      )
-                    : IconButton(
-                        onPressed: () {
-                          setState(() {
-                            isAttachmentUploading = true;
-                          });
-                        },
-                        icon: const CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Color.fromARGB(150, 0, 0, 0),
-                          child: Icon(
-                            Icons.upload,
-                            size: 28,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-          ],
-        ],
-      );
-    }
     return FutureBuilder(
-        future: attachmentExists(),
+        future: doesAttachmentExist,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
             return Container();
@@ -97,11 +351,24 @@ class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
                   fit: StackFit.expand,
                   alignment: Alignment.center,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: Image.file(
-                        widget.message.attachment!.file!,
-                        fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                FullScreenImage(image: _file!),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: Hero(
+                          tag: _file!.path,
+                          child: Image.file(
+                            _file!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
                     if (!uploaded) ...[
@@ -109,8 +376,9 @@ class _AttachmentViewerState extends ConsumerState<AttachmentViewer> {
                           ? const Center(child: CircularProgressIndicator())
                           : isAttachmentUploading
                               ? UploadingImage(
-                                  message: widget.message,
-                                  onDone: () => setState(() {}),
+                                  file: _file!,
+                                  fileName: widget.message.attachment!.fileName,
+                                  onDone: onUploadDone,
                                   onError: () => setState(
                                       () => isAttachmentUploading = false),
                                 )
@@ -186,14 +454,6 @@ class DownloadingImage extends ConsumerStatefulWidget {
 
 class _DownloadingImageState extends ConsumerState<DownloadingImage> {
   @override
-  void initState() {
-    if (widget.message.attachment!.url.isEmpty) {
-      Navigator.of(context).pop();
-    }
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: ref.read(firebaseStorageRepoProvider).downloadFileFromFirebase(
@@ -235,12 +495,14 @@ class _DownloadingImageState extends ConsumerState<DownloadingImage> {
 class UploadingImage extends ConsumerStatefulWidget {
   const UploadingImage({
     super.key,
-    required this.message,
+    required this.file,
+    required this.fileName,
     required this.onDone,
     required this.onError,
   });
-  final Message message;
-  final VoidCallback onDone;
+  final File file;
+  final String fileName;
+  final Function(String url) onDone;
   final VoidCallback onError;
 
   @override
@@ -252,8 +514,8 @@ class _UploadingImageState extends ConsumerState<UploadingImage> {
   Widget build(BuildContext context) {
     return FutureBuilder(
         future: ref.read(firebaseStorageRepoProvider).uploadFileToFirebase(
-              widget.message.attachment!.file!,
-              "attachments/${widget.message.attachment!.fileName}",
+              widget.file,
+              "attachments/${widget.fileName}",
             ),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -264,16 +526,8 @@ class _UploadingImageState extends ConsumerState<UploadingImage> {
 
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              ref
-                  .read(firebaseFirestoreRepositoryProvider)
-                  .updateMessage(widget.message, {
-                "status": "SENT",
-                "attachment": widget.message.attachment!.toMap()
-                  ..addAll({"url": snapshot.data!})
-              }).then((value) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  widget.onDone();
-                });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                widget.onDone(snapshot.data!);
               });
               return Container();
             default:

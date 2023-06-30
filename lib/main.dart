@@ -68,7 +68,6 @@ class WhatsApp extends ConsumerWidget {
                     ),
                   );
                 }
-
                 return HomePage(user: snapshot.data!);
               },
             );
