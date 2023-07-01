@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
-import 'package:whatsapp_clone/shared/repositories/firebase_storage.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatControllerNotifier, ChatController>(

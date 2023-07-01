@@ -160,7 +160,7 @@ class _ImageViewerState extends ConsumerState<ImageViewer> {
         : DownloadingImage(
             message: widget.message,
             onDone: widget.onDownloadComplete,
-            onError: () => setState(() {}),
+            // onError: () => setState(() {}),
           );
   }
 }
@@ -424,6 +424,9 @@ class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
                             String messageId = const Uuid().v4();
                             String fileName = attachedFile.path.split("/").last;
                             fileName = "${messageId}__$fileName";
+                            final fileSize =
+                                (attachedFile.lengthSync() / 1048576)
+                                    .toStringAsFixed(2);
 
                             attachedFile.copy(await ref
                                 .read(firebaseStorageRepoProvider)
@@ -443,7 +446,7 @@ class _AttachmentWidgetState extends ConsumerState<AttachmentWidget> {
                                       type: widget.attachmentType,
                                       url: "",
                                       fileName: fileName,
-                                      fileSize: "",
+                                      fileSize: fileSize,
                                       file: attachedFile,
                                     ),
                                   ),
@@ -563,11 +566,11 @@ class DownloadingImage extends ConsumerStatefulWidget {
     super.key,
     required this.message,
     required this.onDone,
-    required this.onError,
+    // required this.onError,
   });
   final Message message;
   final VoidCallback onDone;
-  final VoidCallback onError;
+  // final VoidCallback onError;
 
   @override
   ConsumerState<DownloadingImage> createState() => _DownloadingImageState();
@@ -587,17 +590,32 @@ class _DownloadingImageState extends ConsumerState<DownloadingImage> {
             color: Colors.teal,
           ),
           Center(
-            child: CircleAvatar(
-              radius: 30,
-              backgroundColor: const Color.fromARGB(150, 0, 0, 0),
-              child: IconButton(
-                onPressed: () => setState(() => isDownloading = true),
-                icon: const Icon(
-                  Icons.download,
-                  size: 28,
-                  color: Colors.white,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 25,
+                  backgroundColor: const Color.fromARGB(150, 0, 0, 0),
+                  child: IconButton(
+                    onPressed: () => setState(() => isDownloading = true),
+                    icon: const Icon(
+                      Icons.download,
+                      size: 28,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(150, 0, 0, 0),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("${widget.message.attachment!.fileSize} MB"),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -610,6 +628,13 @@ class _DownloadingImageState extends ConsumerState<DownloadingImage> {
             widget.message.id,
           ),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() => isDownloading = false);
+          });
+          return Container();
+        }
+
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -622,14 +647,24 @@ class _DownloadingImageState extends ConsumerState<DownloadingImage> {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
-            switch (snapshot.data!.state) {
+
+            final snapData = snapshot.data!;
+
+            switch (snapData.state) {
+              case TaskState.running:
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: snapData.bytesTransferred / snapData.totalBytes,
+                  ),
+                );
               case TaskState.success:
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => widget.onDone());
                 return Container();
               case TaskState.error:
-                WidgetsBinding.instance
-                    .addPostFrameCallback((_) => widget.onError());
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() => isDownloading = false);
+                });
                 return Container();
               default:
                 return const Center(child: CircularProgressIndicator());
@@ -663,7 +698,9 @@ class _UploadingImageState extends ConsumerState<UploadingImage> {
     super.initState();
   }
 
-  void onUploadDone(url) {
+  void onUploadDone(TaskSnapshot snapshot) async {
+    final url = await snapshot.ref.getDownloadURL();
+
     ref.read(firebaseFirestoreRepositoryProvider).updateMessage(
           widget.message,
           widget.message.toMap()
@@ -698,17 +735,32 @@ class _UploadingImageState extends ConsumerState<UploadingImage> {
 
     if (!isUploading) {
       return Center(
-        child: CircleAvatar(
-          radius: 30,
-          backgroundColor: const Color.fromARGB(150, 0, 0, 0),
-          child: IconButton(
-            onPressed: () => setState(() => isUploading = true),
-            icon: const Icon(
-              Icons.upload,
-              size: 28,
-              color: Colors.white,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: const Color.fromARGB(150, 0, 0, 0),
+              child: IconButton(
+                onPressed: () => setState(() => isUploading = true),
+                icon: const Icon(
+                  Icons.upload,
+                  size: 28,
+                  color: Colors.white,
+                ),
+              ),
             ),
-          ),
+            Container(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(150, 0, 0, 0),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("${widget.message.attachment!.fileSize} MB"),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -726,15 +778,45 @@ class _UploadingImageState extends ConsumerState<UploadingImage> {
           return Container();
         }
 
-        switch (snapshot.connectionState) {
-          case ConnectionState.done:
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              onUploadDone(snapshot.data!);
-            });
-            return Container();
-          default:
-            return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
+
+        return StreamBuilder(
+          stream: snapshot.data!.snapshotEvents,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            final snapData = snapshot.data!;
+
+            switch (snapData.state) {
+              case TaskState.running:
+                return Center(
+                  child: CircularProgressIndicator(
+                      value: snapData.bytesTransferred / snapData.totalBytes),
+                );
+              case TaskState.success:
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  onUploadDone(snapData);
+                });
+                return Container();
+              case TaskState.error:
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  onUploadError();
+                  setState(() => isUploading = false);
+                });
+                return Container();
+              default:
+                return Container();
+            }
+          },
+        );
       },
     );
   }

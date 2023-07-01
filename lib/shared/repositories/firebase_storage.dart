@@ -13,13 +13,12 @@ class FirebaseStorageRepo {
 
   FirebaseStorageRepo(this.firebaseStorage);
 
-  Future<String> uploadFileToFirebase(File file, String path) async {
+  Future<UploadTask> uploadFileToFirebase(File file, String path) async {
     if (!await isConnected()) {
       throw Exception("No Internet");
     }
     
-    final snap = await firebaseStorage.ref().child(path).putFile(file);
-    return await snap.ref.getDownloadURL();
+    return firebaseStorage.ref().child(path).putFile(file);
   }
 
   Future<FullMetadata> getFileMetadata(String url) async {
@@ -34,8 +33,6 @@ class FirebaseStorageRepo {
     }
     
     final ref = firebaseStorage.refFromURL(url);
-    // final fileSize = (metaData.size ?? 0 / 1024) / 1024;
-
     final path = await getMediaFilePath(ref.name);
     final file = File(path);
 

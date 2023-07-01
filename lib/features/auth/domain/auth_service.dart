@@ -54,9 +54,10 @@ class AuthController {
     String avatarUrl = 'http://www.gravatar.com/avatar/?d=mp';
 
     if (avatar != null) {
-      avatarUrl = await ref
+      final task = await ref
           .read(firebaseStorageRepoProvider)
           .uploadFileToFirebase(avatar, 'userAvatars/$uid');
+      avatarUrl = await (await task).ref.getDownloadURL();
     }
 
     final user = User(

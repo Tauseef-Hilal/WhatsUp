@@ -83,6 +83,10 @@ final _theme = ThemeData(
   iconTheme: const IconThemeData(
     color: AppColorsLight.iconColor,
   ),
+  progressIndicatorTheme: const ProgressIndicatorThemeData(
+    circularTrackColor: Color.fromARGB(149, 255, 255, 255),
+    color: AppColorsLight.greenColor,
+  ),
 );
 
 // Dark theme
@@ -111,6 +115,10 @@ final _darkTheme = ThemeData(
   scaffoldBackgroundColor: AppColorsDark.backgroundColor,
   iconTheme: const IconThemeData(
     color: AppColorsDark.iconColor,
+  ),
+  progressIndicatorTheme: const ProgressIndicatorThemeData(
+    circularTrackColor: Color.fromARGB(150, 0, 0, 0),
+    color: AppColorsDark.greenColor,
   ),
 );
 
