@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -80,9 +81,15 @@ class _AttachmentPreviewState extends ConsumerState<AttachmentPreview> {
                 ),
               );
             case AttachmentType.audio:
-              return AttachedAudioViewer(
-                attachment: widget.message.attachment!,
-                doesAttachmentExist: snap.data!,
+              return SizedBox(
+                height: 60,
+                child: AttachedAudioViewer(
+                  message: widget.message,
+                  doesAttachmentExist: snap.data!,
+                  onDownloadComplete: () => setState(() {
+                    doesAttachmentExist = attachmentExists();
+                  }),
+                ),
               );
             default:
               return SizedBox(
@@ -151,7 +158,8 @@ class _AttachedImageVideoViewerState
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => AttachmentViewer(
-                  image: file!,
+                  file: file!,
+                  fileType: attachmentType,
                   sender: sender,
                   timestamp: widget.message.timestamp,
                 ),
@@ -161,14 +169,11 @@ class _AttachedImageVideoViewerState
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
             child: widget.doesAttachmentExist
-                ? Hero(
-                    tag: file!.path,
-                    child: AttachmentRenderer(
-                      attachment: file!,
-                      attachmentType: attachmentType,
-                      fit: BoxFit.cover,
-                      controllable: false,
-                    ),
+                ? AttachmentRenderer(
+                    attachment: file!,
+                    attachmentType: attachmentType,
+                    fit: BoxFit.cover,
+                    controllable: false,
                   )
                 : Container(),
           ),
@@ -193,13 +198,15 @@ class _AttachedImageVideoViewerState
 }
 
 class AttachedAudioViewer extends ConsumerStatefulWidget {
-  final Attachment attachment;
+  final Message message;
   final bool doesAttachmentExist;
+  final VoidCallback onDownloadComplete;
 
   const AttachedAudioViewer({
     super.key,
-    required this.attachment,
+    required this.message,
     required this.doesAttachmentExist,
+    required this.onDownloadComplete,
   });
 
   @override
@@ -208,9 +215,248 @@ class AttachedAudioViewer extends ConsumerStatefulWidget {
 }
 
 class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
+  late final File? file;
+  late final User self;
+  late final bool clientIsSender;
+  final AudioPlayer player = AudioPlayer();
+  late final Future<Duration> totalDuration = getDuration();
+  double progress = 0;
+
+  @override
+  void initState() {
+    file = widget.message.attachment!.file;
+    self = ref.read(chatControllerProvider.notifier).self;
+    clientIsSender = widget.message.senderId == self.id;
+    player.onPlayerComplete.listen((event) {
+      setState(() {});
+    });
+    player.onPositionChanged.listen((duration) async {
+      final total = await totalDuration;
+      setState(() {
+        progress = duration.inSeconds / total.inSeconds;
+      });
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+
+  Future<void> changePlayState() async {
+    if (player.state == PlayerState.playing) {
+      await player.pause();
+    } else {
+      if (player.state == PlayerState.completed) {
+        await player.play(DeviceFileSource(file!.path),
+            position: const Duration(seconds: 0));
+      }
+      await player.play(DeviceFileSource(file!.path));
+    }
+
+    setState(() {});
+  }
+
+  Future<Duration> getDuration() async {
+    await player.setSourceDeviceFile(file!.path);
+    return await player.getDuration() ?? const Duration();
+  }
+
+  void _updateProgress(double tapPosition) {
+    RenderBox box = context.findRenderObject() as RenderBox;
+    double width = box.size.width;
+    int seconds = (tapPosition / width * 100).round();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await player.seek(
+        Duration(seconds: seconds),
+      );
+
+      if (!mounted) return;
+      setState(() {});
+    });
+
+    setState(() {});
+  }
+
+  void onProgressTapDown(TapDownDetails details) {
+    _updateProgress(details.localPosition.dx);
+  }
+
+  void onProgressDragUpdate(DragUpdateDetails details) {
+    _updateProgress(details.localPosition.dx);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    final bool isAttachmentUploaded =
+        widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
+    final attachment = widget.message.attachment!;
+    bool showDuration = true;
+
+    Widget? trailing;
+    if (!widget.doesAttachmentExist) {
+      showDuration = false;
+      trailing = DownloadingAttachment(
+        message: widget.message,
+        onDone: widget.onDownloadComplete,
+        showSize: false,
+      );
+    } else if (!isAttachmentUploaded) {
+      showDuration = false;
+      trailing = UploadingAttachment(
+        message: widget.message,
+        showSize: false,
+      );
+    } else {
+      if (player.state == PlayerState.playing) {
+        trailing = SizedBox(
+          width: 38,
+          height: 48,
+          child: IconButton(
+            onPressed: changePlayState,
+            iconSize: 30,
+            padding: const EdgeInsets.all(0),
+            icon: const Icon(Icons.pause_rounded),
+          ),
+        );
+      } else {
+        trailing = SizedBox(
+          width: 38,
+          height: 38,
+          child: IconButton(
+            onPressed: changePlayState,
+            iconSize: 30,
+            padding: const EdgeInsets.all(0),
+            icon: const Icon(Icons.play_arrow_rounded),
+          ),
+        );
+      }
+    }
+
+    final backgroundColor = widget.message.content.isEmpty
+        ? clientIsSender
+            ? Theme.of(context).custom.colorTheme.outgoingMessageBubbleColor
+            : Theme.of(context).custom.colorTheme.incomingMessageBubbleColor
+        : clientIsSender
+            ? Theme.of(context).custom.colorTheme.outgoingEmbedColor
+            : Theme.of(context).custom.colorTheme.incomingEmbedColor;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 248, 131, 144),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            padding: const EdgeInsets.all(4.0),
+            child: const Center(
+              child: Icon(
+                Icons.music_note_rounded,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 16.0),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: GestureDetector(
+                    onHorizontalDragUpdate: onProgressDragUpdate,
+                    onTapDown: onProgressTapDown,
+                    child: SizedBox(
+                      height: 12,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Stack(
+                            children: [
+                              Center(
+                                child: LinearProgressIndicator(
+                                  backgroundColor: clientIsSender
+                                      ? Theme.of(context)
+                                          .custom
+                                          .colorTheme
+                                          .greyColor
+                                      : null,
+                                  value: progress,
+                                ),
+                              ),
+                              Positioned(
+                                left: (constraints.maxWidth - 12) * progress,
+                                child: Container(
+                                  width: 12.0,
+                                  height: 12.0,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Theme.of(context)
+                                        .custom
+                                        .colorTheme
+                                        .greenColor,
+                                  ),
+                                ),
+                              )
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    showDuration
+                        ? FutureBuilder(
+                            future: totalDuration,
+                            builder: (context, snap) {
+                              if (!snap.hasData) {
+                                return Container();
+                              }
+                              return Text(
+                                strFormattedTime(snap.data!.inSeconds),
+                                style: const TextStyle(fontSize: 12),
+                              );
+                            },
+                          )
+                        : Text(
+                            strFormattedSize(attachment.fileSize),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                    Text(
+                      formattedTimestamp(widget.message.timestamp, true),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [trailing],
+          )
+        ],
+      ),
+    );
   }
 }
 
@@ -275,9 +521,12 @@ class _AttachedDocumentViewerState
     if (fileName.length > 27) {
       fileName = "${fileName.substring(0, 21)}...${fileName.substring(21, 28)}";
     }
+
     return Container(
       decoration: BoxDecoration(
-          color: backgroundColor, borderRadius: BorderRadius.circular(10)),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Center(
         child: ListTile(
             onTap: () async {
@@ -317,11 +566,13 @@ class _AttachedDocumentViewerState
 class AttachmentViewer extends StatelessWidget {
   const AttachmentViewer({
     super.key,
-    required this.image,
+    required this.file,
+    required this.fileType,
     required this.sender,
     required this.timestamp,
   });
-  final File image;
+  final File file;
+  final AttachmentType fileType;
   final String sender;
   final Timestamp timestamp;
 
@@ -350,17 +601,13 @@ class AttachmentViewer extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: Align(
-              child: InteractiveViewer(
-                child: Hero(
-                  tag: image.path,
-                  child: Image.file(
-                    image,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.756,
+            child: AttachmentRenderer(
+              attachment: file,
+              attachmentType: fileType,
+              fit: BoxFit.contain,
+              controllable: true,
             ),
           ),
           Container(
@@ -373,7 +620,7 @@ class AttachmentViewer extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      await Share.shareXFiles([XFile(image.path)]);
+                      await Share.shareXFiles([XFile(file.path)]);
                     },
                     icon: const Icon(Icons.arrow_circle_up, size: 30),
                   ),

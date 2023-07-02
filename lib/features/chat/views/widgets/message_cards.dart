@@ -36,11 +36,17 @@ class _MessageCardState extends State<MessageCard> {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final size = MediaQuery.of(context).size;
     final hasAttachment = widget.message.attachment != null;
+    final attachmentType = widget.message.attachment?.type;
     final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
     final messageHasText = widget.message.content.isNotEmpty;
     final hasSingleEmoji = containsSingleEmoji(widget.message.content);
     final textPadding =
         '\u00A0' * (hasSingleEmoji ? 2 : (isSentMessageCard ? 16 : 12));
+    final showTimeStamp = !hasAttachment ||
+        (hasAttachment &&
+            attachmentType == AttachmentType.audio &&
+            messageHasText) ||
+        (hasAttachment && attachmentType != AttachmentType.audio);
 
     return Align(
       alignment:
@@ -57,11 +63,12 @@ class _MessageCardState extends State<MessageCard> {
               ? colorTheme.outgoingMessageBubbleColor
               : colorTheme.incomingMessageBubbleColor,
         ),
-        margin: EdgeInsets.only(bottom: 2.0, top: widget.special ? 6.0 : 0),
-        padding: EdgeInsets.symmetric(
-          horizontal: hasAttachment ? 4.0 : 8.0,
-          vertical: hasAttachment ? 4.0 : 4.0,
-        ),
+        margin: EdgeInsets.only(bottom: 4.0, top: widget.special ? 6.0 : 0),
+        padding: hasAttachment
+            ? attachmentType == AttachmentType.audio && !messageHasText
+                ? null
+                : const EdgeInsets.all(4.0)
+            : const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: Stack(
           children: [
             Column(
@@ -110,8 +117,8 @@ class _MessageCardState extends State<MessageCard> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     if (!messageHasText &&
-                        widget.message.attachment!.type !=
-                            AttachmentType.document) ...[
+                        (attachmentType != AttachmentType.document &&
+                            attachmentType != AttachmentType.audio)) ...[
                       const BoxShadow(
                         offset: Offset(-2, -2),
                         color: Color.fromARGB(225, 0, 0, 0),
@@ -123,21 +130,23 @@ class _MessageCardState extends State<MessageCard> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      formattedTimestamp(
-                        widget.message.timestamp,
-                        true,
-                      ),
-                      style: Theme.of(context)
-                          .custom
-                          .textTheme
-                          .caption
-                          .copyWith(
-                              fontSize: 11,
-                              color: messageHasText
-                                  ? colorTheme.textColor2
-                                  : Colors.white),
-                    ),
+                    if (showTimeStamp) ...[
+                      Text(
+                        formattedTimestamp(
+                          widget.message.timestamp,
+                          true,
+                        ),
+                        style: Theme.of(context)
+                            .custom
+                            .textTheme
+                            .caption
+                            .copyWith(
+                                fontSize: 11,
+                                color: messageHasText
+                                    ? colorTheme.textColor2
+                                    : Colors.white),
+                      )
+                    ],
                     if (isSentMessageCard) ...[
                       const SizedBox(
                         width: 2.0,
@@ -155,7 +164,7 @@ class _MessageCardState extends State<MessageCard> {
                   ],
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

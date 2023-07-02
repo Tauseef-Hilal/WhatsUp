@@ -35,6 +35,7 @@ dependencies:
   video_player: ^2.7.0
   mime: ^1.0.4
   open_file_plus: ^3.4.1
+  audioplayers: ^4.1.0
 
 dev_dependencies:
   flutter_test:

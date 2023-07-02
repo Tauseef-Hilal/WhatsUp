@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
@@ -31,13 +32,13 @@ class AttachmentRenderer extends StatelessWidget {
         return ImageViewer(image: attachment, fit: fit);
       case AttachmentType.video:
         return VideoViewer(video: attachment, controllable: controllable);
-      case AttachmentType.document:
+      case AttachmentType.audio:
+        return AudioViewer(audio: attachment, controllable: controllable);
+      default:
         return DocumentViewer(
           document: attachment,
           compact: compact,
         );
-      default:
-        return const Placeholder();
     }
   }
 }
@@ -49,9 +50,12 @@ class ImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.file(
-      image,
-      fit: fit,
+    return Hero(
+      tag: image.path,
+      child: Image.file(
+        image,
+        fit: fit,
+      ),
     );
   }
 }
@@ -102,32 +106,119 @@ class _VideoViewerState extends State<VideoViewer> {
     if (!videoController.value.isInitialized) return Container();
 
     return widget.controllable
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+        ? Hero(
+            tag: widget.video.path,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AspectRatio(
+                    aspectRatio: videoController.value.aspectRatio,
+                    child: VideoPlayer(videoController),
+                  ),
+                  videoController.value.isPlaying
+                      ? IconButton(
+                          onPressed: () => changePlayState(),
+                          icon: const Icon(Icons.pause),
+                        )
+                      : IconButton(
+                          onPressed: () => changePlayState(),
+                          icon: const Icon(Icons.play_arrow),
+                        ),
+                ],
+              ),
+            ),
+          )
+        : Hero(
+            tag: widget.video.path,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: videoController.value.aspectRatio,
+                child: VideoPlayer(videoController),
+              ),
+            ),
+          );
+  }
+}
+
+class AudioViewer extends StatefulWidget {
+  const AudioViewer({
+    super.key,
+    required this.audio,
+    required this.controllable,
+  });
+
+  final File audio;
+  final bool controllable;
+
+  @override
+  State<AudioViewer> createState() => _AudioViewerState();
+}
+
+class _AudioViewerState extends State<AudioViewer> {
+  final player = AudioPlayer();
+
+  @override
+  void initState() {
+    player.onPlayerComplete.listen((event) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+
+  void changePlayState() async {
+    if (player.state == PlayerState.playing) {
+      await player.pause();
+    } else {
+      if (player.state == PlayerState.completed) {
+        await player.play(DeviceFileSource(widget.audio.path),
+            position: const Duration(seconds: 0));
+      }
+      await player.play(DeviceFileSource(widget.audio.path));
+    }
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.controllable
+        ? GestureDetector(
+            onTap: () => changePlayState(),
+            child: Stack(
+              fit: StackFit.loose,
+              alignment: Alignment.center,
               children: [
-                AspectRatio(
-                  aspectRatio: videoController.value.aspectRatio,
-                  child: VideoPlayer(videoController),
+                Icon(
+                  Icons.music_note_rounded,
+                  size: MediaQuery.of(context).size.width * 0.80,
                 ),
-                videoController.value.isPlaying
-                    ? IconButton(
-                        onPressed: () => changePlayState(),
-                        icon: const Icon(Icons.pause),
-                      )
-                    : IconButton(
-                        onPressed: () => changePlayState(),
-                        icon: const Icon(Icons.play_arrow),
+                if (player.state != PlayerState.playing) ...[
+                  CircleAvatar(
+                    backgroundColor: const Color.fromARGB(255, 209, 208, 208),
+                    radius: 40,
+                    child: IconButton(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: () => changePlayState(),
+                      icon: const Icon(
+                        Icons.play_arrow_rounded,
+                        size: 50,
                       ),
+                    ),
+                  )
+                ],
               ],
             ),
           )
-        : Center(
-            child: AspectRatio(
-              aspectRatio: videoController.value.aspectRatio,
-              child: VideoPlayer(videoController),
-            ),
-          );
+        : const Center(
+          child: Icon(Icons.music_note_rounded),
+        );
   }
 }
 

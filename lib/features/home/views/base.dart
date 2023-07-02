@@ -222,9 +222,6 @@ class _RecentChatsBodyState extends ConsumerState<RecentChatsBody> {
             .read(firebaseFirestoreRepositoryProvider)
             .getRecentChatStream(widget.user.id),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            print(snapshot.error);
-          }
           if (!snapshot.hasData) {
             return Container();
           }

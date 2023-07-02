@@ -24,7 +24,7 @@ String strFormattedSize(int size) {
 }
 
 String strFormattedTime(int seconds) {
-  String result = DateFormat('HH:mm:s').format(
+  String result = DateFormat('HH:mm:ss').format(
     DateTime(2022, 1, 1, 0, 0, seconds),
   );
 
