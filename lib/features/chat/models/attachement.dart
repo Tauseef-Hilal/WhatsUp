@@ -44,7 +44,8 @@ enum UploadStatus {
 
 class Attachment {
   final String fileName;
-  final String fileSize;
+  final String fileExtension;
+  final int fileSize;
   final AttachmentType type;
   UploadStatus uploadStatus;
   String url;
@@ -55,6 +56,7 @@ class Attachment {
     required this.url,
     required this.fileName,
     required this.fileSize,
+    required this.fileExtension,
     this.uploadStatus = UploadStatus.uploading,
     this.file,
   });
@@ -63,7 +65,8 @@ class Attachment {
     return Attachment(
       url: data["url"],
       fileName: data["fileName"],
-      fileSize: data["fileSize"],
+      fileSize: data["fileSize"] is String ? -1 : data["fileSize"],
+      fileExtension: data["fileExtension"] ?? "",
       type: AttachmentType.fromValue(data["type"]),
       uploadStatus:
           UploadStatus.fromValue(data["uploadStatus"] ?? "NOT_UPLOADING"),
@@ -80,6 +83,7 @@ class Attachment {
       "url": url,
       "fileName": fileName,
       "fileSize": fileSize,
+      "fileExtension": fileExtension,
       "type": type.value,
       "uploadStatus": uploadStatus.value,
     };

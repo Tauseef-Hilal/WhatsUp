@@ -22,6 +22,8 @@ class CustomThemeData {
                 AppColorsDark.incomingMessageBubbleColor,
             outgoingMessageBubbleColor:
                 AppColorsDark.outgoingMessageBubbleColor,
+            incomingEmbedColor: AppColorsDark.incomingEmbedColor,
+            outgoingEmbedColor: AppColorsDark.outgoingEmbedColor,
             selectedLabelColor: AppColorsDark.selectedLabelColor,
             unselectedLabelColor: AppColorsDark.unselectedLabelColor,
             indicatorColor: AppColorsDark.indicatorColor,
@@ -41,6 +43,8 @@ class CustomThemeData {
                 AppColorsLight.incomingMessageBubbleColor,
             outgoingMessageBubbleColor:
                 AppColorsLight.outgoingMessageBubbleColor,
+            incomingEmbedColor: AppColorsLight.incomingEmbedColor,
+            outgoingEmbedColor: AppColorsLight.outgoingEmbedColor,
             selectedLabelColor: AppColorsLight.selectedLabelColor,
             unselectedLabelColor: AppColorsLight.unselectedLabelColor,
             indicatorColor: AppColorsLight.indicatorColor,

@@ -10,6 +10,8 @@ class AppColorsDark {
   static const errorSnackBarColor = Color.fromRGBO(211, 45, 81, 1);
   static const incomingMessageBubbleColor = Color.fromRGBO(31, 44, 51, 1);
   static const outgoingMessageBubbleColor = Color.fromRGBO(1, 92, 75, 1);
+  static const incomingEmbedColor = Color.fromRGBO(25, 35, 40, 1);
+  static const outgoingEmbedColor = Color.fromRGBO(0, 60, 52, 1);
   static const selectedLabelColor = Color.fromRGBO(5, 165, 133, 1);
   static const unselectedLabelColor = Color.fromRGBO(131, 151, 161, 1);
   static const indicatorColor = Color.fromRGBO(5, 165, 133, 1);
@@ -28,8 +30,10 @@ class AppColorsLight {
   static const dividerColor = Color.fromRGBO(37, 45, 50, 1);
   static const backgroundColor = Color.fromRGBO(252, 252, 252, 1);
   static const errorSnackBarColor = Color.fromRGBO(211, 45, 81, 1);
-  static const incomingMessageBubbleColor = Color.fromRGBO(233, 255, 220, 1);
-  static const outgoingMessageBubbleColor = Color.fromRGBO(239, 239, 239, 1);
+  static const incomingMessageBubbleColor = Color.fromRGBO(242, 242, 242, 1);
+  static const outgoingMessageBubbleColor = Color.fromRGBO(215, 243, 203, 1);
+  static const incomingEmbedColor = Color.fromRGBO(233, 232, 232, 1);
+  static const outgoingEmbedColor = Color.fromRGBO(204, 234, 193, 1);
   static const selectedLabelColor = Color.fromRGBO(220, 255, 254, 1);
   static const unselectedLabelColor = Color.fromRGBO(168, 230, 219, 1);
   static const indicatorColor = Color.fromRGBO(220, 255, 254, 1);
@@ -50,6 +54,8 @@ class ColorTheme {
   final Color errorSnackBarColor;
   final Color incomingMessageBubbleColor;
   final Color outgoingMessageBubbleColor;
+  final Color incomingEmbedColor;
+  final Color outgoingEmbedColor;
   final Color selectedLabelColor;
   final Color unselectedLabelColor;
   final Color indicatorColor;
@@ -69,6 +75,8 @@ class ColorTheme {
     required this.errorSnackBarColor,
     required this.incomingMessageBubbleColor,
     required this.outgoingMessageBubbleColor,
+    required this.incomingEmbedColor,
+    required this.outgoingEmbedColor,
     required this.selectedLabelColor,
     required this.unselectedLabelColor,
     required this.indicatorColor,

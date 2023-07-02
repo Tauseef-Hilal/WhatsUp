@@ -222,6 +222,9 @@ class _RecentChatsBodyState extends ConsumerState<RecentChatsBody> {
             .read(firebaseFirestoreRepositoryProvider)
             .getRecentChatStream(widget.user.id),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print(snapshot.error);
+          }
           if (!snapshot.hasData) {
             return Container();
           }
@@ -406,16 +409,16 @@ class RecentChatWidget extends StatelessWidget {
             ),
             style: Theme.of(context).custom.textTheme.caption.copyWith(
                   color: chat.isNewForUser
-                      ? Colors.greenAccent
+                      ? colorTheme.greenColor
                       : Theme.of(context).custom.colorTheme.greyColor,
                 ),
           ),
           if (chat.isNewForUser) ...[
-            const Padding(
-              padding: EdgeInsets.only(left: 8.0),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
               child: Icon(
                 Icons.circle,
-                color: Colors.greenAccent,
+                color: colorTheme.greenColor,
               ),
             )
           ],

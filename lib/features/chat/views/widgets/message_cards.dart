@@ -4,6 +4,7 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
+import '../../models/attachement.dart';
 import 'attachment_viewer.dart';
 
 enum MessageCardType { sentMessageCard, receivedMessageCard }
@@ -67,12 +68,9 @@ class _MessageCardState extends State<MessageCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (hasAttachment) ...[
-                  SizedBox(
-                    height: size.width * 0.75,
-                    child: AttachmentViewer(
-                      message: widget.message,
-                    ),
-                  )
+                  AttachmentPreview(
+                    message: widget.message,
+                  ),
                 ],
                 if (messageHasText) ...[
                   Padding(
@@ -106,9 +104,14 @@ class _MessageCardState extends State<MessageCard> {
               right: 0,
               bottom: 0,
               child: Container(
+                padding: !messageHasText && hasAttachment
+                    ? const EdgeInsets.all(4.0)
+                    : null,
                 decoration: BoxDecoration(
                   boxShadow: [
-                    if (!messageHasText) ...[
+                    if (!messageHasText &&
+                        widget.message.attachment!.type !=
+                            AttachmentType.document) ...[
                       const BoxShadow(
                         offset: Offset(-2, -2),
                         color: Color.fromARGB(225, 0, 0, 0),
@@ -133,7 +136,7 @@ class _MessageCardState extends State<MessageCard> {
                               fontSize: 11,
                               color: messageHasText
                                   ? colorTheme.textColor2
-                                  : colorTheme.textColor1),
+                                  : Colors.white),
                     ),
                     if (isSentMessageCard) ...[
                       const SizedBox(
@@ -144,7 +147,7 @@ class _MessageCardState extends State<MessageCard> {
                         color: widget.message.status.value != 'SEEN'
                             ? messageHasText
                                 ? colorTheme.textColor2
-                                : colorTheme.textColor1
+                                : Colors.white
                             : null,
                         width: 15.0,
                       )

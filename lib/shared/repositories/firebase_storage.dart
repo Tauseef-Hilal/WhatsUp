@@ -17,7 +17,7 @@ class FirebaseStorageRepo {
     if (!await isConnected()) {
       throw Exception("No Internet");
     }
-    
+
     return firebaseStorage.ref().child(path).putFile(file);
   }
 
@@ -27,13 +27,15 @@ class FirebaseStorageRepo {
   }
 
   Future<(File, DownloadTask)> downloadFileFromFirebase(
-      String url, String fileName) async {
+    String url,
+    String fileName,
+  ) async {
     if (!await isConnected()) {
       throw Exception("No Internet");
     }
-    
+
     final ref = firebaseStorage.refFromURL(url);
-    final path = await getMediaFilePath(ref.name);
+    final path = await getMediaFilePath(fileName);
     final file = File(path);
 
     return (file, ref.writeToFile(file));

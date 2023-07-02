@@ -11,6 +11,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
+String strFormattedSize(int size) {
+  String fileSizeStr = "";
+
+  if (size < 10486) {
+    fileSizeStr = "${(size / 1024).toStringAsFixed(2)} KB";
+  } else {
+    fileSizeStr = "${(size / 1048576).toStringAsFixed(2)} MB";
+  }
+
+  return fileSizeStr;
+}
+
 String strFormattedTime(int seconds) {
   String result = DateFormat('HH:mm:s').format(
     DateTime(2022, 1, 1, 0, 0, seconds),
@@ -62,6 +74,15 @@ Future<List<File>?> pickImagesFromGallery() async {
   return images.map((e) => File(e.path)).toList();
 }
 
+Future<List<File>?> pickMultimedia() async {
+  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
+
+  final picker = ImagePicker();
+  final List<XFile> media = await picker.pickMultipleMedia();
+
+  return media.map((e) => File(e.path)).toList();
+}
+
 Future<bool> isConnected() async {
   try {
     final result = await InternetAddress.lookup('google.com');
@@ -73,11 +94,18 @@ Future<bool> isConnected() async {
   return false;
 }
 
-Future<File?> pickFile([FileType fileType = FileType.any]) async {
-  FilePickerResult? result =
-      await FilePicker.platform.pickFiles(type: fileType);
+Future<List<File>?> pickFiles({
+  required FileType type,
+  bool allowMultiple = false,
+  bool allowCompression = true,
+}) async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: type,
+    allowCompression: allowCompression,
+    allowMultiple: allowMultiple,
+  );
 
-  return result != null ? File(result.files.single.path!) : null;
+  return result?.files.map((e) => File(e.path!)).toList();
 }
 
 Future<Contact?> pickContact() async {

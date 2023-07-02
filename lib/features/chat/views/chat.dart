@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mime/mime.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
-import 'package:whatsapp_clone/features/chat/views/widgets/attachment_viewer.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
@@ -14,6 +16,8 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
+
+import 'widgets/attachment_sender.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final User self;
@@ -421,7 +425,8 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
           insetPadding: EdgeInsets.only(
             left: 12.0,
             right: 12.0,
-            top: MediaQuery.of(context).size.height * 0.4,
+            top: MediaQuery.of(context).size.height *
+                (Platform.isIOS ? 0.54 : 0.4),
           ),
           elevation: 0,
           child: Padding(
@@ -435,9 +440,24 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
               children: [
                 LabelledButton(
                   onTap: () async {
-                    await pickFile();
-                    if (!mounted) return;
+                    final files = await pickFiles(
+                      type: FileType.any,
+                      allowCompression: false,
+                      allowMultiple: true,
+                    );
+                    if (!mounted || files == null || files.isEmpty) return;
                     Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AttachmentMessageSender(
+                          attachments: files,
+                          attachmentTypes: List.filled(
+                            files.length,
+                            AttachmentType.document,
+                          ),
+                        ),
+                      ),
+                    );
                   },
                   backgroundColor: Colors.deepPurpleAccent,
                   label: 'Document',
@@ -455,9 +475,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => AttachmentWidget(
+                        builder: (_) => AttachmentMessageSender(
                           attachments: [image],
-                          attachmentType: AttachmentType.image,
+                          attachmentTypes: const [AttachmentType.image],
                         ),
                       ),
                     );
@@ -472,16 +492,30 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    final images = await pickImagesFromGallery();
-                    if (images == null || images.isEmpty) return;
+                    final media = await pickMultimedia();
+                    if (media == null || media.isEmpty) return;
                     if (!mounted) return;
 
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => AttachmentWidget(
-                          attachments: images,
-                          attachmentType: AttachmentType.image,
+                        builder: (_) => AttachmentMessageSender(
+                          attachments: media,
+                          attachmentTypes: media.map((e) {
+                            AttachmentType? attachmentType;
+                            final mimeType = lookupMimeType(e.path);
+
+                            if (mimeType == null) {
+                              return AttachmentType.document;
+                            }
+
+                            final type = mimeType.split("/")[0].toUpperCase();
+                            if (['IMAGE', 'VIDEO'].contains(type)) {
+                              attachmentType = AttachmentType.fromValue(type);
+                            }
+
+                            return attachmentType ?? AttachmentType.document;
+                          }).toList(),
                         ),
                       ),
                     );
@@ -494,20 +528,37 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                     color: Colors.white,
                   ),
                 ),
-                LabelledButton(
-                  onTap: () async {
-                    await pickFile(FileType.audio);
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                  },
-                  label: 'Audio',
-                  backgroundColor: Colors.orange[900],
-                  child: const Icon(
-                    Icons.headphones_rounded,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
+                if (Platform.isAndroid) ...[
+                  LabelledButton(
+                    onTap: () async {
+                      final files = await pickFiles(
+                        type: FileType.audio,
+                        allowMultiple: true,
+                        allowCompression: false,
+                      );
+                      if (!mounted || files == null || files.isEmpty) return;
+                      Navigator.pop(context);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AttachmentMessageSender(
+                            attachments: files,
+                            attachmentTypes: List.filled(
+                              files.length,
+                              AttachmentType.audio,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    label: 'Audio',
+                    backgroundColor: Colors.orange[900],
+                    child: const Icon(
+                      Icons.headphones_rounded,
+                      size: 28,
+                      color: Colors.white,
+                    ),
+                  )
+                ],
                 LabelledButton(
                   onTap: () {
                     if (!mounted) return;
@@ -540,8 +591,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    await pickContact();
-
                     if (!mounted) return;
                     Navigator.pop(context);
                   },

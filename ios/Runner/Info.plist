@@ -45,6 +45,11 @@
 	<string>For online voice chat</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>To upload profile picture</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>sms</string>
+		<string>file</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
