@@ -184,6 +184,9 @@ class _HomePageState extends ConsumerState<HomePage>
         ),
         body: TabBarView(
           controller: _tabController,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           children: [
             RecentChatsBody(user: widget.user),
             const Center(

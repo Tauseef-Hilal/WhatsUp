@@ -116,8 +116,7 @@ class _AttachmentMessageSenderState
                 ),
               ),
               const SizedBox(height: 18),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.635,
+              Expanded(
                 child: AttachmentRenderer(
                   attachment: current,
                   attachmentType: currentType,

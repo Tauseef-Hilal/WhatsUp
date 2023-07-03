@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -50,12 +51,9 @@ class ImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: image.path,
-      child: Image.file(
-        image,
-        fit: fit,
-      ),
+    return Image.file(
+      image,
+      fit: fit,
     );
   }
 }
@@ -75,20 +73,31 @@ class VideoViewer extends StatefulWidget {
 
 class _VideoViewerState extends State<VideoViewer> {
   late final VideoPlayerController videoController;
+  Timer timer = Timer(Duration.zero, () {});
+  bool showControls = true;
 
   @override
   void initState() {
     videoController = VideoPlayerController.file(widget.video);
     videoController.initialize().then((value) => setState(() {}));
-    videoController.setLooping(true);
+    videoController.addListener(playerListener);
 
     super.initState();
   }
 
   @override
   void dispose() {
+    videoController.removeListener(playerListener);
     videoController.dispose();
+    timer.cancel();
     super.dispose();
+  }
+
+  void playerListener() {
+    if (videoController.value.position == videoController.value.duration) {
+      videoController.seekTo(Duration.zero);
+      setState(() {});
+    }
   }
 
   void changePlayState() {
@@ -98,45 +107,73 @@ class _VideoViewerState extends State<VideoViewer> {
       videoController.play();
     }
 
+    toggleControls();
+  }
+
+  void toggleControls() {
+    showControls = !showControls;
+    if (timer.isActive) timer.cancel();
+
+    timer = Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() {
+        showControls = false;
+      });
+    });
+
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!videoController.value.isInitialized) return Container();
-
-    return widget.controllable
-        ? Hero(
-            tag: widget.video.path,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AspectRatio(
-                    aspectRatio: videoController.value.aspectRatio,
-                    child: VideoPlayer(videoController),
-                  ),
-                  videoController.value.isPlaying
-                      ? IconButton(
-                          onPressed: () => changePlayState(),
-                          icon: const Icon(Icons.pause),
-                        )
-                      : IconButton(
-                          onPressed: () => changePlayState(),
-                          icon: const Icon(Icons.play_arrow),
-                        ),
-                ],
+    if (!videoController.value.isInitialized) {
+      return SizedBox(
+        width: videoController.value.size.width,
+        height: videoController.value.size.height,
+      );
+    }
+    
+    Widget button = videoController.value.isPlaying
+        ? CircleAvatar(
+            backgroundColor: const Color.fromARGB(255, 209, 208, 208),
+            radius: 30,
+            child: GestureDetector(
+              onTap: () => changePlayState(),
+              child: const Icon(
+                Icons.pause_rounded,
+                size: 50,
               ),
             ),
           )
-        : Hero(
-            tag: widget.video.path,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: videoController.value.aspectRatio,
-                child: VideoPlayer(videoController),
+        : CircleAvatar(
+            backgroundColor: const Color.fromARGB(255, 209, 208, 208),
+            radius: 30,
+            child: GestureDetector(
+              onTap: () => changePlayState(),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                size: 50,
               ),
             ),
+          );
+
+    return widget.controllable
+        ? GestureDetector(
+            onTap: toggleControls,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AspectRatio(
+                  aspectRatio: videoController.value.aspectRatio,
+                  child: VideoPlayer(videoController),
+                ),
+                if (showControls) ...[button],
+              ],
+            ),
+          )
+        : AspectRatio(
+            aspectRatio: videoController.value.aspectRatio,
+            child: VideoPlayer(videoController),
           );
   }
 }
@@ -217,8 +254,8 @@ class _AudioViewerState extends State<AudioViewer> {
             ),
           )
         : const Center(
-          child: Icon(Icons.music_note_rounded),
-        );
+            child: Icon(Icons.music_note_rounded),
+          );
   }
 }
 

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,49 +57,29 @@ class _AttachmentPreviewState extends ConsumerState<AttachmentPreview> {
           }
 
           switch (widget.message.attachment!.type) {
-            case AttachmentType.image:
-              return SizedBox(
-                height: MediaQuery.of(context).size.width * 0.75,
-                child: AttachedImageVideoViewer(
-                  message: widget.message,
-                  doesAttachmentExist: snap.data!,
-                  onDownloadComplete: () => setState(() {
-                    doesAttachmentExist = attachmentExists();
-                  }),
-                ),
-              );
-            case AttachmentType.video:
-              return SizedBox(
-                height: MediaQuery.of(context).size.width * 0.75,
-                child: AttachedImageVideoViewer(
-                  message: widget.message,
-                  doesAttachmentExist: snap.data!,
-                  onDownloadComplete: () => setState(() {
-                    doesAttachmentExist = attachmentExists();
-                  }),
-                ),
-              );
             case AttachmentType.audio:
-              return SizedBox(
-                height: 60,
-                child: AttachedAudioViewer(
-                  message: widget.message,
-                  doesAttachmentExist: snap.data!,
-                  onDownloadComplete: () => setState(() {
-                    doesAttachmentExist = attachmentExists();
-                  }),
-                ),
+              return AttachedAudioViewer(
+                message: widget.message,
+                doesAttachmentExist: snap.data!,
+                onDownloadComplete: () => setState(() {
+                  doesAttachmentExist = attachmentExists();
+                }),
+              );
+            case AttachmentType.document:
+              return AttachedDocumentViewer(
+                message: widget.message,
+                doesAttachmentExist: snap.data!,
+                onDownloadComplete: () => setState(() {
+                  doesAttachmentExist = attachmentExists();
+                }),
               );
             default:
-              return SizedBox(
-                height: 70,
-                child: AttachedDocumentViewer(
-                  message: widget.message,
-                  doesAttachmentExist: snap.data!,
-                  onDownloadComplete: () => setState(() {
-                    doesAttachmentExist = attachmentExists();
-                  }),
-                ),
+              return AttachedImageVideoViewer(
+                message: widget.message,
+                doesAttachmentExist: snap.data!,
+                onDownloadComplete: () => setState(() {
+                  doesAttachmentExist = attachmentExists();
+                }),
               );
           }
         });
@@ -139,41 +118,43 @@ class _AttachedImageVideoViewerState
     super.initState();
   }
 
+  Future<void> navigateToViewer() async {
+    final other = ref.read(chatControllerProvider.notifier).other;
+    final sender = clientIsSender ? "You" : other.name;
+
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AttachmentViewer(
+          file: file!,
+          message: widget.message,
+          sender: sender,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAttachmentUploaded =
         widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
-    final attachmentType = widget.message.attachment!.type;
 
     return Stack(
-      fit: StackFit.expand,
       alignment: Alignment.center,
       children: [
         GestureDetector(
-          onTap: () async {
-            final other = ref.read(chatControllerProvider.notifier).other;
-            final sender = clientIsSender ? "You" : other.name;
-
-            if (!mounted) return;
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => AttachmentViewer(
-                  file: file!,
-                  fileType: attachmentType,
-                  sender: sender,
-                  timestamp: widget.message.timestamp,
-                ),
-              ),
-            );
-          },
+          onTap: navigateToViewer,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
             child: widget.doesAttachmentExist
-                ? AttachmentRenderer(
-                    attachment: file!,
-                    attachmentType: attachmentType,
-                    fit: BoxFit.cover,
-                    controllable: false,
+                ? Hero(
+                    tag: widget.message.id,
+                    child: AttachmentRenderer(
+                      attachment: file!,
+                      attachmentType: widget.message.attachment!.type,
+                      fit: BoxFit.cover,
+                      controllable: false,
+                    ),
                   )
                 : Container(),
           ),
@@ -189,6 +170,18 @@ class _AttachedImageVideoViewerState
           Center(
             child: UploadingAttachment(
               message: widget.message,
+            ),
+          )
+        ] else if (widget.message.attachment!.type == AttachmentType.video) ...[
+          CircleAvatar(
+            backgroundColor: const Color.fromARGB(255, 209, 208, 208),
+            radius: 30,
+            child: GestureDetector(
+              onTap: navigateToViewer,
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                size: 50,
+              ),
             ),
           )
         ],
@@ -283,11 +276,11 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
   }
 
   void onProgressTapDown(TapDownDetails details) {
-    _updateProgress(details.localPosition.dx);
+    _updateProgress(details.localPosition.dx - 6);
   }
 
   void onProgressDragUpdate(DragUpdateDetails details) {
-    _updateProgress(details.localPosition.dx);
+    _updateProgress(details.localPosition.dx - 6);
   }
 
   @override
@@ -326,7 +319,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       } else {
         trailing = SizedBox(
           width: 38,
-          height: 38,
+          height: 48,
           child: IconButton(
             onPressed: changePlayState,
             iconSize: 30,
@@ -346,7 +339,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
             : Theme.of(context).custom.colorTheme.incomingEmbedColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(10),
@@ -376,18 +369,18 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 16.0),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: onProgressDragUpdate,
-                    onTapDown: onProgressTapDown,
-                    child: SizedBox(
-                      height: 12,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Stack(
-                            children: [
-                              Center(
+                GestureDetector(
+                  onHorizontalDragUpdate: onProgressDragUpdate,
+                  onTapDown: onProgressTapDown,
+                  child: SizedBox(
+                    height: 12,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Stack(
+                          children: [
+                            Center(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(2.0),
                                 child: LinearProgressIndicator(
                                   backgroundColor: clientIsSender
                                       ? Theme.of(context)
@@ -398,24 +391,24 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                                   value: progress,
                                 ),
                               ),
-                              Positioned(
-                                left: (constraints.maxWidth - 12) * progress,
-                                child: Container(
-                                  width: 12.0,
-                                  height: 12.0,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Theme.of(context)
-                                        .custom
-                                        .colorTheme
-                                        .greenColor,
-                                  ),
+                            ),
+                            Positioned(
+                              left: (constraints.maxWidth - 12) * progress,
+                              child: Container(
+                                width: 12.0,
+                                height: 12.0,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Theme.of(context)
+                                      .custom
+                                      .colorTheme
+                                      .greenColor,
                                 ),
-                              )
-                            ],
-                          );
-                        },
-                      ),
+                              ),
+                            )
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -567,19 +560,17 @@ class AttachmentViewer extends StatelessWidget {
   const AttachmentViewer({
     super.key,
     required this.file,
-    required this.fileType,
+    required this.message,
     required this.sender,
-    required this.timestamp,
   });
   final File file;
-  final AttachmentType fileType;
+  final Message message;
   final String sender;
-  final Timestamp timestamp;
 
   @override
   Widget build(BuildContext context) {
     String title = sender;
-    String formattedTime = formattedTimestamp(timestamp);
+    String formattedTime = formattedTimestamp(message.timestamp);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -601,13 +592,20 @@ class AttachmentViewer extends StatelessWidget {
       ),
       body: Column(
         children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.756,
-            child: AttachmentRenderer(
-              attachment: file,
-              attachmentType: fileType,
-              fit: BoxFit.contain,
-              controllable: true,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Align(
+                child: Hero(
+                  tag: message.id,
+                  child: AttachmentRenderer(
+                    attachment: file,
+                    attachmentType: message.attachment!.type,
+                    fit: BoxFit.contain,
+                    controllable: true,
+                  ),
+                ),
+              ),
             ),
           ),
           Container(

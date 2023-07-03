@@ -56,6 +56,7 @@ class _MessageCardState extends State<MessageCard> {
           minHeight: 36,
           minWidth: 80,
           maxWidth: size.width * 0.75,
+          maxHeight: size.height * 0.75,
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(hasAttachment ? 10.0 : 10.0),
@@ -73,6 +74,7 @@ class _MessageCardState extends State<MessageCard> {
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (hasAttachment) ...[
                   AttachmentPreview(
@@ -81,19 +83,12 @@ class _MessageCardState extends State<MessageCard> {
                 ],
                 if (messageHasText) ...[
                   Padding(
-                    padding: isSentMessageCard
-                        ? hasAttachment
-                            ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                            : EdgeInsets.only(
-                                top: 4.0,
-                                bottom: hasSingleEmoji ? 10.0 : 0,
-                              )
-                        : hasAttachment
-                            ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                            : EdgeInsets.only(
-                                top: 4.0,
-                                bottom: hasSingleEmoji ? 10.0 : 0,
-                              ),
+                    padding: hasAttachment
+                        ? const EdgeInsets.only(left: 4.0, top: 4.0)
+                        : EdgeInsets.only(
+                            top: 4.0,
+                            bottom: hasSingleEmoji ? 10.0 : 0,
+                          ),
                     child: Text(
                       '${widget.message.content} $textPadding',
                       style: Theme.of(context)
