@@ -279,7 +279,10 @@ class _AttachmentMessageSenderState
                           double? width, height;
                           if (attachmentType == AttachmentType.image) {
                             (width, height) =
-                                await getImageDimensions(attachedFile.path);
+                                await getImageDimensions(attachedFile);
+                          } else if (attachmentType == AttachmentType.video) {
+                            (width, height) =
+                                await getVideoDimensions(attachedFile);
                           }
 
                           String messageId = const Uuid().v4();

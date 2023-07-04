@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
@@ -123,9 +124,20 @@ Future<double> getKeyboardHeight() async {
   return sharedPreferences.getDouble('keyboardHeight')!;
 }
 
-Future<(double, double)> getImageDimensions(String imagePath) async {
-  final bytes = await File(imagePath).readAsBytes();
+Future<(double, double)> getImageDimensions(File imageFile) async {
+  final bytes = await imageFile.readAsBytes();
   final image = await decodeImageFromList(bytes);
+  image.dispose();
 
   return (image.width.toDouble(), image.height.toDouble());
+}
+
+Future<(double, double)> getVideoDimensions(File videoFile) async {
+  final videoController = VideoPlayerController.file(videoFile);
+  await videoController.initialize();
+  
+  final videoSize = videoController.value.size;
+  videoController.dispose();
+
+  return (videoSize.width, videoSize.height);
 }
