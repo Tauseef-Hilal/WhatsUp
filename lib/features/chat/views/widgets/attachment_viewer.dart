@@ -194,16 +194,18 @@ class _AttachedImageVideoViewerState
                   width: widget.width,
                   height: widget.height,
                 ),
-                Hero(
-                  tag: widget.message.id,
-                  child: AttachmentRenderer(
-                    attachment: file!,
-                    attachmentType: widget.message.attachment!.type,
-                    fit: BoxFit.cover,
-                    controllable: false,
-                    fadeIn: true,
-                  ),
-                ),
+                if (file != null) ...[
+                  Hero(
+                    tag: widget.message.id,
+                    child: AttachmentRenderer(
+                      attachment: file!,
+                      attachmentType: widget.message.attachment!.type,
+                      fit: BoxFit.cover,
+                      controllable: false,
+                      fadeIn: true,
+                    ),
+                  )
+                ],
               ],
             ),
           ),
