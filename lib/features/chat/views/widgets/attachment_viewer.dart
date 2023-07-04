@@ -181,6 +181,10 @@ class _AttachedImageVideoViewerState
     final bool isAttachmentUploaded =
         widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
 
+    final background = clientIsSender
+        ? const Color.fromARGB(255, 0, 0, 0)
+        : const Color.fromARGB(150, 0, 0, 0);
+
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -192,7 +196,7 @@ class _AttachedImageVideoViewerState
               alignment: Alignment.center,
               children: [
                 Container(
-                  color: const Color.fromARGB(150, 0, 0, 0),
+                  color: background,
                   width: widget.width,
                   height: widget.height,
                 ),
@@ -655,75 +659,93 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
         value: currentStyle,
         child: Scaffold(
           backgroundColor: Colors.black,
-          body: Stack(
-            children: [
-              InteractiveViewer(
-                child: Align(
-                  child: Hero(
-                    tag: widget.message.id,
-                    child: AttachmentRenderer(
-                      attachment: widget.file,
-                      attachmentType: widget.message.attachment!.type,
-                      fit: BoxFit.contain,
-                      controllable: true,
+          body: GestureDetector(
+            onTap: () => setState(() {
+              showControls = !showControls;
+              if (showControls) {
+                setState(() {
+                  currentStyle = const SystemUiOverlayStyle(
+                    statusBarColor: Color.fromARGB(206, 0, 0, 0),
+                  );
+                });
+                return;
+              }
+              setState(() {
+                currentStyle = const SystemUiOverlayStyle(
+                  statusBarColor: AppColorsDark.appBarColor,
+                );
+              });
+            }),
+            child: Stack(
+              children: [
+                InteractiveViewer(
+                  child: Align(
+                    child: Hero(
+                      tag: widget.message.id,
+                      child: AttachmentRenderer(
+                        attachment: widget.file,
+                        attachmentType: widget.message.attachment!.type,
+                        fit: BoxFit.contain,
+                        controllable: true,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (showControls) ...[
-                SafeArea(
-                  child: Container(
-                    height: 60,
-                    color: const Color.fromARGB(206, 0, 0, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.arrow_back),
-                              ),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: Theme.of(context)
-                                        .custom
-                                        .textTheme
-                                        .titleLarge,
-                                  ),
-                                  Text(
-                                    formattedTime,
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                            ],
+                if (showControls) ...[
+                  SafeArea(
+                    child: Container(
+                      height: 60,
+                      color: const Color.fromARGB(206, 0, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(Icons.arrow_back),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: Theme.of(context)
+                                          .custom
+                                          .textTheme
+                                          .titleLarge,
+                                    ),
+                                    Text(
+                                      formattedTime,
+                                      style: const TextStyle(
+                                          fontSize: 14, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const Expanded(
-                          flex: 1,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Icon(Icons.star_border_outlined),
-                              Icon(Icons.turn_slight_right),
-                              Icon(Icons.more_vert),
-                            ],
-                          ),
-                        )
-                      ],
+                          const Expanded(
+                            flex: 1,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(Icons.star_border_outlined),
+                                Icon(Icons.turn_slight_right),
+                                Icon(Icons.more_vert),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                )
+                  )
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
