@@ -67,9 +67,9 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final imgWidth = widget.message.attachment!.width ?? 60;
-    final imgHeight = widget.message.attachment!.height ?? 60;
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
+    final imgWidth = widget.message.attachment!.width ?? maxWidth;
+    final imgHeight = widget.message.attachment!.height ?? 60.0;
 
     double width = min(imgWidth, maxWidth);
     double height = width / (imgWidth / imgHeight);
@@ -186,20 +186,26 @@ class _AttachedImageVideoViewerState
           onTap: navigateToViewer,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: widget.doesAttachmentExist
-                ? Hero(
-                    tag: widget.message.id,
-                    child: AttachmentRenderer(
-                      attachment: file!,
-                      attachmentType: widget.message.attachment!.type,
-                      fit: BoxFit.cover,
-                      controllable: false,
-                    ),
-                  )
-                : SizedBox(
-                    width: widget.width,
-                    height: widget.height,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  color: const Color.fromARGB(255, 14, 13, 13),
+                  width: widget.width,
+                  height: widget.height,
+                ),
+                Hero(
+                  tag: widget.message.id,
+                  child: AttachmentRenderer(
+                    attachment: file!,
+                    attachmentType: widget.message.attachment!.type,
+                    fit: BoxFit.cover,
+                    controllable: false,
+                    fadeIn: true,
                   ),
+                ),
+              ],
+            ),
           ),
         ),
         if (!widget.doesAttachmentExist) ...[
