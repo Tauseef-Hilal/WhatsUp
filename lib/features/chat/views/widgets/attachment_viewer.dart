@@ -224,6 +224,7 @@ class _AttachedImageVideoViewerState
         ] else if (widget.message.attachment!.type == AttachmentType.video) ...[
           CircleAvatar(
             backgroundColor: const Color.fromARGB(255, 209, 208, 208),
+            foregroundColor: Colors.black87,
             radius: 30,
             child: GestureDetector(
               onTap: navigateToViewer,
@@ -339,6 +340,10 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
     final attachment = widget.message.attachment!;
     bool showDuration = true;
 
+    final iconColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColorsDark.iconColor
+        : AppColorsLight.greyColor;
+
     Widget? trailing;
     if (!widget.doesAttachmentExist) {
       showDuration = false;
@@ -359,6 +364,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
           width: 38,
           height: 48,
           child: IconButton(
+            color: iconColor,
             onPressed: changePlayState,
             iconSize: 30,
             padding: const EdgeInsets.all(0),
@@ -370,6 +376,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
           width: 38,
           height: 48,
           child: IconButton(
+            color: iconColor,
             onPressed: changePlayState,
             iconSize: 30,
             padding: const EdgeInsets.all(0),
@@ -579,8 +586,11 @@ class _AttachedDocumentViewerState
               width: 40,
               height: 50,
               decoration: const BoxDecoration(
-                color: Color.fromARGB(255, 233, 245, 245),
+                color: AppColorsLight.incomingMessageBubbleColor,
                 borderRadius: BorderRadius.only(topRight: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(blurRadius: 1, color: Color.fromARGB(80, 0, 0, 0))
+                ],
               ),
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Center(

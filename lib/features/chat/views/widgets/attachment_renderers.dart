@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
-import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../models/attachement.dart';
@@ -111,7 +111,14 @@ class _VideoViewerState extends State<VideoViewer> {
   @override
   void initState() {
     videoController = VideoPlayerController.file(widget.video);
-    videoController.initialize().then((value) => setState(() {}));
+    videoController.initialize().then((value) {
+      if (widget.controllable) {
+        videoController.play();
+        showControls = false;
+      }
+
+      setState(() {});
+    });
     videoController.addListener(playerListener);
 
     super.initState();
@@ -302,43 +309,58 @@ class DocumentViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (compact) {
-      return const Center(
-        child: Icon(
-          Icons.file_present,
-          color: AppColorsDark.iconColor,
-        ),
-      );
-    }
-
     String fileName = document.path.split("/").last;
     if (fileName.length > 20) {
       fileName = "${fileName.substring(0, 15)}...${fileName.substring(15)}";
     }
     final fileSizeStr = strFormattedSize(document.lengthSync());
+    final fileExtension = fileName.split(".").last;
 
-    return Center(
-        child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(
-          Icons.file_present,
-          size: 50,
-          color: AppColorsDark.iconColor,
+    final compactView = Container(
+      width: 40,
+      height: 50,
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(255, 233, 245, 245),
+        borderRadius: BorderRadius.only(topRight: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Center(
+        child: Text(
+          fileExtension.toUpperCase(),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+          ),
         ),
-        const SizedBox(
-          height: 8,
-        ),
-        Text(
-          fileName,
-          style: Theme.of(context)
-              .custom
-              .textTheme
-              .titleLarge
-              .copyWith(fontWeight: FontWeight.bold),
-        ),
-        Text(fileSizeStr),
-      ],
-    ));
+      ),
+    );
+
+    return compact
+        ? compactView
+        : GestureDetector(
+            onTap: () async {
+              await OpenFile.open(document.path);
+            },
+            child: Center(
+                child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                compactView,
+                const SizedBox(
+                  height: 8,
+                ),
+                Text(
+                  fileName,
+                  style: Theme.of(context)
+                      .custom
+                      .textTheme
+                      .titleLarge
+                      .copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text(fileSizeStr),
+              ],
+            )),
+          );
   }
 }
