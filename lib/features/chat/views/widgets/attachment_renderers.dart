@@ -32,7 +32,7 @@ class AttachmentRenderer extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (attachmentType) {
       case AttachmentType.image:
-        return ImageViewer(image: attachment, fit: fit, fadeIn: fadeIn);
+        return ImageViewer(image: attachment, fit: fit);
       case AttachmentType.video:
         return VideoViewer(video: attachment, controllable: controllable);
       case AttachmentType.audio:
@@ -46,46 +46,20 @@ class AttachmentRenderer extends StatelessWidget {
   }
 }
 
-class ImageViewer extends StatefulWidget {
+class ImageViewer extends StatelessWidget {
   const ImageViewer({
     super.key,
     required this.image,
     required this.fit,
-    required this.fadeIn,
   });
   final File image;
   final BoxFit fit;
-  final bool fadeIn;
-
-  @override
-  State<ImageViewer> createState() => _ImageViewerState();
-}
-
-class _ImageViewerState extends State<ImageViewer> {
-  late bool isLoading = widget.fadeIn;
-
-  @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(() {
-        isLoading = false;
-      });
-    });
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: isLoading ? 0 : 1,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeIn,
-      child: Image.file(
-        widget.image,
-        fit: widget.fit,
-      ),
+    return Image.file(
+      image,
+      fit: fit,
     );
   }
 }
