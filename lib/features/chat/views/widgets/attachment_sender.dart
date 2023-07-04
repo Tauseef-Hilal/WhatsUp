@@ -174,7 +174,7 @@ class _AttachmentMessageSenderState
                                         child: AttachmentRenderer(
                                           attachment: file,
                                           attachmentType: fileType,
-                                          fit: BoxFit.fill,
+                                          fit: BoxFit.cover,
                                           compact: true,
                                         ),
                                       ),

@@ -4,10 +4,10 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
@@ -67,12 +67,14 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final maxWidth = MediaQuery.of(context).size.width * 0.75;
+    final maxWidth = MediaQuery.of(context).size.width * 0.80;
+    final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final imgWidth = widget.message.attachment!.width ?? maxWidth;
     final imgHeight = widget.message.attachment!.height ?? 60.0;
 
     double width = min(imgWidth, maxWidth);
     double height = width / (imgWidth / imgHeight);
+    height = min(height, maxHeight);
 
     return FutureBuilder(
         future: doesAttachmentExist,
@@ -195,7 +197,9 @@ class _AttachedImageVideoViewerState
                   height: widget.height,
                 ),
                 if (file != null) ...[
-                  Positioned.fill(
+                  SizedBox(
+                    width: widget.width,
+                    height: widget.height,
                     child: Hero(
                       tag: widget.message.id,
                       child: AttachmentRenderer(
@@ -615,7 +619,7 @@ class _AttachedDocumentViewerState
   }
 }
 
-class AttachmentViewer extends StatelessWidget {
+class AttachmentViewer extends StatefulWidget {
   const AttachmentViewer({
     super.key,
     required this.file,
@@ -627,67 +631,122 @@ class AttachmentViewer extends StatelessWidget {
   final String sender;
 
   @override
-  Widget build(BuildContext context) {
-    String title = sender;
-    String formattedTime = formattedTimestamp(message.timestamp);
+  State<AttachmentViewer> createState() => _AttachmentViewerState();
+}
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: AppColorsDark.appBarColor,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: Text("$title - $formattedTime",
-            style: Theme.of(context).custom.textTheme.bodyText1),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: const Text("All Media"),
-          )
-        ],
+class _AttachmentViewerState extends State<AttachmentViewer> {
+  bool showControls = true;
+  SystemUiOverlayStyle currentStyle = const SystemUiOverlayStyle(
+    statusBarColor: Color.fromARGB(186, 0, 0, 0),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    String title = widget.sender;
+    String formattedTime = formattedTimestamp(widget.message.timestamp);
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        iconTheme: Theme.of(context).iconTheme.copyWith(
+              color: Colors.white,
+            ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: InteractiveViewer(
-              child: Align(
-                child: Hero(
-                  tag: message.id,
-                  child: AttachmentRenderer(
-                    attachment: file,
-                    attachmentType: message.attachment!.type,
-                    fit: BoxFit.contain,
-                    controllable: true,
+      child: AnnotatedRegion(
+        value: currentStyle,
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: GestureDetector(
+            onVerticalDragEnd: (details) {
+              Navigator.pop(context);
+            },
+            onTap: () => setState(() {
+              showControls = !showControls;
+              if (showControls) {
+                setState(() {
+                  currentStyle = const SystemUiOverlayStyle(
+                    statusBarColor: Color.fromARGB(206, 0, 0, 0),
+                  );
+                });
+                return;
+              }
+              setState(() {
+                currentStyle = const SystemUiOverlayStyle(
+                  statusBarColor: AppColorsDark.appBarColor,
+                );
+              });
+            }),
+            child: Stack(
+              children: [
+                InteractiveViewer(
+                  child: Align(
+                    child: Hero(
+                      tag: widget.message.id,
+                      child: AttachmentRenderer(
+                        attachment: widget.file,
+                        attachmentType: widget.message.attachment!.type,
+                        fit: BoxFit.contain,
+                        controllable: true,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-          Container(
-            color: AppColorsDark.appBarColor,
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 32.0, horizontal: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () async {
-                      await Share.shareXFiles([XFile(file.path)]);
-                    },
-                    icon: const Icon(Icons.arrow_circle_up, size: 30),
-                  ),
-                  const Icon(Icons.draw, size: 30),
-                  const Icon(Icons.star_outline, size: 30),
-                  const Icon(Icons.delete, size: 30)
+                if (showControls) ...[
+                  SafeArea(
+                    child: Container(
+                      height: 60,
+                      color: const Color.fromARGB(206, 0, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(Icons.arrow_back),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: Theme.of(context)
+                                          .custom
+                                          .textTheme
+                                          .titleLarge,
+                                    ),
+                                    Text(
+                                      formattedTime,
+                                      style: const TextStyle(
+                                          fontSize: 14, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Expanded(
+                            flex: 1,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(Icons.star_border_outlined),
+                                Icon(Icons.turn_slight_right),
+                                Icon(Icons.more_vert),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
                 ],
-              ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

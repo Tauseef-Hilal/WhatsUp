@@ -49,8 +49,7 @@ class MessageCard extends StatelessWidget {
         constraints: BoxConstraints(
           minHeight: 36,
           minWidth: 80,
-          maxWidth: size.width * 0.75,
-          maxHeight: size.height * 0.75,
+          maxWidth: size.width * 0.80,
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(hasAttachment ? 10.0 : 10.0),
