@@ -132,7 +132,7 @@ class _VideoViewerState extends State<VideoViewer> {
         height: videoController.value.size.height,
       );
     }
-    
+
     Widget button = videoController.value.isPlaying
         ? CircleAvatar(
             backgroundColor: const Color.fromARGB(255, 209, 208, 208),

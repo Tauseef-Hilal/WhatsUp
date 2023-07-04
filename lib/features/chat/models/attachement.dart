@@ -47,6 +47,8 @@ class Attachment {
   final String fileExtension;
   final int fileSize;
   final AttachmentType type;
+  final double? width;
+  final double? height;
   UploadStatus uploadStatus;
   String url;
   File? file;
@@ -58,6 +60,8 @@ class Attachment {
     required this.fileSize,
     required this.fileExtension,
     this.uploadStatus = UploadStatus.uploading,
+    this.width,
+    this.height,
     this.file,
   });
 
@@ -67,6 +71,8 @@ class Attachment {
       fileName: data["fileName"],
       fileSize: data["fileSize"] is String ? -1 : data["fileSize"],
       fileExtension: data["fileExtension"] ?? "",
+      width: data["width"],
+      height: data["height"],
       type: AttachmentType.fromValue(data["type"]),
       uploadStatus:
           UploadStatus.fromValue(data["uploadStatus"] ?? "NOT_UPLOADING"),
@@ -86,6 +92,8 @@ class Attachment {
       "fileExtension": fileExtension,
       "type": type.value,
       "uploadStatus": uploadStatus.value,
+      "width": width,
+      "height": height,
     };
   }
 }

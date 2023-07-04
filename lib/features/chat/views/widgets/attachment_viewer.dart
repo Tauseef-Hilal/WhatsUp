@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -19,7 +20,18 @@ import '../../controllers/chat_controller.dart';
 import '../../models/attachement.dart';
 import '../../models/message.dart';
 
-class AttachmentPreview extends ConsumerStatefulWidget {
+Directory? _appDirectory; // Cached directory reference
+
+Future<Directory> getApplicationDirectory() async {
+  if (_appDirectory != null) {
+    return _appDirectory!;
+  }
+
+  _appDirectory = await getApplicationDocumentsDirectory();
+  return _appDirectory!;
+}
+
+class AttachmentPreview extends StatefulWidget {
   const AttachmentPreview({
     super.key,
     required this.message,
@@ -27,19 +39,23 @@ class AttachmentPreview extends ConsumerStatefulWidget {
   final Message message;
 
   @override
-  ConsumerState<AttachmentPreview> createState() => _AttachmentPreviewState();
+  State<AttachmentPreview> createState() => _AttachmentPreviewState();
 }
 
-class _AttachmentPreviewState extends ConsumerState<AttachmentPreview> {
+class _AttachmentPreviewState extends State<AttachmentPreview>
+    with AutomaticKeepAliveClientMixin {
   late Future<bool> doesAttachmentExist = attachmentExists();
 
+  @override
+  bool get wantKeepAlive => true;
+
   Future<bool> attachmentExists() async {
-    final appDir = await getApplicationDocumentsDirectory();
+    final appDir = await getApplicationDirectory();
     final fileName =
         "${widget.message.id}__${widget.message.attachment!.fileName}";
     final file = File("${appDir.path}/media/$fileName");
 
-    if (await file.exists()) {
+    if (file.existsSync()) {
       widget.message.attachment!.file = file;
       return true;
     }
@@ -49,32 +65,52 @@ class _AttachmentPreviewState extends ConsumerState<AttachmentPreview> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
+    final imgWidth = widget.message.attachment!.width ?? 60;
+    final imgHeight = widget.message.attachment!.height ?? 60;
+    final maxWidth = MediaQuery.of(context).size.width * 0.75;
+
+    double width = min(imgWidth, maxWidth);
+    double height = width / (imgWidth / imgHeight);
+
     return FutureBuilder(
         future: doesAttachmentExist,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return Container();
+            return SizedBox(
+              width: width,
+              height: height,
+            );
           }
 
           switch (widget.message.attachment!.type) {
             case AttachmentType.audio:
-              return AttachedAudioViewer(
-                message: widget.message,
-                doesAttachmentExist: snap.data!,
-                onDownloadComplete: () => setState(() {
-                  doesAttachmentExist = attachmentExists();
-                }),
+              return SizedBox(
+                height: height,
+                child: AttachedAudioViewer(
+                  message: widget.message,
+                  doesAttachmentExist: snap.data!,
+                  onDownloadComplete: () => setState(() {
+                    doesAttachmentExist = attachmentExists();
+                  }),
+                ),
               );
             case AttachmentType.document:
-              return AttachedDocumentViewer(
-                message: widget.message,
-                doesAttachmentExist: snap.data!,
-                onDownloadComplete: () => setState(() {
-                  doesAttachmentExist = attachmentExists();
-                }),
+              return SizedBox(
+                height: height + 10,
+                child: AttachedDocumentViewer(
+                  message: widget.message,
+                  doesAttachmentExist: snap.data!,
+                  onDownloadComplete: () => setState(() {
+                    doesAttachmentExist = attachmentExists();
+                  }),
+                ),
               );
             default:
               return AttachedImageVideoViewer(
+                width: width,
+                height: height,
                 message: widget.message,
                 doesAttachmentExist: snap.data!,
                 onDownloadComplete: () => setState(() {
@@ -87,12 +123,16 @@ class _AttachmentPreviewState extends ConsumerState<AttachmentPreview> {
 }
 
 class AttachedImageVideoViewer extends ConsumerStatefulWidget {
+  final double width;
+  final double height;
   final Message message;
   final bool doesAttachmentExist;
   final VoidCallback onDownloadComplete;
 
   const AttachedImageVideoViewer({
     super.key,
+    required this.width,
+    required this.height,
     required this.message,
     required this.doesAttachmentExist,
     required this.onDownloadComplete,
@@ -156,21 +196,20 @@ class _AttachedImageVideoViewerState
                       controllable: false,
                     ),
                   )
-                : Container(),
+                : SizedBox(
+                    width: widget.width,
+                    height: widget.height,
+                  ),
           ),
         ),
         if (!widget.doesAttachmentExist) ...[
-          Center(
-            child: DownloadingAttachment(
-              message: widget.message,
-              onDone: widget.onDownloadComplete,
-            ),
+          DownloadingAttachment(
+            message: widget.message,
+            onDone: widget.onDownloadComplete,
           )
         ] else if (!isAttachmentUploaded) ...[
-          Center(
-            child: UploadingAttachment(
-              message: widget.message,
-            ),
+          UploadingAttachment(
+            message: widget.message,
           )
         ] else if (widget.message.attachment!.type == AttachmentType.video) ...[
           CircleAvatar(
@@ -593,8 +632,7 @@ class AttachmentViewer extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: InteractiveViewer(
               child: Align(
                 child: Hero(
                   tag: message.id,
@@ -743,7 +781,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
               downloadTaskFuture = download();
             });
           });
-          return Container();
+          return const CircularProgressIndicator();
         }
 
         if (!snapshot.hasData) {
@@ -769,12 +807,12 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
               case TaskState.success:
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => widget.onDone());
-                return Container();
+                return const CircularProgressIndicator();
               case TaskState.error:
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   setState(() => isDownloading = false);
                 });
-                return Container();
+                return const CircularProgressIndicator();
               default:
                 return const CircularProgressIndicator();
             }
@@ -925,7 +963,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
               uploadTaskFuture = upload();
             });
           });
-          return Container();
+          return const CircularProgressIndicator();
         }
 
         if (!snapshot.hasData) {
@@ -949,15 +987,15 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   onUploadDone(snapData);
                 });
-                return Container();
+                return const CircularProgressIndicator();
               case TaskState.error:
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   onUploadError();
                   setState(() => isUploading = false);
                 });
-                return Container();
+                return const CircularProgressIndicator();
               default:
-                return Container();
+                return const CircularProgressIndicator();
             }
           },
         );

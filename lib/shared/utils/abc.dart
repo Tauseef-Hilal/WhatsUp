@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -65,15 +66,6 @@ Future<File?> pickImageFromGallery() async {
   return image != null ? File(image.path) : null;
 }
 
-Future<List<File>?> pickImagesFromGallery() async {
-  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
-
-  final ImagePicker picker = ImagePicker();
-  final List<XFile> images = await picker.pickMultiImage();
-
-  return images.map((e) => File(e.path)).toList();
-}
-
 Future<List<File>?> pickMultimedia() async {
   if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
 
@@ -129,4 +121,11 @@ Future<bool> hasPermission(Permission permission) async {
 Future<double> getKeyboardHeight() async {
   var sharedPreferences = await SharedPreferences.getInstance();
   return sharedPreferences.getDouble('keyboardHeight')!;
+}
+
+Future<(double, double)> getImageDimensions(String imagePath) async {
+  final bytes = await File(imagePath).readAsBytes();
+  final image = await decodeImageFromList(bytes);
+
+  return (image.width.toDouble(), image.height.toDouble());
 }

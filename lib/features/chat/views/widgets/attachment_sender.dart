@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../../shared/models/user.dart';
@@ -275,6 +276,12 @@ class _AttachmentMessageSenderState
                           final attachedFile = widget.attachments[i];
                           final attachmentType = widget.attachmentTypes[i];
 
+                          double? width, height;
+                          if (attachmentType == AttachmentType.image) {
+                            (width, height) =
+                                await getImageDimensions(attachedFile.path);
+                          }
+
                           String messageId = const Uuid().v4();
                           String fileName = attachedFile.path.split("/").last;
                           String msgContent = controllers[i].text.trim();
@@ -304,6 +311,8 @@ class _AttachmentMessageSenderState
                                     fileSize: attachedFile.lengthSync(),
                                     fileExtension: fileName.split(".").last,
                                     file: attachedFile,
+                                    width: width,
+                                    height: height,
                                   ),
                                 ),
                                 self,

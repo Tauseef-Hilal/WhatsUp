@@ -9,23 +9,17 @@ import 'attachment_viewer.dart';
 
 enum MessageCardType { sentMessageCard, receivedMessageCard }
 
-class MessageCard extends StatefulWidget {
-  const MessageCard({
-    super.key,
+class MessageCard extends StatelessWidget {
+  MessageCard({
     required this.message,
     required this.type,
     this.special = false,
-  });
+  }) : super(key: ValueKey(message.id));
 
   final Message message;
   final bool special;
   final MessageCardType type;
 
-  @override
-  State<MessageCard> createState() => _MessageCardState();
-}
-
-class _MessageCardState extends State<MessageCard> {
   bool containsSingleEmoji(String text) {
     return EmojiParser().parseEmojis(text).length == 1 &&
         text.runes.length == 1;
@@ -35,11 +29,11 @@ class _MessageCardState extends State<MessageCard> {
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final size = MediaQuery.of(context).size;
-    final hasAttachment = widget.message.attachment != null;
-    final attachmentType = widget.message.attachment?.type;
-    final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
-    final messageHasText = widget.message.content.isNotEmpty;
-    final hasSingleEmoji = containsSingleEmoji(widget.message.content);
+    final hasAttachment = message.attachment != null;
+    final attachmentType = message.attachment?.type;
+    final isSentMessageCard = type == MessageCardType.sentMessageCard;
+    final messageHasText = message.content.isNotEmpty;
+    final hasSingleEmoji = containsSingleEmoji(message.content);
     final textPadding =
         '\u00A0' * (hasSingleEmoji ? 2 : (isSentMessageCard ? 16 : 12));
     final showTimeStamp = !hasAttachment ||
@@ -64,7 +58,7 @@ class _MessageCardState extends State<MessageCard> {
               ? colorTheme.outgoingMessageBubbleColor
               : colorTheme.incomingMessageBubbleColor,
         ),
-        margin: EdgeInsets.only(bottom: 4.0, top: widget.special ? 6.0 : 0),
+        margin: EdgeInsets.only(bottom: 4.0, top: special ? 6.0 : 0),
         padding: hasAttachment
             ? attachmentType == AttachmentType.audio && !messageHasText
                 ? null
@@ -78,7 +72,7 @@ class _MessageCardState extends State<MessageCard> {
               children: [
                 if (hasAttachment) ...[
                   AttachmentPreview(
-                    message: widget.message,
+                    message: message,
                   ),
                 ],
                 if (messageHasText) ...[
@@ -90,7 +84,7 @@ class _MessageCardState extends State<MessageCard> {
                             bottom: hasSingleEmoji ? 10.0 : 0,
                           ),
                     child: Text(
-                      '${widget.message.content} $textPadding',
+                      '${message.content} $textPadding',
                       style: Theme.of(context)
                           .custom
                           .textTheme
@@ -128,7 +122,7 @@ class _MessageCardState extends State<MessageCard> {
                     if (showTimeStamp) ...[
                       Text(
                         formattedTimestamp(
-                          widget.message.timestamp,
+                          message.timestamp,
                           true,
                         ),
                         style: Theme.of(context)
@@ -147,8 +141,8 @@ class _MessageCardState extends State<MessageCard> {
                         width: 2.0,
                       ),
                       Image.asset(
-                        'assets/images/${widget.message.status.value}.png',
-                        color: widget.message.status.value != 'SEEN'
+                        'assets/images/${message.status.value}.png',
+                        color: message.status.value != 'SEEN'
                             ? messageHasText
                                 ? colorTheme.textColor2
                                 : Colors.white

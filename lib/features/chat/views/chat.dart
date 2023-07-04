@@ -658,62 +658,39 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           );
         }
 
-        return Stack(
-          children: [
-            ListView.builder(
-              reverse: true,
-              physics: const BouncingScrollPhysics(),
-              itemCount: messages.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                Message message = messages[index];
+        return ListView.builder(
+          reverse: true,
+          physics: const BouncingScrollPhysics(),
+          itemCount: messages.length,
+          shrinkWrap: true,
+          itemBuilder: (context, index) {
+            Message message = messages[index];
 
-                if (index == messages.length - 1 ||
-                    (messages[index].senderId !=
-                        messages[index + 1].senderId)) {
-                  return message.senderId == self.id
-                      ? MessageCard(
-                          key: Key(message.id),
-                          message: message,
-                          special: true,
-                          type: MessageCardType.sentMessageCard,
-                        )
-                      : MessageCard(
-                          key: Key(message.id),
-                          message: message,
-                          special: true,
-                          type: MessageCardType.receivedMessageCard,
-                        );
-                }
+            if (index == messages.length - 1 ||
+                (messages[index].senderId != messages[index + 1].senderId)) {
+              return message.senderId == self.id
+                  ? MessageCard(
+                      message: message,
+                      special: true,
+                      type: MessageCardType.sentMessageCard,
+                    )
+                  : MessageCard(
+                      message: message,
+                      special: true,
+                      type: MessageCardType.receivedMessageCard,
+                    );
+            }
 
-                return message.senderId == self.id
-                    ? MessageCard(
-                        key: Key(message.id),
-                        message: message,
-                        type: MessageCardType.sentMessageCard,
-                      )
-                    : MessageCard(
-                        key: Key(message.id),
-                        message: message,
-                        type: MessageCardType.receivedMessageCard,
-                      );
-              },
-            ),
-            // if (showScrollBtn) ...[
-            //   Positioned(
-            //     bottom: 2.0,
-            //     right: 2.0,
-            //     child: GestureDetector(
-            //       onTap: () {},
-            //       child: CircleAvatar(
-            //         backgroundColor:
-            //             Theme.of(context).custom.colorTheme.appBarColor,
-            //         child: const Icon(Icons.keyboard_double_arrow_down),
-            //       ),
-            //     ),
-            //   )
-            // ],
-          ],
+            return message.senderId == self.id
+                ? MessageCard(
+                    message: message,
+                    type: MessageCardType.sentMessageCard,
+                  )
+                : MessageCard(
+                    message: message,
+                    type: MessageCardType.receivedMessageCard,
+                  );
+          },
         );
       },
     );
