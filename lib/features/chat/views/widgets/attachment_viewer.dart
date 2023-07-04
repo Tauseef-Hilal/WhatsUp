@@ -164,7 +164,7 @@ class _AttachedImageVideoViewerState
     final other = ref.read(chatControllerProvider.notifier).other;
     final sender = clientIsSender ? "You" : other.name;
 
-    if (!mounted) return;
+    if (!mounted || file == null) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AttachmentViewer(
