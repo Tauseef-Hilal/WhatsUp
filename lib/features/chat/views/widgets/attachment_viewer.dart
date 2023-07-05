@@ -69,7 +69,7 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
 
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    final imgWidth = widget.message.attachment!.width ?? maxWidth;
+    final imgWidth = widget.message.attachment!.width ?? 1;
     final imgHeight = widget.message.attachment!.height ?? 60.0;
 
     double width = min(imgWidth, maxWidth);

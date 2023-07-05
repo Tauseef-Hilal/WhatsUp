@@ -35,8 +35,7 @@ class ChatPage extends ConsumerStatefulWidget {
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends ConsumerState<ChatPage>
-    with WidgetsBindingObserver {
+class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
     ref.read(chatControllerProvider.notifier).init(widget.self, widget.other);
