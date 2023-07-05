@@ -310,29 +310,15 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
     return await player.getDuration() ?? const Duration();
   }
 
-  void _updateProgress(double tapPosition) {
+  void _updateProgress(BuildContext context, double tapPosition) async {
     RenderBox box = context.findRenderObject() as RenderBox;
     double width = box.size.width;
-    int seconds = (tapPosition / width * 100).round();
+    progress = tapPosition / width;
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await player.seek(
-        Duration(seconds: seconds),
-      );
-
-      if (!mounted) return;
-      setState(() {});
-    });
+    int seconds = (progress * (await totalDuration).inSeconds).round();
+    await player.seek(Duration(seconds: seconds));
 
     setState(() {});
-  }
-
-  void onProgressTapDown(TapDownDetails details) {
-    _updateProgress(details.localPosition.dx - 6);
-  }
-
-  void onProgressDragUpdate(DragUpdateDetails details) {
-    _updateProgress(details.localPosition.dx - 6);
   }
 
   @override
@@ -364,7 +350,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       if (player.state == PlayerState.playing) {
         trailing = SizedBox(
           width: 38,
-          height: 48,
+          height: 40,
           child: IconButton(
             color: iconColor,
             onPressed: changePlayState,
@@ -376,7 +362,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       } else {
         trailing = SizedBox(
           width: 38,
-          height: 48,
+          height: 40,
           child: IconButton(
             color: iconColor,
             onPressed: changePlayState,
@@ -427,18 +413,28 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 16.0),
-                GestureDetector(
-                  onHorizontalDragUpdate: onProgressDragUpdate,
-                  onTapDown: onProgressTapDown,
-                  child: SizedBox(
-                    height: 12,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Stack(
-                          children: [
-                            Center(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2.0),
+                SizedBox(
+                  height: 12,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Stack(
+                        children: [
+                          Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(2.0),
+                              child: GestureDetector(
+                                onHorizontalDragUpdate: (details) {
+                                  _updateProgress(
+                                    context,
+                                    details.localPosition.dx,
+                                  );
+                                },
+                                onTapUp: (details) {
+                                  _updateProgress(
+                                    context,
+                                    details.localPosition.dx,
+                                  );
+                                },
                                 child: LinearProgressIndicator(
                                   backgroundColor: clientIsSender
                                       ? Theme.of(context)
@@ -450,24 +446,26 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                                 ),
                               ),
                             ),
-                            Positioned(
-                              left: (constraints.maxWidth - 12) * progress,
-                              child: Container(
-                                width: 12.0,
-                                height: 12.0,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Theme.of(context)
-                                      .custom
-                                      .colorTheme
-                                      .greenColor,
-                                ),
+                          ),
+                          Positioned(
+                            left: constraints.maxWidth * progress == 0
+                                ? constraints.maxWidth * progress
+                                : (constraints.maxWidth * progress) - 6,
+                            child: Container(
+                              width: 12.0,
+                              height: 12.0,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Theme.of(context)
+                                    .custom
+                                    .colorTheme
+                                    .greenColor,
                               ),
-                            )
-                          ],
-                        );
-                      },
-                    ),
+                            ),
+                          )
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 4.0),
@@ -492,7 +490,11 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                             style: const TextStyle(fontSize: 12),
                           ),
                     Text(
-                      formattedTimestamp(widget.message.timestamp, true),
+                      formattedTimestamp(
+                        widget.message.timestamp,
+                        true,
+                        Platform.isIOS,
+                      ),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ],
@@ -500,11 +502,12 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
               ],
             ),
           ),
-          const SizedBox(width: 8.0),
+          const SizedBox(width: 4.0),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [trailing],
-          )
+          ),
+          const SizedBox(width: 4.0),
         ],
       ),
     );
@@ -569,7 +572,6 @@ class _AttachedDocumentViewerState
         : Theme.of(context).custom.colorTheme.incomingEmbedColor;
 
     String fileName = attachment.fileName;
-    fileName = "sadfasdfasdgasdgasdgsadga.mp3";
     final len = fileName.length;
     if (fileName.length > 20) {
       fileName =
@@ -582,7 +584,7 @@ class _AttachedDocumentViewerState
         await OpenFile.open(file!.path);
       },
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(10),
@@ -608,13 +610,13 @@ class _AttachedDocumentViewerState
                   style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: 9,
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -637,13 +639,6 @@ class _AttachedDocumentViewerState
             ),
           ],
         ),
-        // child: ListTile(
-        // ,
-        //   leading: ,
-        //   title: ,
-        //   subtitle:
-        //   trailing:
-        // ),
       ),
     );
   }

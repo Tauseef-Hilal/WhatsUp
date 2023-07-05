@@ -36,14 +36,15 @@ String strFormattedTime(int seconds) {
   return resultParts.join(':');
 }
 
-String formattedTimestamp(Timestamp timestamp, [bool timeOnly = false]) {
+String formattedTimestamp(Timestamp timestamp,
+    [bool timeOnly = false, bool meridiem = false]) {
   DateTime now = DateTime.now();
   DateTime date = timestamp.toDate();
 
-  if (timeOnly) {
-    return DateFormat('HH:mm').format(date);
-  } else if (now.day - date.day == 0) {
-    return DateFormat('hh:mm a').format(date);
+  if (now.day - date.day == 0 || timeOnly) {
+    return meridiem
+        ? DateFormat('hh:mm a').format(date)
+        : DateFormat('HH:mm').format(date);
   } else if (now.day - date.day == 1) {
     return 'Yesterday';
   }

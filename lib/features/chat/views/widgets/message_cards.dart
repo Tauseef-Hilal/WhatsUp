@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_emoji/flutter_emoji.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -33,22 +35,26 @@ class MessageCard extends StatelessWidget {
     final attachmentType = message.attachment?.type;
     final isSentMessageCard = type == MessageCardType.sentMessageCard;
     final messageHasText = message.content.isNotEmpty;
-    final hasSingleEmoji = containsSingleEmoji(message.content);
-    int padding = 2;
-    if (!hasSingleEmoji) {
-      if (isSentMessageCard) {
-        padding = 11;
-      } else {
-        padding = 7;
-      }
-    }
-    final textPadding = '\u00A0' * padding;
 
     final showTimeStamp = !hasAttachment ||
         (hasAttachment &&
             attachmentType == AttachmentType.audio &&
             messageHasText) ||
         (hasAttachment && attachmentType != AttachmentType.audio);
+
+    final hasSingleEmoji = containsSingleEmoji(message.content);
+    int padding = 2;
+
+    if (!hasSingleEmoji) {
+      if (isSentMessageCard) {
+        padding =
+            Platform.isAndroid ? (special ? 14 : 12) : (special ? 17 : 15);
+      } else {
+        padding = Platform.isAndroid ? 8 : 12;
+      }
+    }
+
+    final textPadding = '\u00A0' * padding;
 
     return Align(
       alignment:
@@ -84,8 +90,13 @@ class MessageCard extends StatelessWidget {
           ),
           padding: hasAttachment
               ? attachmentType == AttachmentType.audio && !messageHasText
-                  ? null
-                  : const EdgeInsets.all(4.0)
+                  ? EdgeInsets.only(left: isSentMessageCard ? 0 : 8)
+                  : EdgeInsets.only(
+                      top: 4.0,
+                      bottom: 4.0,
+                      left: special && !isSentMessageCard ? 14.0 : 4.0,
+                      right: special && isSentMessageCard ? 14.0 : 4.0,
+                    )
               : const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
           child: Stack(
             children: [
@@ -105,10 +116,13 @@ class MessageCard extends StatelessWidget {
                           : special && !isSentMessageCard
                               ? EdgeInsets.only(
                                   left: 10,
-                                  bottom: hasSingleEmoji ? 10.0 : 0,
+                                  bottom: hasSingleEmoji ? 12 : 0,
                                 )
                               : EdgeInsets.only(
-                                  bottom: hasSingleEmoji ? 10.0 : 0,
+                                  top: Platform.isAndroid ? 4.0 : 0,
+                                  bottom: hasSingleEmoji
+                                      ? (Platform.isAndroid ? 16.0 : 12.0)
+                                      : 0,
                                 ),
                       child: Text(
                         '${message.content} $textPadding',
@@ -131,7 +145,9 @@ class MessageCard extends StatelessWidget {
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  padding: !messageHasText && hasAttachment
+                  padding: !messageHasText &&
+                          hasAttachment &&
+                          attachmentType != AttachmentType.audio
                       ? const EdgeInsets.all(4.0)
                       : null,
                   decoration: BoxDecoration(
@@ -155,6 +171,7 @@ class MessageCard extends StatelessWidget {
                           formattedTimestamp(
                             message.timestamp,
                             true,
+                            Platform.isIOS,
                           ),
                           style: Theme.of(context)
                               .custom
