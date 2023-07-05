@@ -97,7 +97,12 @@ class MessageCard extends StatelessWidget {
                       left: special && !isSentMessageCard ? 14.0 : 4.0,
                       right: special && isSentMessageCard ? 14.0 : 4.0,
                     )
-              : const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+              : const EdgeInsets.only(
+                  left: 10.0,
+                  right: 10,
+                  top: 5.0,
+                  bottom: 5.0,
+                ),
           child: Stack(
             children: [
               Column(
@@ -119,7 +124,7 @@ class MessageCard extends StatelessWidget {
                                   bottom: hasSingleEmoji ? 12 : 0,
                                 )
                               : EdgeInsets.only(
-                                  top: Platform.isAndroid ? 4.0 : 0,
+                                  top: 2.0,
                                   bottom: hasSingleEmoji
                                       ? (Platform.isAndroid ? 16.0 : 12.0)
                                       : 0,
@@ -143,7 +148,7 @@ class MessageCard extends StatelessWidget {
               ),
               Positioned(
                 right: 0,
-                bottom: 0,
+                bottom: -1,
                 child: Container(
                   padding: !messageHasText &&
                           hasAttachment &&
