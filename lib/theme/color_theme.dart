@@ -11,7 +11,7 @@ class AppColorsDark {
   static const incomingMessageBubbleColor = Color.fromRGBO(31, 44, 51, 1);
   static const outgoingMessageBubbleColor = Color.fromRGBO(1, 92, 75, 1);
   static const incomingEmbedColor = Color.fromRGBO(25, 35, 40, 1);
-  static const outgoingEmbedColor = Color.fromRGBO(0, 60, 52, 1);
+  static const outgoingEmbedColor = Color.fromRGBO(0, 74, 64, 1);
   static const selectedLabelColor = Color.fromRGBO(5, 165, 133, 1);
   static const unselectedLabelColor = Color.fromRGBO(131, 151, 161, 1);
   static const indicatorColor = Color.fromRGBO(5, 165, 133, 1);

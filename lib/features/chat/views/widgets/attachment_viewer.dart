@@ -88,26 +88,20 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
 
           switch (widget.message.attachment!.type) {
             case AttachmentType.audio:
-              return SizedBox(
-                height: height,
-                child: AttachedAudioViewer(
-                  message: widget.message,
-                  doesAttachmentExist: snap.data!,
-                  onDownloadComplete: () => setState(() {
-                    doesAttachmentExist = attachmentExists();
-                  }),
-                ),
+              return AttachedAudioViewer(
+                message: widget.message,
+                doesAttachmentExist: snap.data!,
+                onDownloadComplete: () => setState(() {
+                  doesAttachmentExist = attachmentExists();
+                }),
               );
             case AttachmentType.document:
-              return SizedBox(
-                height: height + 10,
-                child: AttachedDocumentViewer(
-                  message: widget.message,
-                  doesAttachmentExist: snap.data!,
-                  onDownloadComplete: () => setState(() {
-                    doesAttachmentExist = attachmentExists();
-                  }),
-                ),
+              return AttachedDocumentViewer(
+                message: widget.message,
+                doesAttachmentExist: snap.data!,
+                onDownloadComplete: () => setState(() {
+                  doesAttachmentExist = attachmentExists();
+                }),
               );
             default:
               return AttachedImageVideoViewer(
@@ -406,7 +400,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -575,24 +569,31 @@ class _AttachedDocumentViewerState
         : Theme.of(context).custom.colorTheme.incomingEmbedColor;
 
     String fileName = attachment.fileName;
-    if (fileName.length > 27) {
-      fileName = "${fileName.substring(0, 21)}...${fileName.substring(21, 28)}";
+    fileName = "sadfasdfasdgasdgasdgsadga.mp3";
+    final len = fileName.length;
+    if (fileName.length > 20) {
+      fileName =
+          "${fileName.substring(0, 16)}...${fileName.substring(len - 6, len)}";
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Center(
-        child: ListTile(
-            onTap: () async {
-              if (!widget.doesAttachmentExist) return;
-              await OpenFile.open(file!.path);
-            },
-            leading: Container(
-              width: 40,
-              height: 50,
+    return GestureDetector(
+      onTap: () async {
+        if (!widget.doesAttachmentExist) return;
+        await OpenFile.open(file!.path);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 34,
+              height: 40,
               decoration: const BoxDecoration(
                 color: AppColorsLight.incomingMessageBubbleColor,
                 borderRadius: BorderRadius.only(topRight: Radius.circular(20)),
@@ -612,12 +613,37 @@ class _AttachedDocumentViewerState
                 ),
               ),
             ),
-            title: Text(fileName),
-            subtitle: Text("${strFormattedSize(attachment.fileSize)} · $ext"),
-            trailing: Row(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    fileName,
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                  Text(
+                    "${strFormattedSize(attachment.fileSize)} · $ext",
+                    style:
+                        const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                  ),
+                ],
+              ),
+            ),
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [trailing ?? const Text("")],
-            )),
+            ),
+          ],
+        ),
+        // child: ListTile(
+        // ,
+        //   leading: ,
+        //   title: ,
+        //   subtitle:
+        //   trailing:
+        // ),
       ),
     );
   }

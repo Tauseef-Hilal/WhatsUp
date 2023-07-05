@@ -126,10 +126,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
         child: Column(
           children: [
             const Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: ChatStream(),
-              ),
+              child: ChatStream(),
             ),
             const SizedBox(
               height: 8.0,
@@ -225,6 +222,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                           ),
                           Expanded(
                             child: TextField(
+                              textCapitalization: TextCapitalization.sentences,
                               onChanged: (value) => ref
                                   .read(chatControllerProvider.notifier)
                                   .onTextChanged(value),

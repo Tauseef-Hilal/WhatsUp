@@ -40,7 +40,9 @@ String formattedTimestamp(Timestamp timestamp, [bool timeOnly = false]) {
   DateTime now = DateTime.now();
   DateTime date = timestamp.toDate();
 
-  if (now.day - date.day == 0 || timeOnly) {
+  if (timeOnly) {
+    return DateFormat('HH:mm').format(date);
+  } else if (now.day - date.day == 0) {
     return DateFormat('hh:mm a').format(date);
   } else if (now.day - date.day == 1) {
     return 'Yesterday';
@@ -135,7 +137,7 @@ Future<(double, double)> getImageDimensions(File imageFile) async {
 Future<(double, double)> getVideoDimensions(File videoFile) async {
   final videoController = VideoPlayerController.file(videoFile);
   await videoController.initialize();
-  
+
   final videoSize = videoController.value.size;
   videoController.dispose();
 
