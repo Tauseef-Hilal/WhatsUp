@@ -207,7 +207,7 @@ class MessageCard extends StatelessWidget {
                           width: 16.0,
                         ),
                       ],
-                      if (special && isSentMessageCard) ...[
+                      if (special && isSentMessageCard && messageHasText) ...[
                         const SizedBox(width: 10)
                       ],
                     ],
