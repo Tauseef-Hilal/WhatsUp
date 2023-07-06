@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -70,11 +71,20 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final imgWidth = widget.message.attachment!.width ?? 1;
-    final imgHeight = widget.message.attachment!.height ?? 60.0;
+    final imgHeight = widget.message.attachment!.height ?? 1;
 
     double width = min(imgWidth, maxWidth);
     double height = width / (imgWidth / imgHeight);
     height = min(height, maxHeight);
+
+    final attachmentType = widget.message.attachment!.type;
+    if (attachmentType == AttachmentType.audio) {
+      width = maxWidth;
+      height = 60;
+    } else if (attachmentType == AttachmentType.document) {
+      width = 80;
+      height = 60;
+    }
 
     return FutureBuilder(
         future: doesAttachmentExist,
@@ -86,7 +96,7 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
             );
           }
 
-          switch (widget.message.attachment!.type) {
+          switch (attachmentType) {
             case AttachmentType.audio:
               return AttachedAudioViewer(
                 message: widget.message,
@@ -263,8 +273,10 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
   late final File? file;
   late final User self;
   late final bool clientIsSender;
-  final AudioPlayer player = AudioPlayer();
   late final Future<Duration> totalDuration = getDuration();
+  late final isVoice = widget.message.attachment!.fileName.startsWith("AUD_");
+  late String avatarUrl;
+  final AudioPlayer player = AudioPlayer();
   double progress = 0;
 
   @override
@@ -281,6 +293,15 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
         progress = duration.inSeconds / total.inSeconds;
       });
     });
+
+    if (isVoice) {
+      if (clientIsSender) {
+        avatarUrl = self.avatarUrl;
+      } else {
+        final other = ref.read(chatControllerProvider.notifier).other;
+        avatarUrl = other.avatarUrl;
+      }
+    }
 
     super.initState();
   }
@@ -386,27 +407,49 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12.0),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 248, 131, 144),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            padding: const EdgeInsets.all(4.0),
-            child: const Center(
-              child: Icon(
-                Icons.music_note_rounded,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-          ),
+          isVoice
+              ? SizedBox(
+                  width: 54,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Colors.black,
+                        backgroundImage: CachedNetworkImageProvider(avatarUrl),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Icon(
+                          Icons.mic_rounded,
+                          color: Theme.of(context).custom.colorTheme.textColor1,
+                          size: 20,
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              : Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 248, 131, 144),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(4.0),
+                  child: const Center(
+                    child: Icon(
+                      Icons.music_note_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ),
           const SizedBox(width: 8.0),
           Expanded(
             child: Column(
@@ -456,10 +499,15 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                               height: 12.0,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Theme.of(context)
-                                    .custom
-                                    .colorTheme
-                                    .greenColor,
+                                color: isVoice
+                                    ? Theme.of(context)
+                                        .custom
+                                        .colorTheme
+                                        .textColor2
+                                    : Theme.of(context)
+                                        .custom
+                                        .colorTheme
+                                        .greenColor,
                               ),
                             ),
                           )
@@ -480,7 +528,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                                 return Container();
                               }
                               return Text(
-                                strFormattedTime(snap.data!.inSeconds),
+                                strFormattedTime(snap.data!.inSeconds, true),
                                 style: const TextStyle(fontSize: 12),
                               );
                             },

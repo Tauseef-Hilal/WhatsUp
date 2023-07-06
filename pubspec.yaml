@@ -36,6 +36,8 @@ dependencies:
   mime: ^1.0.4
   open_file_plus: ^3.4.1
   audioplayers: ^4.1.0
+  flutter_sound: ^9.2.13
+  logger: ^1.4.0
 
 dev_dependencies:
   flutter_test:

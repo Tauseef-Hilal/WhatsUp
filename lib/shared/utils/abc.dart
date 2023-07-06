@@ -25,13 +25,17 @@ String strFormattedSize(int size) {
   return fileSizeStr;
 }
 
-String strFormattedTime(int seconds) {
+String strFormattedTime(int seconds, [minWidth4 = false]) {
   String result = DateFormat('HH:mm:ss').format(
     DateTime(2022, 1, 1, 0, 0, seconds),
   );
 
   List resultParts = result.split(':');
   resultParts.removeWhere((element) => element == '00');
+
+  if (minWidth4 && resultParts.length == 1) {
+    resultParts = ["0", ...resultParts];
+  }
 
   return resultParts.join(':');
 }
@@ -53,7 +57,7 @@ String formattedTimestamp(Timestamp timestamp,
 }
 
 Future<File?> capturePhoto() async {
-  if (Platform.isIOS && !await hasPermission(Permission.camera)) return null;
+  if (!await hasPermission(Permission.camera)) return null;
 
   final ImagePicker picker = ImagePicker();
   final XFile? image = await picker.pickImage(source: ImageSource.camera);
@@ -62,7 +66,7 @@ Future<File?> capturePhoto() async {
 }
 
 Future<File?> pickImageFromGallery() async {
-  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
+  if (!await hasPermission(Permission.photos)) return null;
 
   final ImagePicker picker = ImagePicker();
   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -71,7 +75,7 @@ Future<File?> pickImageFromGallery() async {
 }
 
 Future<List<File>?> pickMultimedia() async {
-  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
+  if (!await hasPermission(Permission.photos)) return null;
 
   final picker = ImagePicker();
   final List<XFile> media = await picker.pickMultipleMedia();

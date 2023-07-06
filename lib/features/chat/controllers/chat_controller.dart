@@ -26,6 +26,7 @@ class ChatController {
 
   ChatController copyWith({
     bool? hideElements,
+    bool? isRecording,
     TextEditingController? controller,
   }) {
     return ChatController(
@@ -45,7 +46,7 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
   late final User self;
   late final User other;
 
-  init(User self, User other) {
+  init(User self, User other) async {
     this.self = self;
     this.other = other;
   }
@@ -101,36 +102,5 @@ class ChatControllerNotifier extends StateNotifier<ChatController> {
   void sendMessageWithAttachments(Message message, User sender, User receiver) {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
     firestore.sendMessage(message, sender, receiver, false);
-
-    // ref
-    //     .read(firebaseStorageRepoProvider)
-    //     .uploadFileToFirebase(
-    //       message.attachment!.file!,
-    //       "attachments/${message.attachment!.fileName}",
-    //     )
-    //     .then((url) {
-    //   firestore.updateMessage(
-    //       message,
-    //       message.toMap()
-    //         ..addAll({
-    //           "status": "SENT",
-    //           "attachment": message.attachment!.toMap()
-    //             ..addAll({
-    //               "url": url,
-    //               "uploadStatus": UploadStatus.uploaded.value,
-    //             })
-    //         }));
-    // }).onError((_, __) {
-    //   firestore.updateMessage(
-    //       message,
-    //       message.toMap()
-    //         ..addAll({
-    //           "status": "PENDING",
-    //           "attachment": message.attachment!.toMap()
-    //             ..addAll({
-    //               "uploadStatus": UploadStatus.notUploading.value,
-    //             })
-    //         }));
-    // });
   }
 }

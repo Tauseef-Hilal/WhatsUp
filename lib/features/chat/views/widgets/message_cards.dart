@@ -65,7 +65,7 @@ class MessageCard extends StatelessWidget {
           constraints: BoxConstraints(
             minHeight: 30,
             minWidth: special ? (isSentMessageCard ? 98 : 76) : 60,
-            maxWidth: size.width * 0.75,
+            maxWidth: size.width * 0.75 + (special ? 10 : 0),
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -90,7 +90,10 @@ class MessageCard extends StatelessWidget {
           ),
           padding: hasAttachment
               ? attachmentType == AttachmentType.audio && !messageHasText
-                  ? EdgeInsets.only(left: isSentMessageCard ? 0 : 8)
+                  ? EdgeInsets.only(
+                      left: isSentMessageCard ? 0 : (special ? 18 : 8),
+                      right: isSentMessageCard ? (special ? 10 : 0) : 0,
+                    )
                   : EdgeInsets.only(
                       top: 4.0,
                       bottom: 4.0,
@@ -121,6 +124,7 @@ class MessageCard extends StatelessWidget {
                           : special && !isSentMessageCard
                               ? EdgeInsets.only(
                                   left: 10,
+                                  top: 4,
                                   bottom: hasSingleEmoji ? 12 : 0,
                                 )
                               : EdgeInsets.only(

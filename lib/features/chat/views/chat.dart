@@ -1,10 +1,15 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:logger/logger.dart';
 import 'package:mime/mime.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -17,6 +22,7 @@ import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
+import '../../../shared/repositories/firebase_storage.dart';
 import 'widgets/attachment_sender.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -322,39 +328,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 hideElements
                     ? InkWell(
                         onTap: () async {
-                          // if (!await isConnected()) {
-                          //   if (!mounted) return;
-                          //   showDialog(
-                          //       context: context,
-                          //       builder: (context) {
-                          //         return AlertDialog(
-                          //           title: Row(
-                          //             children: [
-                          //               Icon(
-                          //                 Icons.cancel,
-                          //                 color: Theme.of(context)
-                          //                     .custom
-                          //                     .colorTheme
-                          //                     .errorSnackBarColor,
-                          //                 size: 38.0,
-                          //               ),
-                          //               const SizedBox(
-                          //                 width: 8,
-                          //               ),
-                          //               Text(
-                          //                 "No Internet! Please try again later",
-                          //                 style: Theme.of(context)
-                          //                     .textTheme
-                          //                     .bodySmall!
-                          //                     .copyWith(fontSize: 16.0),
-                          //               ),
-                          //             ],
-                          //           ),
-                          //         );
-                          //       });
-                          //   return;
-                          // }
-
                           ref
                               .read(chatControllerProvider.notifier)
                               .onSendBtnPressed(ref, widget.self, widget.other);
@@ -368,17 +341,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                           ),
                         ),
                       )
-                    : InkWell(
-                        onTap: () {},
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: colorTheme.greenColor,
-                          child: const Icon(
-                            Icons.mic,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                    : const VoiceChat(),
               ],
             ),
           ),
@@ -604,6 +567,108 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
           ),
         );
       },
+    );
+  }
+}
+
+class VoiceChat extends ConsumerStatefulWidget {
+  const VoiceChat({
+    super.key,
+  });
+
+  @override
+  ConsumerState<VoiceChat> createState() => _VoiceChatState();
+}
+
+class _VoiceChatState extends ConsumerState<VoiceChat> {
+  final soundRecorder = FlutterSoundRecorder(logLevel: Level.error);
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await soundRecorder.openRecorder();
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    soundRecorder.closeRecorder();
+    super.dispose();
+  }
+
+  Future<void> onMicPressed() async {
+    if (!await hasPermission(Permission.microphone)) return;
+
+    await soundRecorder.startRecorder(
+      toFile: "voice.aac",
+      codec: Codec.aacADTS,
+    );
+    setState(() {});
+  }
+
+  Future<void> onRecordingStopped() async {
+    final path = await soundRecorder.stopRecorder();
+    final recordedFile = File(path!);
+
+    final messageId = const Uuid().v4();
+    final timestamp = Timestamp.now();
+    final fileName = "AUD_${timestamp.seconds}.aac";
+
+    await recordedFile.copy(await ref
+        .read(firebaseStorageRepoProvider)
+        .getMediaFilePath("${messageId}__$fileName"));
+
+    ref.read(chatControllerProvider.notifier).sendMessageWithAttachments(
+          Message(
+            id: messageId,
+            content: "",
+            status: MessageStatus.pending,
+            senderId: ref.read(chatControllerProvider.notifier).self.id,
+            receiverId: ref.read(chatControllerProvider.notifier).other.id,
+            timestamp: timestamp,
+            attachment: Attachment(
+              type: AttachmentType.audio,
+              url: "",
+              fileName: fileName,
+              fileSize: recordedFile.lengthSync(),
+              fileExtension: "aac",
+              file: recordedFile,
+            ),
+          ),
+          ref.read(chatControllerProvider.notifier).self,
+          ref.read(chatControllerProvider.notifier).other,
+        );
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
+    return InkWell(
+      onTap: () async {
+        if (soundRecorder.isRecording) {
+          await onRecordingStopped();
+          return;
+        }
+
+        await onMicPressed();
+      },
+      child: CircleAvatar(
+        radius: 24,
+        backgroundColor: colorTheme.greenColor,
+        child: !soundRecorder.isRecording
+            ? const Icon(
+                Icons.mic,
+                color: Colors.white,
+              )
+            : const Icon(
+                Icons.stop_rounded,
+                color: Colors.white,
+              ),
+      ),
     );
   }
 }
