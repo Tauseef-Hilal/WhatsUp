@@ -404,7 +404,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
             : Theme.of(context).custom.colorTheme.incomingEmbedColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12.0),
@@ -414,11 +414,11 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
         children: [
           isVoice
               ? SizedBox(
-                  width: 54,
+                  width: 50,
                   child: Stack(
                     children: [
                       CircleAvatar(
-                        radius: 22,
+                        radius: 20,
                         backgroundColor: Colors.black,
                         backgroundImage: CachedNetworkImageProvider(avatarUrl),
                       ),
@@ -504,10 +504,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                                         .custom
                                         .colorTheme
                                         .textColor2
-                                    : Theme.of(context)
-                                        .custom
-                                        .colorTheme
-                                        .greenColor,
+                                    : Colors.amber,
                               ),
                             ),
                           )
@@ -623,7 +620,7 @@ class _AttachedDocumentViewerState
     final len = fileName.length;
     if (fileName.length > 20) {
       fileName =
-          "${fileName.substring(0, 16)}...${fileName.substring(len - 6, len)}";
+          "${fileName.substring(0, 15)}....${fileName.substring(len - 6, len)}";
     }
 
     return GestureDetector(
@@ -671,7 +668,7 @@ class _AttachedDocumentViewerState
                 children: [
                   Text(
                     fileName,
-                    style: const TextStyle(fontSize: 15),
+                    style: const TextStyle(fontSize: 14),
                   ),
                   Text(
                     "${strFormattedSize(attachment.fileSize)} · $ext",

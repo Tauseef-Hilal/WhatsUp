@@ -25,7 +25,9 @@ String strFormattedSize(int size) {
   return fileSizeStr;
 }
 
-String strFormattedTime(int seconds, [minWidth4 = false]) {
+String strFormattedTime(int seconds, [bool minWidth4 = false]) {
+  if (seconds == 0) return "0:00";
+  
   String result = DateFormat('HH:mm:ss').format(
     DateTime(2022, 1, 1, 0, 0, seconds),
   );
@@ -66,7 +68,7 @@ Future<File?> capturePhoto() async {
 }
 
 Future<File?> pickImageFromGallery() async {
-  if (!await hasPermission(Permission.photos)) return null;
+  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
 
   final ImagePicker picker = ImagePicker();
   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -75,7 +77,7 @@ Future<File?> pickImageFromGallery() async {
 }
 
 Future<List<File>?> pickMultimedia() async {
-  if (!await hasPermission(Permission.photos)) return null;
+  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
 
   final picker = ImagePicker();
   final List<XFile> media = await picker.pickMultipleMedia();

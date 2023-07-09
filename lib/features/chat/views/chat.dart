@@ -1,15 +1,10 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_sound/flutter_sound.dart';
-import 'package:logger/logger.dart';
 import 'package:mime/mime.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -22,7 +17,6 @@ import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
-import '../../../shared/repositories/firebase_storage.dart';
 import 'widgets/attachment_sender.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -44,7 +38,9 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
-    ref.read(chatControllerProvider.notifier).init(widget.self, widget.other);
+    ref
+        .read(chatControllerProvider.notifier)
+        .initUsers(widget.self, widget.other);
     super.initState();
   }
 
@@ -169,6 +165,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
 
   @override
   void initState() {
+    ref.read(chatControllerProvider.notifier).initSoundRecorder();
     ref
         .read(emojiPickerControllerProvider.notifier)
         .init(keyboardVisibility: false);
@@ -176,10 +173,16 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final hideElements = ref.watch(chatControllerProvider).hideElements;
     final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
+    final recordingState = ref.watch(chatControllerProvider).recordingState;
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -190,161 +193,465 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24.0),
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? colorTheme.appBarColor
-                          : colorTheme.backgroundColor,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: GestureDetector(
-                              onTap: ref
-                                  .read(emojiPickerControllerProvider.notifier)
-                                  .toggleEmojiPicker,
-                              child: Icon(
-                                showEmojiPicker == 1
-                                    ? Icons.keyboard
-                                    : Icons.emoji_emotions,
-                                size: 24.0,
+          recordingState != RecordingState.recordingLocked &&
+                  recordingState != RecordingState.paused
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24.0),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? colorTheme.appBarColor
+                                    : colorTheme.backgroundColor,
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: recordingState == RecordingState.notRecording
+                                ? Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12.0),
+                                        child: GestureDetector(
+                                          onTap: ref
+                                              .read(
+                                                  emojiPickerControllerProvider
+                                                      .notifier)
+                                              .toggleEmojiPicker,
+                                          child: Icon(
+                                            showEmojiPicker == 1
+                                                ? Icons.keyboard
+                                                : Icons.emoji_emotions,
+                                            size: 24.0,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      Expanded(
+                                        child: TextField(
+                                          textCapitalization:
+                                              TextCapitalization.sentences,
+                                          onChanged: (value) => ref
+                                              .read(chatControllerProvider
+                                                  .notifier)
+                                              .onTextChanged(value),
+                                          controller: ref
+                                              .read(chatControllerProvider)
+                                              .messageController,
+                                          focusNode: ref
+                                              .read(
+                                                  emojiPickerControllerProvider
+                                                      .notifier)
+                                              .fieldFocusNode,
+                                          maxLines: 6,
+                                          minLines: 1,
+                                          cursorColor: colorTheme.greenColor,
+                                          cursorHeight: 20,
+                                          style: Theme.of(context)
+                                              .custom
+                                              .textTheme
+                                              .bodyText1,
+                                          decoration: InputDecoration(
+                                            hintText: 'Message',
+                                            hintStyle: Theme.of(context)
+                                                .custom
+                                                .textTheme
+                                                .bodyText1
+                                                .copyWith(),
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 12.0,
+                                            ),
+                                            child: InkWell(
+                                              onTap: () {
+                                                onAttachmentsIconPressed(
+                                                    context);
+                                              },
+                                              child: const Icon(
+                                                Icons.attach_file_rounded,
+                                                size: 20.0,
+                                              ),
+                                            ),
+                                          ),
+                                          if (!hideElements) ...[
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                bottom: 12.0,
+                                                left: 16.0,
+                                              ),
+                                              child: InkWell(
+                                                onTap: () {},
+                                                child: CircleAvatar(
+                                                  radius: 11,
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                                  .brightness ==
+                                                              Brightness.light
+                                                          ? colorTheme.greyColor
+                                                          : colorTheme
+                                                              .iconColor,
+                                                  child: Icon(
+                                                    Icons.currency_rupee_sharp,
+                                                    size: 14,
+                                                    color: Theme.of(context)
+                                                                .brightness ==
+                                                            Brightness.light
+                                                        ? colorTheme
+                                                            .backgroundColor
+                                                        : colorTheme
+                                                            .appBarColor,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                bottom: 12.0,
+                                                left: 16.0,
+                                              ),
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  final image =
+                                                      await capturePhoto();
+                                                  if (image == null) return;
+                                                  if (!mounted) return;
+                                                  Navigator.of(context).pop();
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          AttachmentMessageSender(
+                                                        attachments: [image],
+                                                        attachmentTypes: const [
+                                                          AttachmentType.image
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: const Icon(
+                                                  Icons.camera_alt_rounded,
+                                                  size: 22.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ]
+                                        ],
+                                      )
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          StreamBuilder(
+                                            stream: ref
+                                                .read(chatControllerProvider)
+                                                .soundRecorder
+                                                .onProgress,
+                                            builder: (context, snapshot) {
+                                              if (!snapshot.hasData) {
+                                                return Row(
+                                                  children: [
+                                                    const Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                        vertical: 12,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.mic,
+                                                        color: Colors.red,
+                                                        size: 24,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "0:00",
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        color: colorTheme
+                                                            .iconColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+
+                                              final duration =
+                                                  snapshot.data!.duration;
+                                              final showMic =
+                                                  duration.inMilliseconds %
+                                                          1000 >
+                                                      500;
+                                              return Row(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                            .symmetric(
+                                                        vertical: 12),
+                                                    child: Icon(
+                                                      Icons.mic,
+                                                      color: showMic
+                                                          ? Colors.red
+                                                          : colorTheme
+                                                              .appBarColor,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    strFormattedTime(
+                                                      duration.inSeconds,
+                                                      true,
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      color:
+                                                          colorTheme.iconColor,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                      Text(
+                                        "◀ Slide to cancel",
+                                        style: TextStyle(
+                                          color: colorTheme.iconColor,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 4.0,
+                      ),
+                      hideElements
+                          ? InkWell(
+                              onTap: () async {
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .onSendBtnPressed(
+                                        ref, widget.self, widget.other);
+                              },
+                              child: CircleAvatar(
+                                radius: 24,
+                                backgroundColor: colorTheme.greenColor,
+                                child: const Icon(
+                                  Icons.send,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 8.0,
-                          ),
-                          Expanded(
-                            child: TextField(
-                              textCapitalization: TextCapitalization.sentences,
-                              onChanged: (value) => ref
+                            )
+                          : GestureDetector(
+                              onLongPress: ref
                                   .read(chatControllerProvider.notifier)
-                                  .onTextChanged(value),
-                              controller: ref
-                                  .read(chatControllerProvider)
-                                  .messageController,
-                              focusNode: ref
-                                  .read(emojiPickerControllerProvider.notifier)
-                                  .fieldFocusNode,
-                              maxLines: 6,
-                              minLines: 1,
-                              cursorColor: colorTheme.greenColor,
-                              cursorHeight: 20,
-                              style:
-                                  Theme.of(context).custom.textTheme.bodyText1,
-                              decoration: InputDecoration(
-                                hintText: 'Message',
-                                hintStyle: Theme.of(context)
-                                    .custom
-                                    .textTheme
-                                    .bodyText1
-                                    .copyWith(),
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 8.0,
-                          ),
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  bottom: 12.0,
-                                ),
-                                child: InkWell(
-                                  onTap: () {
-                                    onAttachmentsIconPressed(context);
-                                  },
-                                  child: const Icon(
-                                    Icons.attach_file_rounded,
-                                    size: 20.0,
-                                  ),
-                                ),
-                              ),
-                              if (!hideElements) ...[
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 12.0,
-                                    left: 16.0,
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {},
-                                    child: CircleAvatar(
-                                      radius: 11,
-                                      backgroundColor:
-                                          Theme.of(context).brightness ==
-                                                  Brightness.light
-                                              ? colorTheme.greyColor
-                                              : colorTheme.iconColor,
-                                      child: Icon(
-                                        Icons.currency_rupee_sharp,
-                                        size: 14,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.light
-                                            ? colorTheme.backgroundColor
-                                            : colorTheme.appBarColor,
+                                  .onMicPressed,
+                              onLongPressUp: () {
+                                if (recordingState ==
+                                    RecordingState.notRecording) {
+                                  return;
+                                }
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .onRecordingDone();
+                              },
+                              onLongPressMoveUpdate: (details) async {
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .onMicDragLeft(
+                                      details.globalPosition.dx,
+                                      MediaQuery.of(context).size.width,
+                                    );
+
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .onMicDragUp(
+                                      details.globalPosition.dy,
+                                      MediaQuery.of(context).size.height,
+                                    );
+                              },
+                              child: recordingState ==
+                                      RecordingState.notRecording
+                                  ? CircleAvatar(
+                                      radius: 24,
+                                      backgroundColor: colorTheme.greenColor,
+                                      child: const Icon(
+                                        Icons.mic,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        color: colorTheme.appBarColor,
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 24,
+                                            backgroundColor:
+                                                colorTheme.appBarColor,
+                                            child: const Icon(
+                                              Icons.lock_outline_rounded,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          CircleAvatar(
+                                            radius: 24,
+                                            backgroundColor:
+                                                colorTheme.greenColor,
+                                            child: const Icon(
+                                              Icons.mic,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
+                            ),
+                    ],
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.all(16),
+                  color: colorTheme.appBarColor,
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          StreamBuilder(
+                            stream: ref
+                                .read(chatControllerProvider)
+                                .soundRecorder
+                                .onProgress,
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Text(
+                                  "0:00",
+                                  style: TextStyle(
+                                    fontSize: 18,
                                   ),
+                                );
+                              }
+
+                              final duration = snapshot.data!.duration;
+
+                              return Text(
+                                strFormattedTime(
+                                  duration.inSeconds,
+                                  true,
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 12.0,
-                                    left: 16.0,
-                                  ),
-                                  child: InkWell(
-                                    onTap: () async {
-                                      await capturePhoto();
-                                    },
-                                    child: const Icon(
-                                      Icons.camera_alt_rounded,
-                                      size: 22.0,
-                                    ),
-                                  ),
+                                style: const TextStyle(
+                                  fontSize: 18,
                                 ),
-                              ]
-                            ],
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: colorTheme.iconColor,
+                            ),
                           )
                         ],
                       ),
-                    ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              ref
+                                  .read(chatControllerProvider.notifier)
+                                  .cancelRecording();
+                            },
+                            child: const Icon(
+                              Icons.delete_rounded,
+                              size: 36,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              if (recordingState ==
+                                  RecordingState.recordingLocked) {
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .pauseRecording();
+                              } else {
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .resumeRecording();
+                              }
+                            },
+                            child:
+                                recordingState == RecordingState.recordingLocked
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              width: 2, color: Colors.red),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.pause_rounded,
+                                          color: Colors.red,
+                                          size: 30,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.mic,
+                                        color: Colors.red,
+                                        size: 30,
+                                      ),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              ref
+                                  .read(chatControllerProvider.notifier)
+                                  .onRecordingDone();
+                            },
+                            child: CircleAvatar(
+                              radius: 21,
+                              backgroundColor: colorTheme.greenColor,
+                              child: const Icon(
+                                Icons.send,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                    ],
                   ),
                 ),
-                const SizedBox(
-                  width: 4.0,
-                ),
-                hideElements
-                    ? InkWell(
-                        onTap: () async {
-                          ref
-                              .read(chatControllerProvider.notifier)
-                              .onSendBtnPressed(ref, widget.self, widget.other);
-                        },
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: colorTheme.greenColor,
-                          child: const Icon(
-                            Icons.send,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    : const VoiceChat(),
-              ],
-            ),
-          ),
           if (ref
                   .read(emojiPickerControllerProvider.notifier)
                   .keyboardVisible ||
@@ -567,108 +874,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
           ),
         );
       },
-    );
-  }
-}
-
-class VoiceChat extends ConsumerStatefulWidget {
-  const VoiceChat({
-    super.key,
-  });
-
-  @override
-  ConsumerState<VoiceChat> createState() => _VoiceChatState();
-}
-
-class _VoiceChatState extends ConsumerState<VoiceChat> {
-  final soundRecorder = FlutterSoundRecorder(logLevel: Level.error);
-
-  @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await soundRecorder.openRecorder();
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    soundRecorder.closeRecorder();
-    super.dispose();
-  }
-
-  Future<void> onMicPressed() async {
-    if (!await hasPermission(Permission.microphone)) return;
-
-    await soundRecorder.startRecorder(
-      toFile: "voice.aac",
-      codec: Codec.aacADTS,
-    );
-    setState(() {});
-  }
-
-  Future<void> onRecordingStopped() async {
-    final path = await soundRecorder.stopRecorder();
-    final recordedFile = File(path!);
-
-    final messageId = const Uuid().v4();
-    final timestamp = Timestamp.now();
-    final fileName = "AUD_${timestamp.seconds}.aac";
-
-    await recordedFile.copy(await ref
-        .read(firebaseStorageRepoProvider)
-        .getMediaFilePath("${messageId}__$fileName"));
-
-    ref.read(chatControllerProvider.notifier).sendMessageWithAttachments(
-          Message(
-            id: messageId,
-            content: "",
-            status: MessageStatus.pending,
-            senderId: ref.read(chatControllerProvider.notifier).self.id,
-            receiverId: ref.read(chatControllerProvider.notifier).other.id,
-            timestamp: timestamp,
-            attachment: Attachment(
-              type: AttachmentType.audio,
-              url: "",
-              fileName: fileName,
-              fileSize: recordedFile.lengthSync(),
-              fileExtension: "aac",
-              file: recordedFile,
-            ),
-          ),
-          ref.read(chatControllerProvider.notifier).self,
-          ref.read(chatControllerProvider.notifier).other,
-        );
-
-    setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorTheme = Theme.of(context).custom.colorTheme;
-
-    return InkWell(
-      onTap: () async {
-        if (soundRecorder.isRecording) {
-          await onRecordingStopped();
-          return;
-        }
-
-        await onMicPressed();
-      },
-      child: CircleAvatar(
-        radius: 24,
-        backgroundColor: colorTheme.greenColor,
-        child: !soundRecorder.isRecording
-            ? const Icon(
-                Icons.mic,
-                color: Colors.white,
-              )
-            : const Icon(
-                Icons.stop_rounded,
-                color: Colors.white,
-              ),
-      ),
     );
   }
 }
