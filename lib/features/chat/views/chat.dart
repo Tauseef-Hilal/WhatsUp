@@ -469,7 +469,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                           : GestureDetector(
                               onLongPress: ref
                                   .read(chatControllerProvider.notifier)
-                                  .onMicPressed,
+                                  .startRecording,
                               onLongPressUp: () {
                                 if (recordingState ==
                                     RecordingState.notRecording) {

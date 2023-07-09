@@ -106,16 +106,20 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     setRecordingState(RecordingState.recordingLocked);
   }
 
-  Future<void> onMicPressed() async {
+  Future<void> cancelRecording() async {
+    await state.soundRecorder.stopRecorder();
+    setRecordingState(RecordingState.notRecording);
+  }
+
+  Future<void> startRecording() async {
     if (!await hasPermission(Permission.microphone)) return;
 
     await state.soundRecorder.startRecorder(
       toFile: "voice.aac",
       codec: Codec.aacADTS,
     );
-    ref
-        .read(chatControllerProvider.notifier)
-        .setRecordingState(RecordingState.recording);
+
+    setRecordingState(RecordingState.recording);
   }
 
   Future<void> onMicDragLeft(double dx, double deviceWidth) async {
@@ -130,11 +134,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         state.recordingState == RecordingState.recordingLocked) return;
 
     setRecordingState(RecordingState.recordingLocked);
-  }
-
-  Future<void> cancelRecording() async {
-    await state.soundRecorder.stopRecorder();
-    setRecordingState(RecordingState.notRecording);
   }
 
   Future<void> onRecordingDone() async {
