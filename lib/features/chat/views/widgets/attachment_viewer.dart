@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:audio_waveforms/audio_waveforms.dart' as aw;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -99,6 +100,14 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
           switch (attachmentType) {
             case AttachmentType.audio:
               return AttachedAudioViewer(
+                message: widget.message,
+                doesAttachmentExist: snap.data!,
+                onDownloadComplete: () => setState(() {
+                  doesAttachmentExist = attachmentExists();
+                }),
+              );
+            case AttachmentType.voice:
+              return AttachedVoiceViewer(
                 message: widget.message,
                 doesAttachmentExist: snap.data!,
                 onDownloadComplete: () => setState(() {
@@ -252,6 +261,298 @@ class _AttachedImageVideoViewerState
   }
 }
 
+class AttachedVoiceViewer extends ConsumerStatefulWidget {
+  final Message message;
+  final bool doesAttachmentExist;
+  final VoidCallback onDownloadComplete;
+
+  const AttachedVoiceViewer({
+    super.key,
+    required this.message,
+    required this.doesAttachmentExist,
+    required this.onDownloadComplete,
+  });
+
+  @override
+  ConsumerState<AttachedVoiceViewer> createState() =>
+      _AttachedVoiceViewerState();
+}
+
+class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
+  late final File? file;
+  late final User self;
+  late final bool clientIsSender;
+  final aw.PlayerController player = aw.PlayerController();
+  late String avatarUrl;
+  double progress = 0;
+  bool ranOnce = false;
+
+  @override
+  void initState() {
+    file = widget.message.attachment!.file;
+    self = ref.read(chatControllerProvider.notifier).self;
+    clientIsSender = widget.message.senderId == self.id;
+
+    if (file != null) {
+      player.preparePlayer(path: file!.path);
+      player.setRefresh(true);
+
+      player.onPlayerStateChanged.listen((event) {
+        if (!mounted) return;
+        setState(() {});
+      });
+    }
+
+    if (clientIsSender) {
+      avatarUrl = self.avatarUrl;
+    } else {
+      final other = ref.read(chatControllerProvider.notifier).other;
+      avatarUrl = other.avatarUrl;
+    }
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+
+  Future<void> changePlayState() async {
+    if (player.playerState.isPlaying) {
+      await player.pausePlayer();
+    } else {
+      await player.startPlayer(finishMode: aw.FinishMode.pause);
+    }
+  }
+
+  void _updateProgress(BuildContext context, double tapPosition) async {
+    RenderBox box = context.findRenderObject() as RenderBox;
+    double width = box.size.width;
+
+    int position = (tapPosition / width * player.maxDuration).round();
+
+    bool isPlaying = true;
+    if (player.playerState != aw.PlayerState.playing) {
+      await player.setVolume(0);
+      await player.startPlayer(finishMode: aw.FinishMode.pause);
+      isPlaying = false;
+    }
+    await player.seekTo(position);
+
+    if (!isPlaying) {
+      Future.delayed(const Duration(milliseconds: 100), () async {
+        if (!mounted) return;
+        await player.pausePlayer();
+        await player.setVolume(1);
+      });
+    }
+
+    // setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isAttachmentUploaded =
+        widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
+    bool showDuration = true;
+
+    final iconColor = Theme.of(context).brightness == Brightness.dark
+        ? const Color.fromARGB(255, 235, 234, 234)
+        : AppColorsLight.greyColor;
+
+    Widget? trailing;
+    if (!widget.doesAttachmentExist) {
+      showDuration = false;
+      trailing = DownloadingAttachment(
+        message: widget.message,
+        onDone: widget.onDownloadComplete,
+        showSize: false,
+      );
+    } else if (!isAttachmentUploaded) {
+      showDuration = false;
+      trailing = UploadingAttachment(
+        message: widget.message,
+        showSize: false,
+      );
+    } else {
+      if (player.playerState.isPlaying) {
+        trailing = SizedBox(
+          width: 38,
+          height: 40,
+          child: IconButton(
+            color: iconColor,
+            onPressed: changePlayState,
+            iconSize: 30,
+            padding: const EdgeInsets.all(0),
+            icon: const Icon(Icons.pause_rounded),
+          ),
+        );
+      } else {
+        trailing = SizedBox(
+          width: 38,
+          height: 40,
+          child: IconButton(
+            color: iconColor,
+            onPressed: changePlayState,
+            iconSize: 30,
+            padding: const EdgeInsets.all(0),
+            icon: const Icon(Icons.play_arrow_rounded),
+          ),
+        );
+      }
+    }
+
+    final backgroundColor = widget.message.content.isEmpty
+        ? clientIsSender
+            ? Theme.of(context).custom.colorTheme.outgoingMessageBubbleColor
+            : Theme.of(context).custom.colorTheme.incomingMessageBubbleColor
+        : clientIsSender
+            ? Theme.of(context).custom.colorTheme.outgoingEmbedColor
+            : Theme.of(context).custom.colorTheme.incomingEmbedColor;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 50,
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.black,
+                  backgroundImage: CachedNetworkImageProvider(avatarUrl),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Icon(
+                    Icons.mic_rounded,
+                    color: Theme.of(context).custom.colorTheme.textColor1,
+                    size: 20,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: trailing,
+          ),
+          const SizedBox(width: 4.0),
+          Expanded(
+            child: Column(
+              children: [
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final sampleCount = const aw.PlayerWaveStyle()
+                        .getSamplesForWidth(constraints.maxWidth);
+                    player.extractWaveformData(
+                        path: file!.path, noOfSamples: sampleCount);
+                    return GestureDetector(
+                      onHorizontalDragUpdate: (details) {
+                        _updateProgress(
+                          context,
+                          details.localPosition.dx,
+                        );
+                      },
+                      onTapUp: (details) {
+                        _updateProgress(
+                          context,
+                          details.localPosition.dx,
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          aw.AudioFileWaveforms(
+                            size: Size(constraints.maxWidth, 30),
+                            playerController: player,
+                            waveformType: aw.WaveformType.fitWidth,
+                            enableSeekGesture: false,
+                            playerWaveStyle: const aw.PlayerWaveStyle(
+                              showSeekLine: false,
+                              fixedWaveColor: Colors.white38,
+                              liveWaveColor: Colors.white70,
+                            ),
+                          ),
+                          StatefulBuilder(
+                            builder: (context, setState_) {
+                              if (!ranOnce) {
+                                initSeeker(setState_);
+                                ranOnce = true;
+                              }
+
+                              return Positioned(
+                                left: (constraints.maxWidth * progress) %
+                                    constraints.maxWidth,
+                                child: Container(
+                                  width: 12.0,
+                                  height: 12.0,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color.fromARGB(255, 235, 234, 234),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    showDuration
+                        ? Text(
+                            strFormattedTime(player.maxDuration ~/ 1000, true),
+                            style: const TextStyle(fontSize: 12),
+                          )
+                        : Text(
+                            strFormattedSize(
+                                widget.message.attachment!.fileSize),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 15.0),
+                      child: Text(
+                        formattedTimestamp(
+                          widget.message.timestamp,
+                          true,
+                          Platform.isIOS,
+                        ),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4.0),
+        ],
+      ),
+    );
+  }
+
+  void initSeeker(StateSetter setState_) {
+    player.onCurrentDurationChanged.listen((duration) {
+      setState_(() {
+        progress = duration / player.maxDuration;
+      });
+    });
+  }
+}
+
 class AttachedAudioViewer extends ConsumerStatefulWidget {
   final Message message;
   final bool doesAttachmentExist;
@@ -274,7 +575,6 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
   late final User self;
   late final bool clientIsSender;
   late final Future<Duration> totalDuration = getDuration();
-  late final isVoice = widget.message.attachment!.fileName.startsWith("AUD_");
   late String avatarUrl;
   final AudioPlayer player = AudioPlayer();
   double progress = 0;
@@ -293,15 +593,6 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
         progress = duration.inSeconds / total.inSeconds;
       });
     });
-
-    if (isVoice) {
-      if (clientIsSender) {
-        avatarUrl = self.avatarUrl;
-      } else {
-        final other = ref.read(chatControllerProvider.notifier).other;
-        avatarUrl = other.avatarUrl;
-      }
-    }
 
     super.initState();
   }
@@ -412,44 +703,22 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          isVoice
-              ? SizedBox(
-                  width: 50,
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Colors.black,
-                        backgroundImage: CachedNetworkImageProvider(avatarUrl),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Icon(
-                          Icons.mic_rounded,
-                          color: Theme.of(context).custom.colorTheme.textColor1,
-                          size: 20,
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              : Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 248, 131, 144),
-                    shape: BoxShape.circle,
-                  ),
-                  padding: const EdgeInsets.all(4.0),
-                  child: const Center(
-                    child: Icon(
-                      Icons.music_note_rounded,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
-                ),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: Color.fromARGB(255, 248, 131, 144),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(4.0),
+            child: const Center(
+              child: Icon(
+                Icons.music_note_rounded,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
           const SizedBox(width: 8.0),
           Expanded(
             child: Column(
@@ -491,20 +760,14 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                             ),
                           ),
                           Positioned(
-                            left: constraints.maxWidth * progress == 0
-                                ? constraints.maxWidth * progress
-                                : (constraints.maxWidth * progress) - 6,
+                            left: (constraints.maxWidth * progress) %
+                                constraints.maxWidth,
                             child: Container(
                               width: 12.0,
                               height: 12.0,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isVoice
-                                    ? Theme.of(context)
-                                        .custom
-                                        .colorTheme
-                                        .textColor2
-                                    : Colors.amber,
+                                color: Colors.amber,
                               ),
                             ),
                           )

@@ -40,7 +40,8 @@ class MessageCard extends StatelessWidget {
         (hasAttachment &&
             attachmentType == AttachmentType.audio &&
             messageHasText) ||
-        (hasAttachment && attachmentType != AttachmentType.audio);
+        ((hasAttachment && attachmentType != AttachmentType.audio) &&
+            (hasAttachment && attachmentType != AttachmentType.voice));
 
     final hasSingleEmoji = containsSingleEmoji(message.content);
     int padding = 2;
@@ -163,7 +164,8 @@ class MessageCard extends StatelessWidget {
                     boxShadow: [
                       if (!messageHasText &&
                           (attachmentType != AttachmentType.document &&
-                              attachmentType != AttachmentType.audio)) ...[
+                              attachmentType != AttachmentType.audio &&
+                              attachmentType != AttachmentType.voice)) ...[
                         const BoxShadow(
                           offset: Offset(-2, -2),
                           color: Color.fromARGB(225, 0, 0, 0),

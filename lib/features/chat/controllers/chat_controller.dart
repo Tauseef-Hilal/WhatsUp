@@ -157,7 +157,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
             receiverId: ref.read(chatControllerProvider.notifier).other.id,
             timestamp: timestamp,
             attachment: Attachment(
-              type: AttachmentType.audio,
+              type: AttachmentType.voice,
               url: "",
               fileName: fileName,
               fileSize: recordedFile.lengthSync(),

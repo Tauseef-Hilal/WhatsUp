@@ -4,6 +4,7 @@ enum AttachmentType {
   document("DOCUMENT"),
   image("IMAGE"),
   audio("AUDIO"),
+  voice("VOICE"),
   video("VIDEO");
 
   const AttachmentType(this.value);
