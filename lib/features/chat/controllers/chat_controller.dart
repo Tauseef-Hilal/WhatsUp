@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_sound/flutter_sound.dart';
-import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -38,11 +38,11 @@ class ChatState {
   final bool hideElements;
   final RecordingState recordingState;
   final TextEditingController messageController;
-  final FlutterSoundRecorder soundRecorder;
+  final RecorderController soundRecorder;
 
   void dispose() {
     messageController.dispose();
-    soundRecorder.closeRecorder();
+    soundRecorder.dispose();
   }
 
   ChatState copyWith({
@@ -63,7 +63,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       : super(
           ChatState(
             messageController: TextEditingController(),
-            soundRecorder: FlutterSoundRecorder(logLevel: Level.error),
+            soundRecorder: RecorderController(),
           ),
         );
 
@@ -77,9 +77,9 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   void initSoundRecorder() {
-    state.soundRecorder.openRecorder();
-    state.soundRecorder
-        .setSubscriptionDuration(const Duration(milliseconds: 500));
+    state.soundRecorder.androidOutputFormat = AndroidOutputFormat.aac_adts;
+    state.soundRecorder.sampleRate = 44100;
+    state.soundRecorder.bitRate = 48000;
   }
 
   @override
@@ -97,27 +97,25 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> pauseRecording() async {
-    await state.soundRecorder.pauseRecorder();
+    await state.soundRecorder.pause();
     setRecordingState(RecordingState.paused);
   }
 
   Future<void> resumeRecording() async {
-    await state.soundRecorder.resumeRecorder();
+    await state.soundRecorder.record();
     setRecordingState(RecordingState.recordingLocked);
   }
 
   Future<void> cancelRecording() async {
-    await state.soundRecorder.stopRecorder();
+    await state.soundRecorder.stop();
     setRecordingState(RecordingState.notRecording);
   }
 
   Future<void> startRecording() async {
     if (!await hasPermission(Permission.microphone)) return;
 
-    await state.soundRecorder.startRecorder(
-      toFile: "voice.aac",
-      codec: Codec.aacADTS,
-    );
+    final tmp = await getTemporaryDirectory();
+    await state.soundRecorder.record(path: "${tmp.path}/voice.aac");
 
     setRecordingState(RecordingState.recording);
   }
@@ -125,7 +123,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   Future<void> onMicDragLeft(double dx, double deviceWidth) async {
     if (dx > deviceWidth * 0.6) return;
 
-    await state.soundRecorder.stopRecorder();
+    await state.soundRecorder.stop();
     setRecordingState(RecordingState.notRecording);
   }
 
@@ -137,13 +135,14 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> onRecordingDone() async {
-    final path = await state.soundRecorder.stopRecorder();
+    final path = await state.soundRecorder.stop();
     setRecordingState(RecordingState.notRecording);
 
     final recordedFile = File(path!);
     final messageId = const Uuid().v4();
     final timestamp = Timestamp.now();
-    final fileName = "AUD_${timestamp.seconds}.aac";
+    final ext = path.split(".").last;
+    final fileName = "AUD_${timestamp.seconds}.$ext";
 
     await recordedFile.copy(await ref
         .read(firebaseStorageRepoProvider)
@@ -162,7 +161,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
               url: "",
               fileName: fileName,
               fileSize: recordedFile.lengthSync(),
-              fileExtension: "aac",
+              fileExtension: ext,
               file: recordedFile,
             ),
           ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -368,7 +369,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                             stream: ref
                                                 .read(chatControllerProvider)
                                                 .soundRecorder
-                                                .onProgress,
+                                                .onCurrentDuration,
                                             builder: (context, snapshot) {
                                               if (!snapshot.hasData) {
                                                 return Row(
@@ -396,8 +397,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                                 );
                                               }
 
-                                              final duration =
-                                                  snapshot.data!.duration;
+                                              final duration = snapshot.data!;
                                               final showMic =
                                                   duration.inMilliseconds %
                                                           1000 >
@@ -549,7 +549,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                             stream: ref
                                 .read(chatControllerProvider)
                                 .soundRecorder
-                                .onProgress,
+                                .onCurrentDuration,
                             builder: (context, snapshot) {
                               if (!snapshot.hasData) {
                                 return const Text(
@@ -560,7 +560,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                 );
                               }
 
-                              final duration = snapshot.data!.duration;
+                              final duration = snapshot.data!;
 
                               return Text(
                                 strFormattedTime(
@@ -573,11 +573,17 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                               );
                             },
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 24),
                           Expanded(
-                            child: Container(
-                              height: 2,
-                              color: colorTheme.iconColor,
+                            child: AudioWaveforms(
+                              size: const Size(1, 30.0),
+                              waveStyle: const WaveStyle(
+                                extendWaveform: true,
+                                showMiddleLine: false,
+                              ),
+                              recorderController: ref
+                                  .read(chatControllerProvider)
+                                  .soundRecorder,
                             ),
                           )
                         ],
@@ -595,7 +601,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                   .cancelRecording();
                             },
                             child: const Icon(
-                              Icons.delete_rounded,
+                              Icons.delete,
                               size: 36,
                             ),
                           ),
