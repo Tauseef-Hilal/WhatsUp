@@ -286,6 +286,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
   late String avatarUrl;
   double progress = 0;
   bool ranOnce = false;
+  bool extractionDone = false;
 
   @override
   void initState() {
@@ -348,8 +349,6 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
         await player.setVolume(1);
       });
     }
-
-    // setState(() {});
   }
 
   @override
@@ -380,7 +379,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
       if (player.playerState.isPlaying) {
         trailing = SizedBox(
           width: 38,
-          height: 40,
+          height: 30,
           child: IconButton(
             color: iconColor,
             onPressed: changePlayState,
@@ -392,7 +391,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
       } else {
         trailing = SizedBox(
           width: 38,
-          height: 40,
+          height: 30,
           child: IconButton(
             color: iconColor,
             onPressed: changePlayState,
@@ -442,103 +441,113 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: trailing,
-          ),
-          const SizedBox(width: 4.0),
           Expanded(
-            child: Column(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final sampleCount = const aw.PlayerWaveStyle()
-                        .getSamplesForWidth(constraints.maxWidth);
-                    player.extractWaveformData(
-                        path: file!.path, noOfSamples: sampleCount);
-                    return GestureDetector(
-                      onHorizontalDragUpdate: (details) {
-                        _updateProgress(
-                          context,
-                          details.localPosition.dx,
-                        );
-                      },
-                      onTapUp: (details) {
-                        _updateProgress(
-                          context,
-                          details.localPosition.dx,
-                        );
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          aw.AudioFileWaveforms(
-                            size: Size(constraints.maxWidth, 30),
-                            playerController: player,
-                            waveformType: aw.WaveformType.fitWidth,
-                            enableSeekGesture: false,
-                            playerWaveStyle: const aw.PlayerWaveStyle(
-                              showSeekLine: false,
-                              fixedWaveColor: Colors.white38,
-                              liveWaveColor: Colors.white70,
-                            ),
-                          ),
-                          StatefulBuilder(
-                            builder: (context, setState_) {
-                              if (!ranOnce) {
-                                initSeeker(setState_);
-                                ranOnce = true;
-                              }
+                trailing,
+                const SizedBox(width: 4.0),
+                Expanded(
+                  child: Column(
+                    children: [
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          if (!extractionDone && file != null) {
+                            final sampleCount = const aw.PlayerWaveStyle()
+                                .getSamplesForWidth(constraints.maxWidth);
+                            player.extractWaveformData(
+                                path: file!.path, noOfSamples: sampleCount);
 
-                              return Positioned(
-                                left: (constraints.maxWidth * progress) %
-                                    constraints.maxWidth,
-                                child: Container(
-                                  width: 12.0,
-                                  height: 12.0,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color.fromARGB(255, 235, 234, 234),
-                                  ),
-                                ),
+                            extractionDone = ranOnce;
+                          }
+                          return GestureDetector(
+                            onHorizontalDragUpdate: (details) {
+                              _updateProgress(
+                                context,
+                                details.localPosition.dx,
                               );
                             },
-                          )
+                            onTapUp: (details) {
+                              _updateProgress(
+                                context,
+                                details.localPosition.dx,
+                              );
+                            },
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                aw.AudioFileWaveforms(
+                                  size: Size(constraints.maxWidth, 30),
+                                  playerController: player,
+                                  waveformType: aw.WaveformType.fitWidth,
+                                  enableSeekGesture: false,
+                                  playerWaveStyle: const aw.PlayerWaveStyle(
+                                    showSeekLine: false,
+                                    fixedWaveColor: Colors.white38,
+                                    liveWaveColor: Colors.white70,
+                                  ),
+                                ),
+                                StatefulBuilder(
+                                  builder: (context, setState_) {
+                                    if (!ranOnce) {
+                                      initSeeker(setState_);
+                                      ranOnce = true;
+                                    }
+
+                                    return Positioned(
+                                      left: (constraints.maxWidth * progress) %
+                                          constraints.maxWidth,
+                                      child: Container(
+                                        width: 12.0,
+                                        height: 12.0,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color.fromARGB(
+                                              255, 235, 234, 234),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          showDuration
+                              ? Text(
+                                  strFormattedTime(
+                                      player.maxDuration ~/ 1000, true),
+                                  style: const TextStyle(fontSize: 12),
+                                )
+                              : Text(
+                                  strFormattedSize(
+                                      widget.message.attachment!.fileSize),
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 15.0),
+                            child: Text(
+                              formattedTimestamp(
+                                widget.message.timestamp,
+                                true,
+                                Platform.isIOS,
+                              ),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
                         ],
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    showDuration
-                        ? Text(
-                            strFormattedTime(player.maxDuration ~/ 1000, true),
-                            style: const TextStyle(fontSize: 12),
-                          )
-                        : Text(
-                            strFormattedSize(
-                                widget.message.attachment!.fileSize),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15.0),
-                      child: Text(
-                        formattedTimestamp(
-                          widget.message.timestamp,
-                          true,
-                          Platform.isIOS,
-                        ),
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
+                const SizedBox(width: 4.0),
               ],
             ),
           ),
-          const SizedBox(width: 4.0),
         ],
       ),
     );
