@@ -936,39 +936,42 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           );
         }
 
-        return ListView.builder(
-          reverse: true,
-          physics: const BouncingScrollPhysics(),
-          itemCount: messages.length,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            Message message = messages[index];
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ListView.builder(
+            reverse: true,
+            physics: const BouncingScrollPhysics(),
+            itemCount: messages.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              Message message = messages[index];
 
-            if (index == messages.length - 1 ||
-                (messages[index].senderId != messages[index + 1].senderId)) {
+              if (index == messages.length - 1 ||
+                  (messages[index].senderId != messages[index + 1].senderId)) {
+                return message.senderId == self.id
+                    ? MessageCard(
+                        message: message,
+                        special: true,
+                        type: MessageCardType.sentMessageCard,
+                      )
+                    : MessageCard(
+                        message: message,
+                        special: true,
+                        type: MessageCardType.receivedMessageCard,
+                      );
+              }
+
               return message.senderId == self.id
                   ? MessageCard(
                       message: message,
-                      special: true,
                       type: MessageCardType.sentMessageCard,
                     )
                   : MessageCard(
                       message: message,
-                      special: true,
                       type: MessageCardType.receivedMessageCard,
                     );
-            }
-
-            return message.senderId == self.id
-                ? MessageCard(
-                    message: message,
-                    type: MessageCardType.sentMessageCard,
-                  )
-                : MessageCard(
-                    message: message,
-                    type: MessageCardType.receivedMessageCard,
-                  );
-          },
+            },
+          ),
         );
       },
     );
