@@ -138,28 +138,29 @@ class _HomePageState extends ConsumerState<HomePage>
         appBar: AppBar(
           title: Text(
             'WhatsApp',
-            style: textTheme.titleLarge.copyWith(color: colorTheme.iconColor),
+            style: textTheme.titleLarge
+                .copyWith(color: colorTheme.selectedLabelColor),
           ),
           actions: [
             IconButton(
               onPressed: () {},
               icon: Icon(
                 Icons.camera_alt_outlined,
-                color: colorTheme.iconColor,
+                color: colorTheme.selectedLabelColor,
               ),
             ),
             IconButton(
               onPressed: () {},
               icon: Icon(
                 Icons.search,
-                color: colorTheme.iconColor,
+                color: colorTheme.selectedLabelColor,
               ),
             ),
             IconButton(
               onPressed: () {},
               icon: Icon(
                 Icons.more_vert,
-                color: colorTheme.iconColor,
+                color: colorTheme.selectedLabelColor,
               ),
             ),
           ],

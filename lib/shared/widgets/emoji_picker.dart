@@ -36,15 +36,13 @@ class CustomEmojiPicker extends ConsumerWidget {
             horizontalSpacing: 0,
             gridPadding: EdgeInsets.zero,
             initCategory: Category.SMILEYS,
-            bgColor: Theme.of(context).brightness == Brightness.dark
-                ? colorTheme.backgroundColor
-                : colorTheme.outgoingMessageBubbleColor,
+            bgColor: colorTheme.backgroundColor,
             indicatorColor: Theme.of(context).brightness == Brightness.dark
                 ? colorTheme.indicatorColor
                 : colorTheme.greenColor,
-            iconColor: Theme.of(context).brightness == Brightness.light
-                ? colorTheme.greyColor
-                : colorTheme.iconColor,
+            iconColor: Theme.of(context).brightness == Brightness.dark
+                ? colorTheme.iconColor
+                : colorTheme.greyColor,
             iconColorSelected: colorTheme.textColor2,
             backspaceColor: colorTheme.iconColor,
             recentTabBehavior: RecentTabBehavior.RECENT,
