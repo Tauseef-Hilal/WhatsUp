@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
@@ -388,15 +389,51 @@ class RecentChatWidget extends StatelessWidget {
             )
           ],
           if (chat.message.attachment != null) ...[
-            const Icon(Icons.image),
+            LayoutBuilder(
+              builder: (context, _) {
+                switch (chat.message.attachment!.type) {
+                  case AttachmentType.audio:
+                    return const Icon(
+                      Icons.audiotrack_rounded,
+                      size: 20,
+                    );
+
+                  case AttachmentType.voice:
+                    return const Icon(
+                      Icons.mic,
+                      size: 20,
+                    );
+
+                  case AttachmentType.image:
+                    return const Icon(
+                      Icons.image_rounded,
+                      size: 20,
+                    );
+
+                  case AttachmentType.video:
+                    return const Icon(
+                      Icons.videocam_rounded,
+                      size: 20,
+                    );
+
+                  default:
+                    return const Icon(
+                      Icons.file_copy,
+                      size: 20,
+                    );
+                }
+              },
+            ),
             const SizedBox(
               width: 2.0,
             )
           ],
           Text(
               msgContent.length > 20
-                  ? '${chat.message.content.substring(0, 20)}...'
-                  : chat.message.content,
+                  ? '${msgContent.substring(0, 20)}...'
+                  : msgContent == "\u00A0" || msgContent.isEmpty
+                      ? chat.message.attachment!.type.value
+                      : msgContent,
               style: Theme.of(context).custom.textTheme.subtitle2)
         ],
       ),

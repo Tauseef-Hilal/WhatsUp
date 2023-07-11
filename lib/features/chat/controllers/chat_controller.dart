@@ -88,7 +88,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     super.dispose();
   }
 
-  void navigateToHome(BuildContext context, User user) {
+  void navigateToHome(BuildContext context) {
     Navigator.pop(context);
   }
 

@@ -25,12 +25,7 @@ import '../../models/message.dart';
 Directory? _appDirectory; // Cached directory reference
 
 Future<Directory> getApplicationDirectory() async {
-  if (_appDirectory != null) {
-    return _appDirectory!;
-  }
-
-  _appDirectory = await getApplicationDocumentsDirectory();
-  return _appDirectory!;
+  return _appDirectory ?? await getApplicationDocumentsDirectory();
 }
 
 class AttachmentPreview extends StatefulWidget {

@@ -93,21 +93,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
         leadingWidth: 32.0,
         leading: IconButton(
-          onPressed: () => ref
-              .read(chatControllerProvider.notifier)
-              .navigateToHome(context, self),
+          onPressed: () =>
+              ref.read(chatControllerProvider.notifier).navigateToHome(context),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: ref.watch(chatControllerProvider).recordingState ==
+                    RecordingState.notRecording
+                ? () {}
+                : null,
             icon: const Icon(
               Icons.videocam_rounded,
               size: 22,
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: ref.watch(chatControllerProvider).recordingState ==
+                    RecordingState.notRecording
+                ? () {}
+                : null,
             icon: const Icon(
               Icons.call,
               size: 20,
