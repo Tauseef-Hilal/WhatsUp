@@ -438,7 +438,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                   right: 0,
                   child: Icon(
                     Icons.mic_rounded,
-                    color: Theme.of(context).custom.colorTheme.textColor1,
+                    color: iconColor,
                     size: 20,
                   ),
                 )
