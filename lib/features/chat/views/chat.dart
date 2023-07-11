@@ -106,6 +106,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             icon: const Icon(
               Icons.videocam_rounded,
               size: 22,
+              color: Colors.white,
             ),
           ),
           IconButton(
@@ -115,12 +116,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 : null,
             icon: const Icon(
               Icons.call,
+              color: Colors.white,
               size: 20,
             ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(
+              Icons.more_vert,
+              color: Colors.white,
+            ),
           ),
         ],
       ),

@@ -1188,6 +1188,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
             setState(() {
               isDownloading = false;
               downloadTaskFuture = download();
@@ -1222,6 +1223,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
                 return const CircularProgressIndicator();
               case TaskState.error:
                 WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
                   setState(() => isDownloading = false);
                 });
                 return const CircularProgressIndicator();
@@ -1358,6 +1360,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
         if (snapshot.hasError) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             onUploadError();
+            if (!mounted) return;
             setState(() {
               isUploading = false;
               uploadTaskFuture = upload();
@@ -1391,6 +1394,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
               case TaskState.error:
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   onUploadError();
+                  if (!mounted) return;
                   setState(() => isUploading = false);
                 });
                 return const CircularProgressIndicator();

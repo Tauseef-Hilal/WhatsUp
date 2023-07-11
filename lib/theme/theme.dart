@@ -71,6 +71,9 @@ final _theme = ThemeData(
   ),
   appBarTheme: const AppBarTheme(
     elevation: 2.0,
+    actionsIconTheme: IconThemeData(
+      color: AppColorsLight.iconColor,
+    ),
     backgroundColor: AppColorsLight.appBarColor,
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarBrightness: Brightness.dark,
@@ -104,6 +107,9 @@ final _darkTheme = ThemeData(
   ),
   appBarTheme: const AppBarTheme(
     elevation: 0.0,
+    actionsIconTheme: IconThemeData(
+      color: AppColorsDark.iconColor,
+    ),
     backgroundColor: AppColorsDark.appBarColor,
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,

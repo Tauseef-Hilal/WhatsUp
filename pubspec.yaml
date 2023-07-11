@@ -38,6 +38,7 @@ dependencies:
   audioplayers: ^4.1.0
   audio_waveforms: ^1.0.4
   logger: ^1.4.0
+  flutter_webrtc: ^0.9.35
 
 dev_dependencies:
   flutter_test:

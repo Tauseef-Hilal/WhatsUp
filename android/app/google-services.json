@@ -7,12 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1007219918966:android:be06b27745c1c3a26bf757",
+        "mobilesdk_app_id": "1:1007219918966:android:63ec23733f6dc2216bf757",
         "android_client_info": {
-          "package_name": "com.tauseef.whatsapp.whatsapp_clone"
+          "package_name": "com.tauseef.whatsappclone"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "1007219918966-145gl46mpbq8r4ungm86h6a4273vddjj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tauseef.whatsappclone",
+            "certificate_hash": "073b72c79cd529c51c172fab9eccb9da86305983"
+          }
+        },
         {
           "client_id": "1007219918966-mstqrofdrsd6cmv3noq9gfg776fgrlr3.apps.googleusercontent.com",
           "client_type": 3
