@@ -1057,7 +1057,8 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
                                       style: Theme.of(context)
                                           .custom
                                           .textTheme
-                                          .titleLarge,
+                                          .titleLarge
+                                          .copyWith(color: Colors.white),
                                     ),
                                     Text(
                                       formattedTime,
