@@ -92,7 +92,7 @@ class MessageCard extends StatelessWidget {
           padding: hasAttachment
               ? attachmentType == AttachmentType.audio && !messageHasText
                   ? EdgeInsets.only(
-                      left: isSentMessageCard ? 0 : (special ? 18 : 8),
+                      left: isSentMessageCard ? 8 : (special ? 18 : 8),
                       right: isSentMessageCard ? (special ? 10 : 0) : 0,
                     )
                   : EdgeInsets.only(

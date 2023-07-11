@@ -363,6 +363,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
         message: widget.message,
         onDone: widget.onDownloadComplete,
         showSize: false,
+        autoDownload: true,
       );
     } else if (!isAttachmentUploaded) {
       showDuration = false;
@@ -405,6 +406,14 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
         : clientIsSender
             ? Theme.of(context).custom.colorTheme.outgoingEmbedColor
             : Theme.of(context).custom.colorTheme.incomingEmbedColor;
+
+    final fixedWaveColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white38
+        : Colors.black26;
+
+    final liveWaveColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white70
+        : Colors.black54;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
@@ -476,10 +485,10 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                                   playerController: player,
                                   waveformType: aw.WaveformType.fitWidth,
                                   enableSeekGesture: false,
-                                  playerWaveStyle: const aw.PlayerWaveStyle(
+                                  playerWaveStyle: aw.PlayerWaveStyle(
                                     showSeekLine: false,
-                                    fixedWaveColor: Colors.white38,
-                                    liveWaveColor: Colors.white70,
+                                    fixedWaveColor: fixedWaveColor,
+                                    liveWaveColor: liveWaveColor,
                                   ),
                                 ),
                                 StatefulBuilder(
@@ -495,10 +504,9 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                                       child: Container(
                                         width: 12.0,
                                         height: 12.0,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Color.fromARGB(
-                                              255, 235, 234, 234),
+                                          color: iconColor,
                                         ),
                                       ),
                                     );
@@ -645,7 +653,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
     bool showDuration = true;
 
     final iconColor = Theme.of(context).brightness == Brightness.dark
-        ? AppColorsDark.iconColor
+        ? Colors.white
         : AppColorsLight.greyColor;
 
     Widget? trailing;
@@ -753,11 +761,8 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                                 },
                                 child: LinearProgressIndicator(
                                   backgroundColor: clientIsSender
-                                      ? Theme.of(context)
-                                          .custom
-                                          .colorTheme
-                                          .greyColor
-                                      : null,
+                                      ? const Color.fromARGB(202, 96, 125, 139)
+                                      : const Color.fromARGB(117, 96, 125, 139),
                                   value: progress,
                                 ),
                               ),
@@ -769,9 +774,12 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                             child: Container(
                               width: 12.0,
                               height: 12.0,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.amber,
+                                color: Theme.of(context)
+                                    .custom
+                                    .colorTheme
+                                    .greenColor,
                               ),
                             ),
                           )
@@ -1091,11 +1099,13 @@ class DownloadingAttachment extends ConsumerStatefulWidget {
     super.key,
     required this.message,
     required this.onDone,
+    this.autoDownload = false,
     this.showSize = true,
   });
   final Message message;
   final VoidCallback onDone;
   final bool showSize;
+  final bool autoDownload;
 
   @override
   ConsumerState<DownloadingAttachment> createState() =>
@@ -1127,36 +1137,24 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
         ? const Color.fromARGB(150, 0, 0, 0)
         : const Color.fromARGB(225, 255, 255, 255);
 
-    final embedColor = clientIsSender
-        ? Theme.of(context).custom.colorTheme.outgoingEmbedColor
-        : Theme.of(context).custom.colorTheme.incomingEmbedColor;
-
-    if (!isDownloading) {
+    if (!isDownloading && !widget.autoDownload) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: Theme.of(context).custom.colorTheme.greenColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            width: 40,
-            height: 40,
+          InkWell(
+            onTap: () => setState(() => isDownloading = true),
             child: Container(
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: embedColor,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Center(
-                child: IconButton(
-                  padding: const EdgeInsets.all(0),
-                  onPressed: () => setState(() => isDownloading = true),
-                  icon: Icon(
-                    Icons.download_rounded,
-                    color: Theme.of(context).custom.colorTheme.greenColor,
-                  ),
+                border: Border.all(
+                  width: 2,
+                  color: Theme.of(context).custom.colorTheme.greenColor,
                 ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.download_rounded,
+                color: Theme.of(context).custom.colorTheme.greenColor,
               ),
             ),
           ),
@@ -1308,36 +1306,24 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
         ? const Color.fromARGB(150, 0, 0, 0)
         : const Color.fromARGB(225, 255, 255, 255);
 
-    final embedColor = clientIsSender
-        ? Theme.of(context).custom.colorTheme.outgoingEmbedColor
-        : Theme.of(context).custom.colorTheme.incomingEmbedColor;
-
     if (!isUploading) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: Theme.of(context).custom.colorTheme.greenColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            width: 40,
-            height: 40,
+          InkWell(
+            onTap: () => setState(() => isUploading = true),
             child: Container(
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: embedColor,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Center(
-                child: IconButton(
-                  padding: const EdgeInsets.all(0),
-                  onPressed: () => setState(() => isUploading = true),
-                  icon: Icon(
-                    Icons.upload_rounded,
-                    color: Theme.of(context).custom.colorTheme.greenColor,
-                  ),
+                border: Border.all(
+                  width: 2,
+                  color: Theme.of(context).custom.colorTheme.greenColor,
                 ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.upload_rounded,
+                color: Theme.of(context).custom.colorTheme.greenColor,
               ),
             ),
           ),
