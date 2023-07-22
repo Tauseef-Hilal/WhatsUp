@@ -13,21 +13,26 @@ import 'package:video_player/video_player.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
-String strFormattedSize(int size) {
-  String fileSizeStr = "";
+String strFormattedSize(num size) {
+  size /= 1024;
 
-  if (size < 10486) {
-    fileSizeStr = "${(size / 1024).toStringAsFixed(2)} KB";
-  } else {
-    fileSizeStr = "${(size / 1048576).toStringAsFixed(2)} MB";
+  final suffixes = ["KB", "MB", "GB", "TB"];
+  String suffix = "";
+
+  for (suffix in suffixes) {
+    if (size < 1024) {
+      break;
+    }
+
+    size /= 1024;
   }
 
-  return fileSizeStr;
+  return "${size.toStringAsFixed(2)}$suffix";
 }
 
 String strFormattedTime(int seconds, [bool minWidth4 = false]) {
   if (seconds == 0) return "0:00";
-  
+
   String result = DateFormat('HH:mm:ss').format(
     DateTime(2022, 1, 1, 0, 0, seconds),
   );
