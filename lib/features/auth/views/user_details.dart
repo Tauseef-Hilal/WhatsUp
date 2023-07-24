@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
-import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
@@ -26,7 +26,8 @@ class UserProfileCreationPage extends ConsumerStatefulWidget {
 class _UserProfileCreationPageState
     extends ConsumerState<UserProfileCreationPage> {
   File? userImg;
-  final double keyboardHeight = SharedPref.getDouble('keyboardHeight');
+  final double keyboardHeight =
+      SharedPref.instance.getDouble('keyboardHeight')!;
 
   @override
   void initState() {

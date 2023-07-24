@@ -23,7 +23,7 @@ class CustomEmojiPicker extends ConsumerWidget {
     final colorTheme = Theme.of(context).custom.colorTheme;
 
     return SizedBox(
-      height: SharedPref.getDouble('keyboardHeight'),
+      height: SharedPref.instance.getDouble('keyboardHeight'),
       child: Padding(
         padding: const EdgeInsets.only(top: 8.0),
         child: EmojiPicker(

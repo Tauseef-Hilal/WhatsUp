@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/features/home/views/base.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 class AuthCompletePage extends ConsumerStatefulWidget {
@@ -19,23 +21,19 @@ class AuthCompletePage extends ConsumerStatefulWidget {
 }
 
 class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
-  late Timer _timer;
-
   @override
   void initState() {
-    _timer = Timer(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () async {
+      final userString = jsonEncode(widget.user.toMap());
+      SharedPref.instance.setString("user", userString);
+
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => HomePage(user: widget.user)),
           (route) => false);
     });
 
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
   }
 
   @override

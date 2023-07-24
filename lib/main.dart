@@ -1,12 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
-import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'features/auth/views/welcome.dart';
 import 'features/home/views/base.dart';
 import 'firebase_options.dart';
@@ -20,7 +22,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await SharedPref.init();
+  SharedPref.init();
 
   ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
 
@@ -46,33 +48,15 @@ class WhatsApp extends ConsumerWidget {
       darkTheme: ref.read(darkThemeProvider),
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      home: StreamBuilder<User?>(
+      home: StreamBuilder<auth.User?>(
         stream: ref.read(authRepositoryProvider).auth.authStateChanges(),
         builder: (BuildContext context, snapshot) {
-          if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
-            return FutureBuilder(
-              future: ref
-                  .read(firebaseFirestoreRepositoryProvider)
-                  .getUserById(snapshot.data!.uid),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  // JUST PUT IT HERE :)
-                  return Scaffold(
-                    backgroundColor:
-                        Theme.of(context).custom.colorTheme.backgroundColor,
-                    body: const Center(
-                      child: Image(
-                        image: AssetImage('assets/images/landing_img.png'),
-                        width: 60,
-                      ),
-                    ),
-                  );
-                }
-                return HomePage(user: snapshot.data!);
-              },
-            );
+          if (!snapshot.hasData) {
+            return const WelcomePage();
           }
-          return const WelcomePage();
+
+          final user = SharedPref.instance.getString("user")!;
+          return HomePage(user: User.fromMap(jsonDecode(user)));
         },
       ),
     );

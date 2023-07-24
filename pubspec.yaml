@@ -39,12 +39,16 @@ dependencies:
   audio_waveforms: ^1.0.4
   logger: ^1.4.0
   flutter_webrtc: ^0.9.35
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^2.0.0
+  isar_generator: ^3.1.0+1
+  build_runner: ^2.4.6
 
 # The following section is specific to Flutter packages.
 flutter:

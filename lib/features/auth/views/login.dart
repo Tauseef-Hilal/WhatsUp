@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
-import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/models/phone.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
@@ -35,7 +36,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         keyboardSize += 30;
       }
 
-      await SharedPref.setDouble('keyboardHeight', keyboardSize);
+      SharedPref.instance.setDouble('keyboardHeight', keyboardSize);
 
       if (keyboardSize < 300) return;
       gotKeyboardHeight = true;
