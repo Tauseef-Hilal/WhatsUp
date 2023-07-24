@@ -13,6 +13,13 @@ import 'package:video_player/video_player.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
+String getChatId(String senderId, String receiverId) {
+  final charList = (senderId + receiverId).split('');
+  charList.sort((a, b) => a.compareTo(b));
+  
+  return charList.join();
+}
+
 String strFormattedSize(num size) {
   size /= 1024;
 

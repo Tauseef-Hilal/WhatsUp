@@ -13,6 +13,7 @@ import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
@@ -907,41 +908,47 @@ class ChatStream extends ConsumerStatefulWidget {
 class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User self;
   late final User other;
+  late final String chatId;
+  // late final StreamSubscription<Map<String, dynamic>> listener;
 
   @override
   void initState() {
     self = ref.read(chatControllerProvider.notifier).self;
     other = ref.read(chatControllerProvider.notifier).other;
+    chatId = getChatId(self.id, other.id);
+
+    // listener = ref
+    //     .read(firebaseFirestoreRepositoryProvider)
+    //     .getMessageStream(chatId)
+    //     .listen((message) async {
+    //   if (message['read'] == true) return;
+    //   if (message['senderId'] == self.id) return;
+
+    //   await IsarDb.addMessage(Message.fromMap(message));
+    //   await ref
+    //       .read(firebaseFirestoreRepositoryProvider)
+    //       .markChatAsRead(chatId);
+    // });
+
     super.initState();
   }
 
-  void _sendUpdates(Message message) {
-    ref
-        .read(firebaseFirestoreRepositoryProvider)
-        .updateMessage(message, {"status": "SEEN"});
+  @override
+  void dispose() {
+    // listener.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Message>>(
-      stream: ref
-          .read(firebaseFirestoreRepositoryProvider)
-          .getChatStream(self.id, other.id),
+      stream: IsarDb.getChatStream(chatId),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Container();
         }
 
         final messages = snapshot.data!;
-        for (var message in messages) {
-          if (message.status == MessageStatus.seen) continue;
-          if (message.senderId == self.id) continue;
-
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => _sendUpdates(message),
-          );
-        }
-
         return Align(
           alignment: Alignment.topCenter,
           child: ListView.builder(
@@ -951,6 +958,11 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
             shrinkWrap: true,
             itemBuilder: (context, index) {
               Message message = messages[index];
+              if (message.senderId != self.id &&
+                  message.attachment != null &&
+                  message.attachment!.uploadStatus != UploadStatus.uploaded) {
+                return Container();
+              }
 
               if (index == messages.length - 1 ||
                   (messages[index].senderId != messages[index + 1].senderId)) {

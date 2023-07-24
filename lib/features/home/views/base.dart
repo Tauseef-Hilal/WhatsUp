@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -11,6 +13,7 @@ import 'package:whatsapp_clone/features/home/data/repositories/contact_repositor
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
+import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 import '../../../theme/color_theme.dart';
@@ -214,14 +217,33 @@ class RecentChatsBody extends ConsumerStatefulWidget {
 }
 
 class _RecentChatsBodyState extends ConsumerState<RecentChatsBody> {
+  late final StreamSubscription<List<Message>> listener;
+
+  @override
+  void initState() {
+    listener = ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .getChatStream(widget.user.id)
+        .listen((messages) async {
+      for (final message in messages) {
+        await IsarDb.addMessage(message);
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    listener.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
 
     return StreamBuilder<List<RecentChat>>(
-        stream: ref
-            .read(firebaseFirestoreRepositoryProvider)
-            .getRecentChatStream(widget.user.id),
+        stream: IsarDb.getRecentChatStream(ref),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Container();
@@ -269,22 +291,13 @@ class RecentChats extends StatelessWidget {
               if (msg.senderId == widget.user.id) {
                 msgStatus = msg.status.value;
               }
-
-              return FutureBuilder(
-                future: ref
-                    .read(contactsRepositoryProvider)
-                    .getContactByPhone(chat.user.phone.number),
-                builder: (context, snapshot) {
-                  return RecentChatWidget(
-                    widget: widget,
-                    chat: chat,
-                    colorTheme: colorTheme,
-                    title:
-                        snapshot.data?.name ?? chat.user.phone.formattedNumber,
-                    msgStatus: msgStatus,
-                    msgContent: msgContent,
-                  );
-                },
+              return RecentChatWidget(
+                widget: widget,
+                chat: chat,
+                colorTheme: colorTheme,
+                title: chat.user.name,
+                msgStatus: msgStatus,
+                msgContent: msgContent,
               );
             },
           ),

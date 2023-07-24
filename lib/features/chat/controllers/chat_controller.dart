@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 
 import '../../../shared/repositories/firebase_storage.dart';
 import '../../../shared/utils/abc.dart';
@@ -148,13 +149,17 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         .read(firebaseStorageRepoProvider)
         .getMediaFilePath("${messageId}__$fileName"));
 
+    final senderId = ref.read(chatControllerProvider.notifier).self.id;
+    final receiverId = ref.read(chatControllerProvider.notifier).other.id;
+
     ref.read(chatControllerProvider.notifier).sendMessageWithAttachments(
           Message(
             id: messageId,
+            chatId: getChatId(senderId, receiverId),
             content: "",
             status: MessageStatus.pending,
-            senderId: ref.read(chatControllerProvider.notifier).self.id,
-            receiverId: ref.read(chatControllerProvider.notifier).other.id,
+            senderId: senderId,
+            receiverId: receiverId,
             timestamp: timestamp,
             attachment: Attachment(
               type: AttachmentType.voice,
@@ -184,6 +189,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     sendMessageNoAttachments(
       Message(
         id: const Uuid().v4(),
+        chatId: getChatId(sender.id, receiver.id),
         content: state.messageController.text.trim(),
         status: MessageStatus.pending,
         senderId: sender.id,
@@ -203,13 +209,23 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   void sendMessageNoAttachments(Message message, User sender, User receiver) {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
 
-    firestore.sendMessage(message, sender, receiver).then((_) {
-      firestore.updateMessage(message, {"status": "SENT"});
+    IsarDb.addMessage(message);
+    firestore
+        .sendMessage(message..status = MessageStatus.sent, sender, receiver)
+        .then((_) {
+      IsarDb.updateMessage(message.id, message);
     });
   }
 
   void sendMessageWithAttachments(Message message, User sender, User receiver) {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
-    firestore.sendMessage(message, sender, receiver, false);
+
+    IsarDb.addMessage(message);
+    firestore.sendMessage(
+      message..status = MessageStatus.sent,
+      sender,
+      receiver,
+      false,
+    );
   }
 }

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';

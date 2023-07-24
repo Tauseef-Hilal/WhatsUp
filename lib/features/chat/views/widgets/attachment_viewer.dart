@@ -11,11 +11,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
+import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../../shared/models/user.dart';
-import '../../../../shared/repositories/firebase_firestore.dart';
 import '../../../../shared/repositories/firebase_storage.dart';
 import '../../../../shared/utils/abc.dart';
 import '../../controllers/chat_controller.dart';
@@ -1276,31 +1276,20 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
   void onUploadDone(TaskSnapshot snapshot) async {
     final url = await snapshot.ref.getDownloadURL();
 
-    ref.read(firebaseFirestoreRepositoryProvider).updateMessage(
-          widget.message,
-          widget.message.toMap()
-            ..addAll({
-              "status": "SENT",
-              "attachment": widget.message.attachment!.toMap()
-                ..addAll({
-                  "url": url,
-                  "uploadStatus": UploadStatus.uploaded.value,
-                })
-            }),
-        );
+    await IsarDb.updateMessage(
+      widget.message.id,
+      widget.message
+        ..status = MessageStatus.sent
+        ..attachment!.url = url
+        ..attachment!.uploadStatus = UploadStatus.uploaded,
+    );
   }
 
-  void onUploadError() {
-    ref.read(firebaseFirestoreRepositoryProvider).updateMessage(
-          widget.message,
-          widget.message.toMap()
-            ..addAll({
-              "attachment": widget.message.attachment!.toMap()
-                ..addAll({
-                  "uploadStatus": UploadStatus.notUploading.value,
-                })
-            }),
-        );
+  Future<void> onUploadError() async {
+    await IsarDb.updateMessage(
+      widget.message.id,
+      widget.message..attachment!.uploadStatus = UploadStatus.notUploading,
+    );
   }
 
   @override

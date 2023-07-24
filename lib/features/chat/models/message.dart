@@ -25,6 +25,7 @@ enum MessageStatus {
 
 class Message {
   final String id;
+  final String chatId;
   final String content;
   final String senderId;
   final String receiverId;
@@ -34,6 +35,7 @@ class Message {
 
   Message({
     required this.id,
+    required this.chatId,
     required this.content,
     required this.senderId,
     required this.receiverId,
@@ -45,6 +47,7 @@ class Message {
   factory Message.fromMap(Map<String, dynamic> msgData) {
     return Message(
       id: msgData['id'],
+      chatId: msgData['chatId'],
       content: msgData['content'],
       status: MessageStatus.fromValue(msgData['status']),
       senderId: msgData['senderId'],
@@ -66,6 +69,7 @@ class Message {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'chatId': chatId,
       'content': content,
       'status': status.value,
       'senderId': senderId,
