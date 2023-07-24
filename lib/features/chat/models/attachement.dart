@@ -70,13 +70,12 @@ class Attachment {
     return Attachment(
       url: data["url"],
       fileName: data["fileName"],
-      fileSize: data["fileSize"] is String ? -1 : data["fileSize"],
-      fileExtension: data["fileExtension"] ?? "",
+      fileSize: data["fileSize"],
+      fileExtension: data["fileExtension"],
       width: data["width"],
       height: data["height"],
       type: AttachmentType.fromValue(data["type"]),
-      uploadStatus:
-          UploadStatus.fromValue(data["uploadStatus"] ?? "NOT_UPLOADING"),
+      uploadStatus: UploadStatus.fromValue(data["uploadStatus"]),
     );
   }
 

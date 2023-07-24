@@ -57,7 +57,9 @@ class WhatsApp extends ConsumerWidget {
             return const WelcomePage();
           }
 
-          final user = SharedPref.instance.getString("user")!;
+          final user = SharedPref.instance.getString("user");
+          if (user == null) return const WelcomePage();
+
           return HomePage(user: User.fromMap(jsonDecode(user)));
         },
       ),

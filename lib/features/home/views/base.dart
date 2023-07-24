@@ -362,6 +362,8 @@ class RecentChatWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: () {
+        chat.isNewForUser = false;
+        
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ChatPage(

@@ -909,7 +909,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User self;
   late final User other;
   late final String chatId;
-  // late final StreamSubscription<Map<String, dynamic>> listener;
 
   @override
   void initState() {
@@ -917,26 +916,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     other = ref.read(chatControllerProvider.notifier).other;
     chatId = getChatId(self.id, other.id);
 
-    // listener = ref
-    //     .read(firebaseFirestoreRepositoryProvider)
-    //     .getMessageStream(chatId)
-    //     .listen((message) async {
-    //   if (message['read'] == true) return;
-    //   if (message['senderId'] == self.id) return;
-
-    //   await IsarDb.addMessage(Message.fromMap(message));
-    //   await ref
-    //       .read(firebaseFirestoreRepositoryProvider)
-    //       .markChatAsRead(chatId);
-    // });
-
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    // listener.cancel();
-    super.dispose();
   }
 
   @override
@@ -949,6 +929,21 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         final messages = snapshot.data!;
+        for (final message in messages) {
+          if (message.senderId == self.id) continue;
+          if (message.status == MessageStatus.seen) continue;
+          if (message.attachment != null &&
+              message.attachment!.uploadStatus != UploadStatus.uploaded) {
+            continue;
+          }
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref
+                .read(chatControllerProvider.notifier)
+                .markMessageAsSeen(message);
+          });
+        }
+
         return Align(
           alignment: Alignment.topCenter,
           child: ListView.builder(
@@ -958,10 +953,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
             shrinkWrap: true,
             itemBuilder: (context, index) {
               Message message = messages[index];
-              if (message.senderId != self.id &&
-                  message.attachment != null &&
-                  message.attachment!.uploadStatus != UploadStatus.uploaded) {
-                return Container();
+
+              if (message.senderId != self.id) {
+                if (message.attachment != null &&
+                    message.attachment!.uploadStatus != UploadStatus.uploaded) {
+                  return Container();
+                }
               }
 
               if (index == messages.length - 1 ||

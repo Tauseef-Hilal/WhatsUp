@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 
 enum MessageStatus {
@@ -23,6 +24,26 @@ enum MessageStatus {
   }
 }
 
+enum MessageType {
+  normalMessage('NORMAL_MESSAGE'),
+  systemMessage('SYSTEM_MESSAGE');
+
+  const MessageType(this.value);
+  final String value;
+
+  factory MessageType.fromValue(String value) {
+    final res = MessageType.values.where(
+      (element) => element.value == value,
+    );
+
+    if (res.isEmpty) {
+      throw 'ValueError: $value is not a valid message type';
+    }
+
+    return res.first;
+  }
+}
+
 class Message {
   final String id;
   final String chatId;
@@ -30,6 +51,7 @@ class Message {
   final String senderId;
   final String receiverId;
   final Timestamp timestamp;
+  final MessageType type;
   final Attachment? attachment;
   MessageStatus status;
 
@@ -41,6 +63,7 @@ class Message {
     required this.receiverId,
     required this.timestamp,
     required this.status,
+    this.type = MessageType.normalMessage,
     this.attachment,
   });
 
@@ -53,11 +76,22 @@ class Message {
       senderId: msgData['senderId'],
       receiverId: msgData['receiverId'],
       timestamp: msgData['timestamp'],
-
-      // For compatibility
+      type: MessageType.fromValue(msgData['type']),
       attachment: msgData["attachment"] != null
           ? Attachment.fromMap(msgData["attachment"])
           : null,
+    );
+  }
+
+  factory Message.fakeMessage() {
+    return Message(
+      id: const Uuid().v4(),
+      chatId: 'chatId',
+      content: 'FAKE MESSAGE',
+      senderId: 'senderId',
+      receiverId: 'receiverId',
+      timestamp: Timestamp.now(),
+      status: MessageStatus.sent,
     );
   }
 
@@ -75,6 +109,7 @@ class Message {
       'senderId': senderId,
       'receiverId': receiverId,
       'timestamp': timestamp,
+      'type': type.value,
       "attachment": attachment?.toMap(),
     };
   }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 
+import 'isar_db.dart';
+
 final firebaseFirestoreRepositoryProvider = Provider(
   (ref) => FirebaseFirestoreRepo(firestore: FirebaseFirestore.instance),
 );
@@ -30,12 +32,7 @@ class FirebaseFirestoreRepo {
     });
   }
 
-  Future<void> sendMessage(
-    Message message,
-    User sender,
-    User receiver, [
-    bool updateRecentChats = true,
-  ]) async {
+  Future<void> sendMessage(Message message) async {
     await firestore
         .collection('chats')
         .doc(message.chatId)
@@ -57,29 +54,27 @@ class FirebaseFirestoreRepo {
         .set({'read': true}, SetOptions(merge: true));
   }
 
-  Stream<Map<String, dynamic>> getMessageStream(String chatId) {
-    return firestore.collection('chats').doc(chatId).snapshots().map(
-      (docSnap) {
-        return docSnap.data()!;
-      },
-    );
-  }
-
   Stream<List<Message>> getChatStream(String ownId) {
     return firestore
         .collection('chats')
         .where('senderId', isNotEqualTo: ownId)
         .snapshots()
-        .map(
-      (querySnap) {
+        .asyncMap(
+      (querySnap) async {
         final messages = <Message>[];
 
         for (final docSnap in querySnap.docChanges) {
           final docData = docSnap.doc.data()!;
-          if (docData['read'] != null) continue;
-          
-          messages.add(Message.fromMap(docData));
-          markChatAsRead(docData['chatId']);
+          if (docData['read'] == true) continue;
+          await markChatAsRead(docData['chatId']);
+
+          final message = Message.fromMap(docData);
+          if (message.type == MessageType.systemMessage) {
+            await IsarDb.updateMessage(docData['id'], message);
+            continue;
+          }
+
+          messages.add(message);
         }
 
         return messages;

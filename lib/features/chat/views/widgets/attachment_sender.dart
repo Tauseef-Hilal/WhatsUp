@@ -319,8 +319,6 @@ class _AttachmentMessageSenderState
                                     height: height,
                                   ),
                                 ),
-                                self,
-                                other,
                               );
                         }
 

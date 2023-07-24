@@ -170,8 +170,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
               file: recordedFile,
             ),
           ),
-          ref.read(chatControllerProvider.notifier).self,
-          ref.read(chatControllerProvider.notifier).other,
         );
   }
 
@@ -196,8 +194,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         receiverId: receiver.id,
         timestamp: Timestamp.now(),
       ),
-      sender,
-      receiver,
     );
 
     state.messageController.text = "";
@@ -206,26 +202,40 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     );
   }
 
-  void sendMessageNoAttachments(Message message, User sender, User receiver) {
+  void sendMessageNoAttachments(Message message) {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
 
     IsarDb.addMessage(message);
-    firestore
-        .sendMessage(message..status = MessageStatus.sent, sender, receiver)
-        .then((_) {
+    firestore.sendMessage(message..status = MessageStatus.sent).then((_) {
       IsarDb.updateMessage(message.id, message);
     });
   }
 
-  void sendMessageWithAttachments(Message message, User sender, User receiver) {
+  void sendMessageWithAttachments(Message message) {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
 
     IsarDb.addMessage(message);
-    firestore.sendMessage(
-      message..status = MessageStatus.sent,
-      sender,
-      receiver,
-      false,
+    firestore.sendMessage(message..status = MessageStatus.sent);
+  }
+
+  Future<void> markMessageAsSeen(Message message) async {
+    await IsarDb.updateMessage(
+      message.id,
+      message..status = MessageStatus.seen,
     );
+    
+    await ref.read(firebaseFirestoreRepositoryProvider).sendMessage(
+          Message(
+            id: message.id,
+            chatId: message.chatId,
+            content: message.content,
+            senderId: message.receiverId,
+            receiverId: message.senderId,
+            timestamp: Timestamp.now(),
+            status: MessageStatus.seen,
+            type: MessageType.systemMessage,
+            attachment: message.attachment,
+          ),
+        );
   }
 }

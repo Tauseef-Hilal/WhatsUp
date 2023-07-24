@@ -170,7 +170,8 @@ class IsarDb {
             user: User.fromMap(
               sender.toMap()..addAll({'name': senderName}),
             ),
-          ),
+          )..isNewForUser = msg.status != MessageStatus.seen &&
+              msg.senderId != currentUser.id,
         );
 
         visitedChats.add(msg.chatId);

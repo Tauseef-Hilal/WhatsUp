@@ -16,6 +16,7 @@ import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../../shared/models/user.dart';
+import '../../../../shared/repositories/firebase_firestore.dart';
 import '../../../../shared/repositories/firebase_storage.dart';
 import '../../../../shared/utils/abc.dart';
 import '../../controllers/chat_controller.dart';
@@ -1283,6 +1284,19 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
         ..attachment!.url = url
         ..attachment!.uploadStatus = UploadStatus.uploaded,
     );
+
+    await ref.read(firebaseFirestoreRepositoryProvider).sendMessage(
+          Message(
+              id: widget.message.id,
+              chatId: widget.message.chatId,
+              content: widget.message.chatId,
+              senderId: widget.message.senderId,
+              receiverId: widget.message.receiverId,
+              timestamp: widget.message.timestamp,
+              status: widget.message.status,
+              type: MessageType.systemMessage,
+              attachment: widget.message.attachment),
+        );
   }
 
   Future<void> onUploadError() async {
