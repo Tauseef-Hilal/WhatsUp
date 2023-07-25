@@ -937,10 +937,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
             continue;
           }
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref
-                .read(chatControllerProvider.notifier)
-                .markMessageAsSeen(message);
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              ref
+                  .read(chatControllerProvider.notifier)
+                  .markMessageAsSeen(message);
+            });
           });
         }
 
