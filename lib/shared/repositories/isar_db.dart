@@ -65,6 +65,7 @@ class IsarDb {
 
       if (msg == null) return;
 
+      msg.content = newMessage.content;
       msg.status = newMessage.status;
       msg.attachment = newMessage.attachment != null
           ? EmbeddedAttachment(

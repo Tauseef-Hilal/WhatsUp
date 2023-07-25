@@ -223,19 +223,20 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       message.id,
       message..status = MessageStatus.seen,
     );
-    
-    await ref.read(firebaseFirestoreRepositoryProvider).sendMessage(
-          Message(
+
+    await ref.read(firebaseFirestoreRepositoryProvider).sendReplacementMessage(
+          message: Message(
             id: message.id,
             chatId: message.chatId,
             content: message.content,
-            senderId: message.receiverId,
-            receiverId: message.senderId,
-            timestamp: Timestamp.now(),
-            status: MessageStatus.seen,
-            type: MessageType.systemMessage,
+            senderId: message.senderId,
+            receiverId: message.receiverId,
             attachment: message.attachment,
+            timestamp: message.timestamp,
+            status: MessageStatus.seen,
+            type: MessageType.replacementMessage,
           ),
+          receiverId: message.senderId,
         );
   }
 }

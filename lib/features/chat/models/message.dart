@@ -26,7 +26,7 @@ enum MessageStatus {
 
 enum MessageType {
   normalMessage('NORMAL_MESSAGE'),
-  systemMessage('SYSTEM_MESSAGE');
+  replacementMessage('SYSTEM_MESSAGE');
 
   const MessageType(this.value);
   final String value;

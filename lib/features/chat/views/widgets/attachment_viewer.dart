@@ -1285,17 +1285,19 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
         ..attachment!.uploadStatus = UploadStatus.uploaded,
     );
 
-    await ref.read(firebaseFirestoreRepositoryProvider).sendMessage(
-          Message(
-              id: widget.message.id,
-              chatId: widget.message.chatId,
-              content: widget.message.chatId,
-              senderId: widget.message.senderId,
-              receiverId: widget.message.receiverId,
-              timestamp: widget.message.timestamp,
-              status: widget.message.status,
-              type: MessageType.systemMessage,
-              attachment: widget.message.attachment),
+    await ref.read(firebaseFirestoreRepositoryProvider).sendReplacementMessage(
+          message: Message(
+            id: widget.message.id,
+            chatId: widget.message.chatId,
+            content: widget.message.content,
+            senderId: widget.message.senderId,
+            receiverId: widget.message.receiverId,
+            timestamp: widget.message.timestamp,
+            status: widget.message.status,
+            attachment: widget.message.attachment,
+            type: MessageType.replacementMessage,
+          ),
+          receiverId: widget.message.receiverId,
         );
   }
 

@@ -41,21 +41,24 @@ class FirebaseFirestoreRepo {
         .set(message.toMap());
   }
 
+  Future<void> sendReplacementMessage({
+    required Message message,
+    required String receiverId,
+  }) async {
+    await firestore
+        .collection('chats')
+        .doc(receiverId)
+        .collection('messages')
+        .doc(message.id)
+        .set(message.toMap());
+  }
+
   Future<User?> getUserById(String id) async {
     final documentSnapshot = await firestore.collection('users').doc(id).get();
 
     return documentSnapshot.exists
         ? User.fromMap(documentSnapshot.data()!)
         : null;
-  }
-
-  Future<void> marksAsDeleted(Map<String, dynamic> document) async {
-    await firestore
-        .collection('chats')
-        .doc(document['receiverId'])
-        .collection('messages')
-        .doc(document['id'])
-        .set({'deleted': true}, SetOptions(merge: true));
   }
 
   Stream<List<Message>> getChatStream(String ownId) {
@@ -69,15 +72,14 @@ class FirebaseFirestoreRepo {
         final messages = <Message>[];
 
         for (final docChange in querySnap.docChanges) {
-          final docData = docChange.doc.data()!;
-          if (docData['deleted'] == true) continue;
+          if (docChange.type == DocumentChangeType.removed) continue;
 
-          await marksAsDeleted(docData);
+          final docData = docChange.doc.data()!;
           docChange.doc.reference.delete();
 
           final message = Message.fromMap(docData);
-          if (message.type == MessageType.systemMessage) {
-            await IsarDb.updateMessage(docData['id'], message);
+          if (message.type == MessageType.replacementMessage) {
+            await IsarDb.updateMessage(message.id, message);
             continue;
           }
 
