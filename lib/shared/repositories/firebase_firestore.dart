@@ -35,7 +35,9 @@ class FirebaseFirestoreRepo {
   Future<void> sendMessage(Message message) async {
     await firestore
         .collection('chats')
-        .doc(message.chatId)
+        .doc(message.receiverId)
+        .collection('messages')
+        .doc(message.id)
         .set(message.toMap());
   }
 
@@ -47,26 +49,31 @@ class FirebaseFirestoreRepo {
         : null;
   }
 
-  Future<void> markChatAsRead(String chatId) async {
+  Future<void> marksAsDeleted(Map<String, dynamic> document) async {
     await firestore
         .collection('chats')
-        .doc(chatId)
-        .set({'read': true}, SetOptions(merge: true));
+        .doc(document['receiverId'])
+        .collection('messages')
+        .doc(document['id'])
+        .set({'deleted': true}, SetOptions(merge: true));
   }
 
   Stream<List<Message>> getChatStream(String ownId) {
     return firestore
         .collection('chats')
-        .where('senderId', isNotEqualTo: ownId)
+        .doc(ownId)
+        .collection('messages')
         .snapshots()
         .asyncMap(
       (querySnap) async {
         final messages = <Message>[];
 
-        for (final docSnap in querySnap.docChanges) {
-          final docData = docSnap.doc.data()!;
-          if (docData['read'] == true) continue;
-          await markChatAsRead(docData['chatId']);
+        for (final docChange in querySnap.docChanges) {
+          final docData = docChange.doc.data()!;
+          if (docData['deleted'] == true) continue;
+
+          await marksAsDeleted(docData);
+          docChange.doc.reference.delete();
 
           final message = Message.fromMap(docData);
           if (message.type == MessageType.systemMessage) {
