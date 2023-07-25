@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 
-import 'isar_db.dart';
-
 final firebaseFirestoreRepositoryProvider = Provider(
   (ref) => FirebaseFirestoreRepo(firestore: FirebaseFirestore.instance),
 );
