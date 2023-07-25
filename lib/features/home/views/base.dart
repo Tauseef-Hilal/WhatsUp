@@ -221,12 +221,19 @@ class _RecentChatsBodyState extends ConsumerState<RecentChatsBody> {
 
   @override
   void initState() {
-    listener = ref
-        .read(firebaseFirestoreRepositoryProvider)
-        .getChatStream(widget.user.id)
-        .listen((messages) async {
+    final firestore = ref.read(firebaseFirestoreRepositoryProvider);
+    listener = firestore.getChatStream(widget.user.id).listen((messages) async {
       for (final message in messages) {
-        await IsarDb.addMessage(message);
+        if (message.type == MessageType.replacementMessage) {
+          await IsarDb.updateMessage(message.id, message);
+          continue;
+        }
+
+        await IsarDb.addMessage(message..status = MessageStatus.delivered);
+        await firestore.sendReplacementMessage(
+          message: message.copyWith(type: MessageType.replacementMessage),
+          receiverId: message.senderId,
+        );
       }
     });
     super.initState();
@@ -363,7 +370,7 @@ class RecentChatWidget extends StatelessWidget {
     return ListTile(
       onTap: () {
         chat.isNewForUser = false;
-        
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ChatPage(

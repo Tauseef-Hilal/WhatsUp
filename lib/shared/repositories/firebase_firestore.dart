@@ -77,13 +77,7 @@ class FirebaseFirestoreRepo {
           final docData = docChange.doc.data()!;
           docChange.doc.reference.delete();
 
-          final message = Message.fromMap(docData);
-          if (message.type == MessageType.replacementMessage) {
-            await IsarDb.updateMessage(message.id, message);
-            continue;
-          }
-
-          messages.add(message);
+          messages.add(Message.fromMap(docData));
         }
 
         return messages;

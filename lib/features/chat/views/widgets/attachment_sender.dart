@@ -302,7 +302,6 @@ class _AttachmentMessageSenderState
                               .sendMessageWithAttachments(
                                 Message(
                                   id: messageId,
-                                  chatId: getChatId(self.id, other.id),
                                   content: msgContent,
                                   status: MessageStatus.pending,
                                   senderId: self.id,

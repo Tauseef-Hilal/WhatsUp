@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 
 enum MessageStatus {
@@ -46,7 +45,6 @@ enum MessageType {
 
 class Message {
   final String id;
-  final String chatId;
   final String content;
   final String senderId;
   final String receiverId;
@@ -57,7 +55,6 @@ class Message {
 
   Message({
     required this.id,
-    required this.chatId,
     required this.content,
     required this.senderId,
     required this.receiverId,
@@ -70,7 +67,6 @@ class Message {
   factory Message.fromMap(Map<String, dynamic> msgData) {
     return Message(
       id: msgData['id'],
-      chatId: msgData['chatId'],
       content: msgData['content'],
       status: MessageStatus.fromValue(msgData['status']),
       senderId: msgData['senderId'],
@@ -83,15 +79,25 @@ class Message {
     );
   }
 
-  factory Message.fakeMessage() {
+  Message copyWith({
+    String? id,
+    String? content,
+    String? senderId,
+    String? receiverId,
+    Timestamp? timestamp,
+    MessageStatus? status,
+    MessageType? type,
+    Attachment? attachment,
+  }) {
     return Message(
-      id: const Uuid().v4(),
-      chatId: 'chatId',
-      content: 'FAKE MESSAGE',
-      senderId: 'senderId',
-      receiverId: 'receiverId',
-      timestamp: Timestamp.now(),
-      status: MessageStatus.sent,
+      id: id ?? this.id,
+      content: content ?? this.content,
+      senderId: senderId ?? this.senderId,
+      receiverId: receiverId ?? this.receiverId,
+      timestamp: timestamp ?? this.timestamp,
+      status: status ?? this.status,
+      attachment: attachment ?? this.attachment,
+      type: type ?? this.type,
     );
   }
 
@@ -103,7 +109,6 @@ class Message {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'chatId': chatId,
       'content': content,
       'status': status.value,
       'senderId': senderId,

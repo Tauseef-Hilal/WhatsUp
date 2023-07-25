@@ -10,6 +10,7 @@ import 'package:whatsapp_clone/features/home/data/repositories/contact_repositor
 import 'package:whatsapp_clone/shared/models/isar/messages.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 
 import '../../features/chat/models/message.dart';
@@ -27,7 +28,7 @@ class IsarDb {
   static Future<void> addMessage(Message message) async {
     final storedMsg = StoredMessage(
       messageId: message.id,
-      chatId: message.chatId,
+      chatId: getChatId(message.senderId, message.receiverId),
       content: message.content,
       senderId: message.senderId,
       receiverId: message.receiverId,
@@ -93,7 +94,6 @@ class IsarDb {
         .map((event) => event
             .map((msg) => Message(
                   id: msg.messageId!,
-                  chatId: msg.chatId!,
                   content: msg.content!,
                   senderId: msg.senderId!,
                   receiverId: msg.receiverId!,
@@ -149,7 +149,6 @@ class IsarDb {
           RecentChat(
             message: Message(
               id: msg.messageId!,
-              chatId: msg.chatId!,
               content: msg.content!,
               senderId: msg.senderId!,
               receiverId: msg.receiverId!,

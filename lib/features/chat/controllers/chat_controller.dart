@@ -155,7 +155,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     ref.read(chatControllerProvider.notifier).sendMessageWithAttachments(
           Message(
             id: messageId,
-            chatId: getChatId(senderId, receiverId),
             content: "",
             status: MessageStatus.pending,
             senderId: senderId,
@@ -187,7 +186,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     sendMessageNoAttachments(
       Message(
         id: const Uuid().v4(),
-        chatId: getChatId(sender.id, receiver.id),
         content: state.messageController.text.trim(),
         status: MessageStatus.pending,
         senderId: sender.id,
@@ -212,10 +210,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   void sendMessageWithAttachments(Message message) {
-    final firestore = ref.read(firebaseFirestoreRepositoryProvider);
-
     IsarDb.addMessage(message);
-    firestore.sendMessage(message..status = MessageStatus.sent);
   }
 
   Future<void> markMessageAsSeen(Message message) async {
@@ -225,17 +220,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     );
 
     await ref.read(firebaseFirestoreRepositoryProvider).sendReplacementMessage(
-          message: Message(
-            id: message.id,
-            chatId: message.chatId,
-            content: message.content,
-            senderId: message.senderId,
-            receiverId: message.receiverId,
-            attachment: message.attachment,
-            timestamp: message.timestamp,
-            status: MessageStatus.seen,
-            type: MessageType.replacementMessage,
-          ),
+          message: message.copyWith(type: MessageType.replacementMessage),
           receiverId: message.senderId,
         );
   }
