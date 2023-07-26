@@ -16,7 +16,7 @@ List<Country> get countriesList => CountryService().getAll();
 String getChatId(String senderId, String receiverId) {
   final charList = (senderId + receiverId).split('');
   charList.sort((a, b) => a.compareTo(b));
-  
+
   return charList.join();
 }
 
@@ -59,11 +59,15 @@ String formattedTimestamp(Timestamp timestamp,
   DateTime now = DateTime.now();
   DateTime date = timestamp.toDate();
 
-  if (now.day - date.day == 0 || timeOnly) {
+  final isSameMonthAndYear = now.month == date.month && now.year == date.year;
+
+  if (timeOnly || (now.day == date.day && isSameMonthAndYear)) {
     return meridiem
         ? DateFormat('hh:mm a').format(date)
         : DateFormat('HH:mm').format(date);
-  } else if (now.day - date.day == 1) {
+  }
+
+  if (now.day - date.day == 1 && isSameMonthAndYear) {
     return 'Yesterday';
   }
 

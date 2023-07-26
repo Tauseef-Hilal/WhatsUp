@@ -459,16 +459,7 @@ class RecentChatWidget extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            formattedTimestamp(
-              chat.message.timestamp,
-            ),
-            style: Theme.of(context).custom.textTheme.caption.copyWith(
-                  color: chat.isNewForUser
-                      ? colorTheme.greenColor
-                      : Theme.of(context).custom.colorTheme.greyColor,
-                ),
-          ),
+          RecentChatTime(chat: chat, colorTheme: colorTheme),
           if (chat.isNewForUser) ...[
             Padding(
               padding: const EdgeInsets.only(left: 8.0),
@@ -480,6 +471,53 @@ class RecentChatWidget extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class RecentChatTime extends StatefulWidget {
+  const RecentChatTime({
+    super.key,
+    required this.chat,
+    required this.colorTheme,
+  });
+
+  final RecentChat chat;
+  final ColorTheme colorTheme;
+
+  @override
+  State<RecentChatTime> createState() => _RecentChatTimeState();
+}
+
+class _RecentChatTimeState extends State<RecentChatTime> {
+  late final Timer timer;
+
+  @override
+  void initState() {
+    timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      formattedTimestamp(
+        widget.chat.message.timestamp,
+      ),
+      style: Theme.of(context).custom.textTheme.caption.copyWith(
+            color: widget.chat.isNewForUser
+                ? widget.colorTheme.greenColor
+                : Theme.of(context).custom.colorTheme.greyColor,
+          ),
     );
   }
 }
