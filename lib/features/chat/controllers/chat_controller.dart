@@ -13,6 +13,7 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 
 import '../../../shared/repositories/firebase_storage.dart';
+import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
 import '../models/attachement.dart';
 
@@ -69,8 +70,8 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         );
 
   final AutoDisposeStateNotifierProviderRef ref;
-  late final User self;
-  late final User other;
+  late User self;
+  late User other;
 
   void initUsers(User self, User other) {
     this.self = self;
@@ -200,13 +201,14 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     );
   }
 
-  void sendMessageNoAttachments(Message message) {
-    final firestore = ref.read(firebaseFirestoreRepositoryProvider);
+  Future<void> sendMessageNoAttachments(Message message) async {
+    await IsarDb.addMessage(message);
+    await ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .sendMessage(message..status = MessageStatus.sent);
 
-    IsarDb.addMessage(message);
-    firestore.sendMessage(message..status = MessageStatus.sent).then((_) {
-      IsarDb.updateMessage(message.id, message);
-    });
+    await IsarDb.updateMessage(message.id, status: message.status);
+    await ref.read(pushNotificationsRepoProvider).sendPushNotification(message);
   }
 
   void sendMessageWithAttachments(Message message) {
@@ -214,13 +216,14 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> markMessageAsSeen(Message message) async {
-    await IsarDb.updateMessage(
-      message.id,
-      message..status = MessageStatus.seen,
-    );
+    await IsarDb.updateMessage(message.id, status: MessageStatus.seen);
 
-    await ref.read(firebaseFirestoreRepositoryProvider).sendReplacementMessage(
-          message: message.copyWith(type: MessageType.replacementMessage),
+    await ref.read(firebaseFirestoreRepositoryProvider).sendSystemMessage(
+          message: SystemMessage(
+            targetId: message.id,
+            action: MessageAction.statusUpdate,
+            update: MessageStatus.seen.value,
+          ),
           receiverId: message.senderId,
         );
   }

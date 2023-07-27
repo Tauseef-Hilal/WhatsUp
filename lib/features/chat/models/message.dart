@@ -23,33 +23,12 @@ enum MessageStatus {
   }
 }
 
-enum MessageType {
-  normalMessage('NORMAL_MESSAGE'),
-  replacementMessage('SYSTEM_MESSAGE');
-
-  const MessageType(this.value);
-  final String value;
-
-  factory MessageType.fromValue(String value) {
-    final res = MessageType.values.where(
-      (element) => element.value == value,
-    );
-
-    if (res.isEmpty) {
-      throw 'ValueError: $value is not a valid message type';
-    }
-
-    return res.first;
-  }
-}
-
 class Message {
   final String id;
   final String content;
   final String senderId;
   final String receiverId;
   final Timestamp timestamp;
-  final MessageType type;
   final Attachment? attachment;
   MessageStatus status;
 
@@ -60,7 +39,6 @@ class Message {
     required this.receiverId,
     required this.timestamp,
     required this.status,
-    this.type = MessageType.normalMessage,
     this.attachment,
   });
 
@@ -72,7 +50,6 @@ class Message {
       senderId: msgData['senderId'],
       receiverId: msgData['receiverId'],
       timestamp: msgData['timestamp'],
-      type: MessageType.fromValue(msgData['type']),
       attachment: msgData["attachment"] != null
           ? Attachment.fromMap(msgData["attachment"])
           : null,
@@ -86,7 +63,6 @@ class Message {
     String? receiverId,
     Timestamp? timestamp,
     MessageStatus? status,
-    MessageType? type,
     Attachment? attachment,
   }) {
     return Message(
@@ -97,7 +73,6 @@ class Message {
       timestamp: timestamp ?? this.timestamp,
       status: status ?? this.status,
       attachment: attachment ?? this.attachment,
-      type: type ?? this.type,
     );
   }
 
@@ -114,8 +89,54 @@ class Message {
       'senderId': senderId,
       'receiverId': receiverId,
       'timestamp': timestamp,
-      'type': type.value,
       "attachment": attachment?.toMap(),
+    };
+  }
+}
+
+enum MessageAction {
+  statusUpdate('STATUS_UPDATE');
+
+  const MessageAction(this.value);
+  final String value;
+
+  factory MessageAction.fromValue(String value) {
+    final res = MessageAction.values.where(
+      (element) => element.value == value,
+    );
+
+    if (res.isEmpty) {
+      throw 'ValueError: $value is not a valid action';
+    }
+
+    return res.first;
+  }
+}
+
+class SystemMessage {
+  final String targetId;
+  final MessageAction action;
+  final String update;
+
+  SystemMessage({
+    required this.targetId,
+    required this.action,
+    required this.update,
+  });
+
+  factory SystemMessage.fromMap(Map<String, dynamic> msgData) {
+    return SystemMessage(
+      targetId: msgData['targetId'],
+      action: MessageAction.fromValue(msgData['action']),
+      update: msgData['update'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'targetId': targetId,
+      'action': action.value,
+      'update': update,
     };
   }
 }

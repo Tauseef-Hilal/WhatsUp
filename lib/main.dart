@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,10 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
-import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'features/auth/views/welcome.dart';
+
 import 'features/home/views/base.dart';
 import 'firebase_options.dart';
 
@@ -57,10 +56,8 @@ class WhatsApp extends ConsumerWidget {
             return const WelcomePage();
           }
 
-          final user = SharedPref.instance.getString("user");
-          if (user == null) return const WelcomePage();
-
-          return HomePage(user: User.fromMap(jsonDecode(user)));
+          final user = getCurrentUser()!;
+          return HomePage(user: user);
         },
       ),
     );

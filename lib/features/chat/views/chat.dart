@@ -939,6 +939,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             Future.delayed(const Duration(milliseconds: 300), () {
+              if (!mounted) return;
               ref
                   .read(chatControllerProvider.notifier)
                   .markMessageAsSeen(message);

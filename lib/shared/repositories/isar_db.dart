@@ -54,9 +54,12 @@ class IsarDb {
   }
 
   static Future<void> updateMessage(
-    String messageId,
-    Message newMessage,
-  ) async {
+    String messageId, {
+    String? content,
+    MessageStatus? status,
+    String? attachmentUrl,
+    UploadStatus? uploadStatus,
+  }) async {
     await isar.writeTxn(() async {
       StoredMessage? msg = await isar.storedMessages
           .filter()
@@ -65,21 +68,16 @@ class IsarDb {
           .findFirst();
 
       if (msg == null) return;
-
-      msg.content = newMessage.content;
-      msg.status = newMessage.status;
-      msg.attachment = newMessage.attachment != null
-          ? EmbeddedAttachment(
-              fileName: newMessage.attachment!.fileName,
-              fileExtension: newMessage.attachment!.fileExtension,
-              fileSize: newMessage.attachment!.fileSize,
-              width: newMessage.attachment!.width,
-              height: newMessage.attachment!.height,
-              uploadStatus: newMessage.attachment!.uploadStatus,
-              url: newMessage.attachment!.url,
-              type: newMessage.attachment!.type,
-            )
+      msg.content = content ?? msg.content;
+      msg.status = status ?? msg.status;
+      msg.attachment = msg.attachment != null
+          ? attachmentUrl != null
+              ? (msg.attachment!
+                ..url = attachmentUrl
+                ..uploadStatus = uploadStatus)
+              : msg.attachment
           : null;
+
       await isar.storedMessages.put(msg);
     });
   }

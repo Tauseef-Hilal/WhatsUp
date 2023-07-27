@@ -64,7 +64,7 @@ class CustomEmojiPicker extends ConsumerWidget {
 class EmojiPickerController extends StateNotifier<int> {
   EmojiPickerController() : super(-1);
 
-  late final StreamSubscription<bool> _keyboardSubscription;
+  late StreamSubscription<bool> _keyboardSubscription;
   final FocusNode _fieldFocusNode = FocusNode();
   late bool _isKeyboardVisible;
   bool notify = true;

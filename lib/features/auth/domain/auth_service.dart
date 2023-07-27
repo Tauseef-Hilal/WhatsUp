@@ -65,7 +65,6 @@ class AuthController {
       name: username,
       avatarUrl: avatarUrl,
       phone: phone,
-      groupIds: [],
       activityStatus: UserActivityStatus.online,
     );
 

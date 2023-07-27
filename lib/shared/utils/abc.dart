@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -10,8 +11,20 @@ import 'package:country_picker/country_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
+import 'package:whatsapp_clone/shared/models/user.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 
 List<Country> get countriesList => CountryService().getAll();
+
+User? getCurrentUser() {
+  final userStr = SharedPref.instance.getString('user');
+  if (userStr == null) return null;
+
+  return User.fromMap(jsonDecode(userStr));
+}
+
+
+
 
 String getChatId(String senderId, String receiverId) {
   final charList = (senderId + receiverId).split('');

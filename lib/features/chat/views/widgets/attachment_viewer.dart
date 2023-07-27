@@ -12,6 +12,7 @@ import 'package:open_file_plus/open_file_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
+import 'package:whatsapp_clone/shared/repositories/push_notifications.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
@@ -1277,23 +1278,27 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
   void onUploadDone(TaskSnapshot snapshot) async {
     final url = await snapshot.ref.getDownloadURL();
 
-    await IsarDb.updateMessage(
-      widget.message.id,
-      widget.message
-        ..status = MessageStatus.sent
-        ..attachment!.url = url
-        ..attachment!.uploadStatus = UploadStatus.uploaded,
-    );
+    await ref.read(firebaseFirestoreRepositoryProvider).sendMessage(
+          widget.message
+            ..status = MessageStatus.sent
+            ..attachment!.url = url
+            ..attachment!.uploadStatus = UploadStatus.uploaded,
+        );
+
+    await IsarDb.updateMessage(widget.message.id,
+        status: widget.message.status,
+        attachmentUrl: url,
+        uploadStatus: UploadStatus.uploaded);
 
     await ref
-        .read(firebaseFirestoreRepositoryProvider)
-        .sendMessage(widget.message);
+        .read(pushNotificationsRepoProvider)
+        .sendPushNotification(widget.message);
   }
 
   Future<void> onUploadError() async {
     await IsarDb.updateMessage(
       widget.message.id,
-      widget.message..attachment!.uploadStatus = UploadStatus.notUploading,
+      uploadStatus: UploadStatus.notUploading,
     );
   }
 

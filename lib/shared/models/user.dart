@@ -25,7 +25,6 @@ class User {
   final String name;
   final String avatarUrl;
   final Phone phone;
-  final List groupIds;
   UserActivityStatus activityStatus;
 
   User({
@@ -33,7 +32,6 @@ class User {
     required this.name,
     required this.avatarUrl,
     required this.phone,
-    required this.groupIds,
     required this.activityStatus,
   });
 
@@ -43,7 +41,6 @@ class User {
       name: userData['name'],
       avatarUrl: userData['avatarUrl'],
       phone: Phone.fromMap(userData['phone']),
-      groupIds: userData['groupIds'],
       activityStatus: UserActivityStatus.fromValue(userData['activityStatus']),
     );
   }
@@ -54,7 +51,6 @@ class User {
       'name': name,
       'avatarUrl': avatarUrl,
       'phone': phone.toMap(),
-      'groupIds': groupIds,
       'activityStatus': activityStatus.value,
     };
   }
