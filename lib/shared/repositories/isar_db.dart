@@ -90,7 +90,7 @@ class IsarDb {
     return isar.storedMessages
         .filter()
         .chatIdEqualTo(chatId)
-        .sortByTimestampDesc()
+        .sortByTimestamp()
         .build()
         .watch(fireImmediately: true)
         .map((event) => event

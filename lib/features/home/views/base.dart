@@ -29,7 +29,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  late final StreamSubscription<List<Message>> listener;
+  late final StreamSubscription<List<Message>> messageListener;
   late TabController _tabController;
   late List<Widget> _floatingButtons;
 
@@ -53,7 +53,8 @@ class _HomePageState extends ConsumerState<HomePage>
   @override
   void initState() {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
-    listener = firestore.getChatStream(widget.user.id).listen((messages) async {
+    messageListener =
+        firestore.getChatStream(widget.user.id).listen((messages) async {
       for (final message in messages) {
         await IsarDb.addMessage(message..status = MessageStatus.delivered);
         await firestore.sendSystemMessage(
@@ -82,6 +83,7 @@ class _HomePageState extends ConsumerState<HomePage>
     });
 
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    _tabController.addListener(handleTabIndexChange);
 
     _floatingButtons = [
       FloatingActionButton(
@@ -127,10 +129,15 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void dispose() {
+    _tabController.removeListener(handleTabIndexChange);
     _tabController.dispose();
-    listener.cancel();
+    messageListener.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void handleTabIndexChange() {
+    setState(() {});
   }
 
   Future<void> handleNotificationClick(RemoteMessage message) async {

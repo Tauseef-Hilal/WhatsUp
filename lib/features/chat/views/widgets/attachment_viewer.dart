@@ -35,7 +35,8 @@ class AttachmentPreview extends StatefulWidget {
   State<AttachmentPreview> createState() => _AttachmentPreviewState();
 }
 
-class _AttachmentPreviewState extends State<AttachmentPreview> {
+class _AttachmentPreviewState extends State<AttachmentPreview>
+    with AutomaticKeepAliveClientMixin {
   bool attachmentExists() {
     final messageId = widget.message.id;
     final attachmentName = widget.message.attachment!.fileName;
@@ -51,7 +52,11 @@ class _AttachmentPreviewState extends State<AttachmentPreview> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final imgWidth = widget.message.attachment!.width ?? 1;
@@ -312,6 +317,10 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
         ? const Color.fromARGB(255, 235, 234, 234)
         : AppColorsLight.greyColor;
 
+    final micColor = widget.message.status == MessageStatus.seen
+        ? AppColorsLight.blueColor
+        : iconColor;
+
     Widget? trailing;
     if (!widget.doesAttachmentExist) {
       showDuration = false;
@@ -394,7 +403,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                   right: 0,
                   child: Icon(
                     Icons.mic_rounded,
-                    color: iconColor,
+                    color: micColor,
                     size: 20,
                   ),
                 )
@@ -462,7 +471,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                                         height: 12.0,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: iconColor,
+                                          color: micColor,
                                         ),
                                       ),
                                     );

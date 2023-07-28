@@ -4,6 +4,7 @@ import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mime/mime.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
@@ -143,10 +144,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         child: Column(
           children: [
             const Expanded(
-              child: ChatStream(),
+              child: KeyboardDismissOnTap(
+                child: ChatStream(),
+              ),
             ),
             const SizedBox(
-              height: 8.0,
+              height: 4.0,
             ),
             ChatInputContainer(
               self: self,
@@ -917,6 +920,8 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User self;
   late final User other;
   late final String chatId;
+  final scrollController = ScrollController();
+  bool initialScroll = true;
 
   @override
   void initState() {
@@ -928,6 +933,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   }
 
   @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Message>>(
       stream: IsarDb.getChatStream(chatId),
@@ -935,6 +946,14 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         if (!snapshot.hasData) {
           return Container();
         }
+
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+          );
+        });
 
         final messages = snapshot.data!;
         for (final message in messages) {
@@ -955,50 +974,94 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           });
         }
 
-        return Align(
-          alignment: Alignment.topCenter,
-          child: ListView.builder(
-            reverse: true,
-            physics: const BouncingScrollPhysics(),
-            itemCount: messages.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              Message message = messages[index];
-
-              if (message.senderId != self.id) {
-                if (message.attachment != null &&
-                    message.attachment!.uploadStatus != UploadStatus.uploaded) {
-                  return Container();
-                }
-              }
-
-              if (index == messages.length - 1 ||
-                  (messages[index].senderId != messages[index + 1].senderId)) {
-                return message.senderId == self.id
-                    ? MessageCard(
-                        message: message,
-                        special: true,
-                        type: MessageCardType.sentMessageCard,
-                      )
-                    : MessageCard(
-                        message: message,
-                        special: true,
-                        type: MessageCardType.receivedMessageCard,
-                      );
-              }
-
-              return message.senderId == self.id
-                  ? MessageCard(
-                      message: message,
-                      type: MessageCardType.sentMessageCard,
-                    )
-                  : MessageCard(
-                      message: message,
-                      type: MessageCardType.receivedMessageCard,
-                    );
-            },
-          ),
+        return ChatBody(
+          messages: messages,
+          self: self,
+          scrollController: scrollController,
         );
+      },
+    );
+  }
+}
+
+class ChatBody extends StatefulWidget {
+  const ChatBody({
+    super.key,
+    required this.scrollController,
+    required this.messages,
+    required this.self,
+  });
+
+  final ScrollController scrollController;
+  final List<Message> messages;
+  final User self;
+
+  @override
+  State<ChatBody> createState() => _ChatBodyState();
+}
+
+class _ChatBodyState extends State<ChatBody> {
+  @override
+  void initState() {
+    KeyboardVisibilityController().onChange.listen((event) {
+      if (event) {
+        scrollToBottom();
+      }
+    });
+
+    scrollToBottom();
+    super.initState();
+  }
+
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      widget.scrollController
+          .jumpTo(widget.scrollController.position.maxScrollExtent);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      controller: widget.scrollController,
+      physics: const BouncingScrollPhysics(),
+      itemCount: widget.messages.length,
+      shrinkWrap: true,
+      itemBuilder: (context, index) {
+        Message message = widget.messages[index];
+
+        if (message.senderId != widget.self.id) {
+          if (message.attachment != null &&
+              message.attachment!.uploadStatus != UploadStatus.uploaded) {
+            return Container();
+          }
+        }
+
+        if (index == 0 ||
+            (widget.messages[index - 1].senderId !=
+                widget.messages[index].senderId)) {
+          return message.senderId == widget.self.id
+              ? MessageCard(
+                  message: message,
+                  special: true,
+                  type: MessageCardType.sentMessageCard,
+                )
+              : MessageCard(
+                  message: message,
+                  special: true,
+                  type: MessageCardType.receivedMessageCard,
+                );
+        }
+
+        return message.senderId == widget.self.id
+            ? MessageCard(
+                message: message,
+                type: MessageCardType.sentMessageCard,
+              )
+            : MessageCard(
+                message: message,
+                type: MessageCardType.receivedMessageCard,
+              );
       },
     );
   }

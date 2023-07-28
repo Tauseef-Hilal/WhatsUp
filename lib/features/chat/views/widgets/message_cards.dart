@@ -11,7 +11,7 @@ import 'attachment_viewer.dart';
 
 enum MessageCardType { sentMessageCard, receivedMessageCard }
 
-class MessageCard extends StatelessWidget {
+class MessageCard extends StatefulWidget {
   MessageCard({
     required this.message,
     required this.type,
@@ -22,6 +22,11 @@ class MessageCard extends StatelessWidget {
   final bool special;
   final MessageCardType type;
 
+  @override
+  State<MessageCard> createState() => _MessageCardState();
+}
+
+class _MessageCardState extends State<MessageCard> {
   bool containsSingleEmoji(String text) {
     return EmojiParser().parseEmojis(text).length == 1 &&
         text.runes.length == 1;
@@ -31,10 +36,10 @@ class MessageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final size = MediaQuery.of(context).size;
-    final hasAttachment = message.attachment != null;
-    final attachmentType = message.attachment?.type;
-    final isSentMessageCard = type == MessageCardType.sentMessageCard;
-    final messageHasText = message.content.isNotEmpty;
+    final hasAttachment = widget.message.attachment != null;
+    final attachmentType = widget.message.attachment?.type;
+    final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
+    final messageHasText = widget.message.content.isNotEmpty;
 
     final showTimeStamp = !hasAttachment ||
         (hasAttachment &&
@@ -43,13 +48,14 @@ class MessageCard extends StatelessWidget {
         ((hasAttachment && attachmentType != AttachmentType.audio) &&
             (hasAttachment && attachmentType != AttachmentType.voice));
 
-    final hasSingleEmoji = containsSingleEmoji(message.content);
+    final hasSingleEmoji = containsSingleEmoji(widget.message.content);
     int padding = 2;
 
     if (!hasSingleEmoji) {
       if (isSentMessageCard) {
-        padding =
-            Platform.isAndroid ? (special ? 14 : 12) : (special ? 17 : 15);
+        padding = Platform.isAndroid
+            ? (widget.special ? 14 : 12)
+            : (widget.special ? 17 : 15);
       } else {
         padding = Platform.isAndroid ? 8 : 12;
       }
@@ -61,19 +67,21 @@ class MessageCard extends StatelessWidget {
       alignment:
           isSentMessageCard ? Alignment.centerRight : Alignment.centerLeft,
       child: ClipPath(
-        clipper: special ? TriangleClipper(isSender: isSentMessageCard) : null,
+        clipper: widget.special
+            ? TriangleClipper(isSender: isSentMessageCard)
+            : null,
         child: Container(
           constraints: BoxConstraints(
-            minHeight: 30,
-            minWidth: special ? (isSentMessageCard ? 98 : 76) : 60,
-            maxWidth: size.width * 0.75 + (special ? 10 : 0),
+            minHeight: Platform.isIOS ? 36 : 30,
+            minWidth: widget.special ? (isSentMessageCard ? 98 : 76) : 60,
+            maxWidth: size.width * 0.75 + (widget.special ? 10 : 0),
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-              topLeft: special && !isSentMessageCard
+              topLeft: widget.special && !isSentMessageCard
                   ? const Radius.circular(4)
                   : const Radius.circular(12.0),
-              topRight: special && isSentMessageCard
+              topRight: widget.special && isSentMessageCard
                   ? const Radius.circular(4)
                   : const Radius.circular(12.0),
               bottomLeft: const Radius.circular(12.0),
@@ -85,44 +93,46 @@ class MessageCard extends StatelessWidget {
           ),
           margin: EdgeInsets.only(
             bottom: 3.0,
-            top: special ? 6.0 : 0,
-            left: special ? 6 : 16.0,
-            right: special ? 6 : 16.0,
+            top: widget.special ? 6.0 : 0,
+            left: widget.special ? 6 : 16.0,
+            right: widget.special ? 6 : 16.0,
           ),
           padding: hasAttachment
               ? attachmentType == AttachmentType.audio && !messageHasText
                   ? EdgeInsets.only(
-                      left: isSentMessageCard ? 8 : (special ? 18 : 8),
-                      right: isSentMessageCard ? (special ? 10 : 0) : 0,
+                      left: isSentMessageCard ? 8 : (widget.special ? 18 : 8),
+                      right: isSentMessageCard ? (widget.special ? 10 : 0) : 0,
                     )
                   : EdgeInsets.only(
                       top: 4.0,
                       bottom: 4.0,
-                      left: special && !isSentMessageCard ? 14.0 : 4.0,
-                      right: special && isSentMessageCard ? 14.0 : 4.0,
+                      left: widget.special && !isSentMessageCard ? 14.0 : 4.0,
+                      right: widget.special && isSentMessageCard ? 10.0 : 4.0,
                     )
-              : const EdgeInsets.only(
+              : EdgeInsets.only(
                   left: 10.0,
                   right: 10,
-                  top: 5.0,
+                  top: widget.special ? 0.0 : 4.0,
                   bottom: 5.0,
                 ),
           child: Stack(
+            alignment: Alignment.center,
             children: [
               Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (hasAttachment) ...[
                     AttachmentPreview(
-                      message: message,
+                      message: widget.message,
                     ),
                   ],
                   if (messageHasText) ...[
                     Padding(
                       padding: hasAttachment
                           ? const EdgeInsets.only(left: 4.0, top: 4.0)
-                          : special && !isSentMessageCard
+                          : widget.special && !isSentMessageCard
                               ? EdgeInsets.only(
                                   left: 10,
                                   top: 4,
@@ -135,7 +145,7 @@ class MessageCard extends StatelessWidget {
                                       : 0,
                                 ),
                       child: Text(
-                        '${message.content} $textPadding',
+                        '${widget.message.content} $textPadding',
                         style: Theme.of(context)
                             .custom
                             .textTheme
@@ -180,7 +190,7 @@ class MessageCard extends StatelessWidget {
                       if (showTimeStamp) ...[
                         Text(
                           formattedTimestamp(
-                            message.timestamp,
+                            widget.message.timestamp,
                             true,
                             Platform.isIOS,
                           ),
@@ -200,8 +210,8 @@ class MessageCard extends StatelessWidget {
                           width: 2.0,
                         ),
                         Image.asset(
-                          'assets/images/${message.status.value}.png',
-                          color: message.status.value != 'SEEN'
+                          'assets/images/${widget.message.status.value}.png',
+                          color: widget.message.status.value != 'SEEN'
                               ? messageHasText
                                   ? colorTheme.textColor2
                                   : Colors.white
@@ -209,9 +219,9 @@ class MessageCard extends StatelessWidget {
                           width: 16.0,
                         ),
                       ],
-                      if (special && isSentMessageCard && messageHasText) ...[
-                        const SizedBox(width: 10)
-                      ],
+                      if (widget.special &&
+                          isSentMessageCard &&
+                          messageHasText) ...[const SizedBox(width: 10)],
                     ],
                   ),
                 ),

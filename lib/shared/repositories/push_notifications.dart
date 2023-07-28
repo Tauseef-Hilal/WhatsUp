@@ -34,7 +34,7 @@ class PushNotificationsRepo {
         .getFcmToken(message.receiverId);
 
     const String serverUrl =
-        'https://shaw-phentermine-bears-wrapped.trycloudflare.com/new_message';
+        'https://class-digest-juice-format.trycloudflare.com/new_message';
     final Map<String, String> headers = {"Content-Type": "application/json"};
 
     String messageContent = message.content;

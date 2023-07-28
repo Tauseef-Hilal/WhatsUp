@@ -26,7 +26,7 @@ void main() async {
 
   await SharedPref.init();
   await IsarDb.init();
-  
+
   DeviceStorage.tempDirPath = (await getTemporaryDirectory()).path;
   DeviceStorage.appDocsDirPath =
       (await getApplicationDocumentsDirectory()).path;
