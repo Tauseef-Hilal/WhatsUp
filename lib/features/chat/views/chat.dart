@@ -92,11 +92,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
           ],
         ),
-        leadingWidth: 32.0,
+        leadingWidth: 36.0,
         leading: IconButton(
           onPressed: () =>
               ref.read(chatControllerProvider.notifier).navigateToHome(context),
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            size: 24,
+          ),
         ),
         actions: [
           IconButton(
@@ -106,7 +109,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 : null,
             icon: const Icon(
               Icons.videocam_rounded,
-              size: 22,
+              size: 28,
               color: Colors.white,
             ),
           ),
@@ -118,7 +121,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             icon: const Icon(
               Icons.call,
               color: Colors.white,
-              size: 20,
+              size: 24,
             ),
           ),
           IconButton(
@@ -126,6 +129,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             icon: const Icon(
               Icons.more_vert,
               color: Colors.white,
+              size: 26,
             ),
           ),
         ],
@@ -296,11 +300,15 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                             child: InkWell(
                                               onTap: () {
                                                 onAttachmentsIconPressed(
-                                                    context);
+                                                  context,
+                                                );
                                               },
-                                              child: const Icon(
-                                                Icons.attach_file_rounded,
-                                                size: 20.0,
+                                              child: Transform.rotate(
+                                                angle: -0.5,
+                                                child: const Icon(
+                                                  Icons.attach_file_rounded,
+                                                  size: 24.0,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -361,7 +369,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                                 },
                                                 child: const Icon(
                                                   Icons.camera_alt_rounded,
-                                                  size: 22.0,
+                                                  size: 24.0,
                                                 ),
                                               ),
                                             ),

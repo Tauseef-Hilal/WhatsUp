@@ -249,6 +249,10 @@ class RecentChatsBody extends ConsumerWidget {
         }
 
         final chats = snapshot.data!;
+        if (chats.isEmpty) {
+          return const HomePageContactsList();
+        }
+
         return ListView(
           children: [
             Padding(
@@ -311,6 +315,106 @@ class RecentChatsBody extends ConsumerWidget {
                 ),
               ),
             ]
+          ],
+        );
+      },
+    );
+  }
+}
+
+class HomePageContactsList extends StatelessWidget {
+  const HomePageContactsList({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
+    return FutureBuilder(
+      future: IsarDb.getWhatsAppContacts(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container();
+        }
+
+        final users = snapshot.data!;
+        final userCount = users.length;
+        if (userCount < 2) return Container();
+
+        int avatarDisplayCount;
+        if (userCount > 4) {
+          avatarDisplayCount = 5;
+        } else {
+          avatarDisplayCount = userCount;
+        }
+
+        final descriptionList = <String>['', ''];
+        if (userCount > 3) {
+          descriptionList[0] = users.getRange(0, 3).join(', ');
+          descriptionList[1] =
+              ' and ${userCount - 3} more of your contacts\n are on WhatsApp';
+        } else if (userCount > 2) {
+          descriptionList[0] = users.join(', ');
+          descriptionList[1] = ' and ${users[2]} are on WhatsApp';
+        } else if (userCount > 1) {
+          descriptionList[0] = users.join(' and ');
+          descriptionList[1] = ' are on WhatsApp';
+        } else {
+          descriptionList[0] = '${users.first}';
+          descriptionList[1] = ' is one WhatsApp.';
+        }
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 50,
+              width: (avatarDisplayCount * 36) + 30,
+              child: Stack(
+                children: [
+                  for (var i = 0; i < avatarDisplayCount; i++) ...[
+                    Positioned(
+                      right: (i * 36),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            width: 2,
+                            color: colorTheme.backgroundColor,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 24,
+                          foregroundImage: CachedNetworkImageProvider(
+                            users[i].avatarUrl,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                text: descriptionList[0],
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: colorTheme.unselectedLabelColor,
+                ),
+                children: [
+                  TextSpan(
+                    text: descriptionList[1],
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  )
+                ],
+              ),
+            ),
           ],
         );
       },

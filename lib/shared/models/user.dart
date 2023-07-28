@@ -59,8 +59,12 @@ class User {
       'activityStatus': activityStatus.value,
     };
   }
-}
 
+  @override
+  String toString() {
+    return name;
+  }
+}
 
 @embedded
 class Phone {

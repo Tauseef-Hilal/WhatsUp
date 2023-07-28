@@ -135,17 +135,24 @@ class IsarDb {
         if (msg.attachment != null &&
             msg.attachment!.uploadStatus != UploadStatus.uploaded) continue;
 
-        final sender = await ref
+        var sender = await IsarDb.getUserById(
+          msg.senderId == currentUser.id ? msg.receiverId : msg.senderId,
+        );
+
+        Contact? contact;
+        if (sender != null) {
+          contact = await ref
+              .read(contactsRepositoryProvider)
+              .getContactByPhone(sender.phone.number!);
+        }
+
+        sender ??= await ref
             .read(firebaseFirestoreRepositoryProvider)
             .getUserById(
               msg.senderId == currentUser.id ? msg.receiverId : msg.senderId,
             );
 
-        final contact = await ref
-            .read(contactsRepositoryProvider)
-            .getContactByPhone(sender!.phone.number!);
-
-        final senderName = contact?.displayName ?? sender.name;
+        final senderName = contact?.displayName ?? sender!.name;
 
         recentChats.add(
           RecentChat(
@@ -170,7 +177,7 @@ class IsarDb {
                   : null,
             ),
             user: User.fromMap(
-              sender.toMap()..addAll({'name': senderName}),
+              sender!.toMap()..addAll({'name': senderName}),
             ),
           )..isNewForUser = msg.status != MessageStatus.seen &&
               msg.senderId != currentUser.id,
@@ -243,5 +250,9 @@ class IsarDb {
 
   static Future<User?> getUserById(String id) async {
     return await isar.users.filter().idEqualTo(id).findFirst();
+  }
+
+  static Future<List<Contact>> getWhatsAppContacts() async {
+    return await isar.contacts.filter().userIdIsNotNull().findAll();
   }
 }

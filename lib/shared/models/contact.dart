@@ -18,4 +18,9 @@ class Contact {
     this.avatarUrl = 'http://www.gravatar.com/avatar/?d=mp',
     this.userId,
   });
+
+  @override
+  String toString() {
+    return displayName;
+  }
 }

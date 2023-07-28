@@ -514,6 +514,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
 
   void initSeeker(StateSetter setState_) {
     player.onCurrentDurationChanged.listen((duration) {
+      if (!mounted) return;
       setState_(() {
         progress = duration / player.maxDuration;
       });
