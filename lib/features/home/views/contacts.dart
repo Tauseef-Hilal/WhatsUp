@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/home/controllers/contacts_controller.dart';
@@ -17,7 +18,7 @@ class ContactsPage extends ConsumerStatefulWidget {
 class _ContactsPageState extends ConsumerState<ContactsPage> {
   @override
   void initState() {
-    ref.read(contactPickerControllerProvider.notifier).init(user: widget.user);
+    ref.read(contactPickerControllerProvider.notifier).init();
     super.initState();
   }
 
@@ -25,8 +26,10 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final searchResults = ref.watch(contactPickerControllerProvider);
-    final contactsOnWhatsApp = searchResults['onWhatsApp']!;
-    final contactsNotOnWhatsApp = searchResults['notOnWhatsApp']!;
+    final contactsOnWhatsApp =
+        searchResults.where((contact) => contact.userId != null).toList();
+    final contactsNotOnWhatsApp =
+        searchResults.where((contact) => contact.userId == null).toList();
 
     String searchQuery = ref
         .read(contactPickerControllerProvider.notifier)
@@ -46,7 +49,7 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          ref.read(contactsProvider(widget.user)).isLoading
+          ref.read(contactsProvider).isLoading
               ? Center(
                   child: CircularProgressIndicator(
                     color: colorTheme.greenColor,
@@ -97,7 +100,7 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
                     onTap: () {
                       ref
                           .read(contactPickerControllerProvider.notifier)
-                          .refreshContactsList(user: widget.user);
+                          .refreshContactsList();
                     },
                     child: Text(
                       'Refresh',
@@ -385,13 +388,14 @@ class LocalContactsList extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: NetworkImage(contact.avatarUrl),
+                    backgroundImage:
+                        CachedNetworkImageProvider(contact.avatarUrl),
                   ),
                   const SizedBox(
                     width: 18.0,
                   ),
                   Text(
-                    contact.name,
+                    contact.displayName,
                     style: Theme.of(context).custom.textTheme.bold,
                   ),
                   const Expanded(
@@ -452,7 +456,8 @@ class WhatsAppContactsList extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: NetworkImage(contact.avatarUrl),
+                    backgroundImage:
+                        CachedNetworkImageProvider(contact.avatarUrl),
                   ),
                   const SizedBox(
                     width: 18.0,
@@ -460,7 +465,7 @@ class WhatsAppContactsList extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(contact.name,
+                      Text(contact.displayName,
                           style: Theme.of(context).custom.textTheme.bold),
                       const SizedBox(
                         width: 4.0,

@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:whatsapp_clone/features/auth/data/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
+import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'features/auth/views/welcome.dart';
 
 import 'features/home/views/base.dart';
@@ -24,6 +26,10 @@ void main() async {
 
   await SharedPref.init();
   await IsarDb.init();
+  
+  DeviceStorage.tempDirPath = (await getTemporaryDirectory()).path;
+  DeviceStorage.appDocsDirPath =
+      (await getApplicationDocumentsDirectory()).path;
 
   ErrorWidget.builder = (details) => CustomErrorWidget(details: details);
 

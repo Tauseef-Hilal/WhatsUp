@@ -6,11 +6,13 @@ import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
 import 'package:whatsapp_clone/features/auth/views/verification.dart';
-import 'package:whatsapp_clone/shared/models/phone.dart';
+
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
+
+import '../../../shared/models/user.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});

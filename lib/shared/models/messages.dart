@@ -8,26 +8,26 @@ part 'messages.g.dart';
 @collection
 class StoredMessage {
   Id id = Isar.autoIncrement;
-  String? messageId;
-  String? chatId;
-  String? content;
-  String? senderId;
-  String? receiverId;
+  String messageId;
+  String chatId;
+  String content;
+  String senderId;
+  String receiverId;
+  DateTime timestamp;
   EmbeddedAttachment? attachment;
-  DateTime? timestamp;
 
   @Enumerated(EnumType.value, 'value')
-  MessageStatus? status;
+  MessageStatus status;
 
   StoredMessage({
-    this.messageId,
-    this.chatId,
-    this.content,
-    this.senderId,
-    this.receiverId,
+    required this.messageId,
+    required this.chatId,
+    required this.content,
+    required this.senderId,
+    required this.receiverId,
+    required this.timestamp,
+    required this.status,
     this.attachment,
-    this.timestamp,
-    this.status,
   });
 }
 

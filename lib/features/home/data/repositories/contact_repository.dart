@@ -1,7 +1,6 @@
 import 'package:flutter_contacts/flutter_contacts.dart' show FlutterContacts;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 
@@ -35,7 +34,11 @@ class ContactsRepository {
             .replaceAll(')', '');
 
         if (phoneNumberWithoutFormatting.contains(phoneNumber)) {
-          return Contact(name: contact.displayName, phoneNumber: phoneNumber);
+          return Contact(
+            contactId: contact.id,
+            displayName: contact.displayName,
+            phoneNumber: phoneNumber,
+          );
         }
       }
     }
@@ -43,35 +46,22 @@ class ContactsRepository {
     return null;
   }
 
-  Future<Map<String, List<Contact>>> getContacts({required User self}) async {
-    Map<String, List<Contact>> res = {'onWhatsApp': [], 'notOnWhatsApp': []};
-
+  Future<List<Contact>> getContacts({required User self}) async {
+    final result = <Contact>[];
     final contacts = await FlutterContacts.getContacts(withProperties: true);
-    final firestoreRepo = ref.read(firebaseFirestoreRepositoryProvider);
 
     for (var contact in contacts) {
       for (var phone in contact.phones) {
-        User? user = await firestoreRepo.getUserByPhone(phone.number);
-        if (user != null && user.id != self.id) {
-          res['onWhatsApp']!.add(
-            Contact(
-              name: contact.displayName,
-              id: user.id,
-              phoneNumber: phone.number,
-              avatarUrl: user.avatarUrl,
-            ),
-          );
-        } else {
-          res['notOnWhatsApp']!.add(
-            Contact(
-              name: contact.displayName,
-              phoneNumber: phone.number,
-            ),
-          );
-        }
+        result.add(
+          Contact(
+            contactId: contact.id,
+            displayName: contact.displayName,
+            phoneNumber: phone.number,
+          ),
+        );
       }
     }
 
-    return res;
+    return result;
   }
 }

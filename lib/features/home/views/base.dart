@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
@@ -83,6 +82,7 @@ class _HomePageState extends ConsumerState<HomePage>
     });
 
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+
     _floatingButtons = [
       FloatingActionButton(
         onPressed: () async {
@@ -127,8 +127,6 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void dispose() {
-    FlutterContacts.removeListener(_contactsListener);
-    _tabController.removeListener(_handleTabIndex);
     _tabController.dispose();
     listener.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -142,7 +140,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
     final contact = await ref
         .read(contactsRepositoryProvider)
-        .getContactByPhone(author!.phone.number);
+        .getContactByPhone(author!.phone.number!);
 
     if (!mounted) return;
     Navigator.of(context).push(
@@ -150,25 +148,11 @@ class _HomePageState extends ConsumerState<HomePage>
         builder: (context) => ChatPage(
           self: widget.user,
           other: author,
-          otherUserContactName: contact?.name ?? author.phone.formattedNumber,
+          otherUserContactName:
+              contact?.displayName ?? author.phone.getFormattedNumber(),
         ),
       ),
     );
-  }
-
-  Future<void> addListenerToContactChanges() async {
-    if (await Permission.contacts.isGranted) {
-      FlutterContacts.addListener(_contactsListener);
-    }
-  }
-
-  void _contactsListener() {
-    // ignore: unused_result
-    ref.refresh(contactsRepositoryProvider);
-  }
-
-  void _handleTabIndex() {
-    setState(() {});
   }
 
   @override
@@ -292,39 +276,41 @@ class RecentChatsBody extends ConsumerWidget {
                 },
               ),
             ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.lock,
-                    size: 18,
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? colorTheme.greyColor
-                        : colorTheme.iconColor,
-                  ),
-                  const SizedBox(width: 4),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: Theme.of(context).textTheme.bodySmall,
-                      children: [
-                        TextSpan(
-                          text: 'Your personal messages are ',
-                          style: TextStyle(color: colorTheme.greyColor),
-                        ),
-                        TextSpan(
-                          text: 'end-to-end encrypted',
-                          style: TextStyle(color: colorTheme.greenColor),
-                        ),
-                      ],
+            if (chats.isNotEmpty) ...[
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock,
+                      size: 18,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? colorTheme.greyColor
+                          : colorTheme.iconColor,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.bodySmall,
+                        children: [
+                          TextSpan(
+                            text: 'Your personal messages are ',
+                            style: TextStyle(color: colorTheme.greyColor),
+                          ),
+                          TextSpan(
+                            text: 'end-to-end encrypted',
+                            style: TextStyle(color: colorTheme.greenColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ]
           ],
         );
       },

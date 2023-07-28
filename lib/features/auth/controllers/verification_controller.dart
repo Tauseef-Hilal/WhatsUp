@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/user_details.dart';
-import 'package:whatsapp_clone/shared/models/phone.dart';
+
 import 'package:whatsapp_clone/theme/theme.dart';
+
+import '../../../shared/models/user.dart';
 
 const _resendFactor = 5;
 const _resendInitial = 60;

@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
-import 'package:whatsapp_clone/shared/models/phone.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
+
+import '../../../shared/models/user.dart';
 
 class UserProfileCreationPage extends ConsumerStatefulWidget {
   const UserProfileCreationPage({

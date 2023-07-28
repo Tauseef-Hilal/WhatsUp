@@ -7,7 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
-import 'package:whatsapp_clone/shared/models/isar/messages.dart';
+import 'package:whatsapp_clone/shared/models/contact.dart';
+import 'package:whatsapp_clone/shared/models/messages.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
@@ -22,7 +23,10 @@ class IsarDb {
 
   static Future<void> init() async {
     final dir = await getApplicationDocumentsDirectory();
-    isar = await Isar.open([StoredMessageSchema], directory: dir.path);
+    isar = await Isar.open(
+      [StoredMessageSchema, ContactSchema, UserSchema],
+      directory: dir.path,
+    );
   }
 
   static Future<void> addMessage(Message message) async {
@@ -91,12 +95,12 @@ class IsarDb {
         .watch(fireImmediately: true)
         .map((event) => event
             .map((msg) => Message(
-                  id: msg.messageId!,
-                  content: msg.content!,
-                  senderId: msg.senderId!,
-                  receiverId: msg.receiverId!,
-                  timestamp: Timestamp.fromDate(msg.timestamp!),
-                  status: msg.status!,
+                  id: msg.messageId,
+                  content: msg.content,
+                  senderId: msg.senderId,
+                  receiverId: msg.receiverId,
+                  timestamp: Timestamp.fromDate(msg.timestamp),
+                  status: msg.status,
                   attachment: msg.attachment != null
                       ? Attachment(
                           fileName: msg.attachment!.fileName!,
@@ -134,24 +138,24 @@ class IsarDb {
         final sender = await ref
             .read(firebaseFirestoreRepositoryProvider)
             .getUserById(
-              msg.senderId! == currentUser.id ? msg.receiverId! : msg.senderId!,
+              msg.senderId == currentUser.id ? msg.receiverId : msg.senderId,
             );
 
         final contact = await ref
             .read(contactsRepositoryProvider)
-            .getContactByPhone(sender!.phone.number);
+            .getContactByPhone(sender!.phone.number!);
 
-        final senderName = contact?.name ?? sender.name;
+        final senderName = contact?.displayName ?? sender.name;
 
         recentChats.add(
           RecentChat(
             message: Message(
-              id: msg.messageId!,
-              content: msg.content!,
-              senderId: msg.senderId!,
-              receiverId: msg.receiverId!,
-              timestamp: Timestamp.fromDate(msg.timestamp!),
-              status: msg.status!,
+              id: msg.messageId,
+              content: msg.content,
+              senderId: msg.senderId,
+              receiverId: msg.receiverId,
+              timestamp: Timestamp.fromDate(msg.timestamp),
+              status: msg.status,
               attachment: msg.attachment != null
                   ? Attachment(
                       fileName: msg.attachment!.fileName!,
@@ -177,5 +181,67 @@ class IsarDb {
 
       return recentChats;
     });
+  }
+
+  static Future<void> addContacts() async {
+    final providerContainer = ProviderContainer();
+    final self = getCurrentUser()!;
+
+    var contacts = await providerContainer
+        .read(contactsRepositoryProvider)
+        .getContacts(self: self);
+
+    final users = await Future.wait(
+      contacts.map(
+        (e) => providerContainer
+            .read(firebaseFirestoreRepositoryProvider)
+            .getUserByPhone(e.phoneNumber),
+      ),
+    );
+
+    for (var i = 0; i < contacts.length; i++) {
+      final user = users[i];
+      var contact = contacts[i];
+
+      if (user != null && user.id != self.id) {
+        contact = Contact(
+          userId: user.id,
+          avatarUrl: user.avatarUrl,
+          contactId: contact.contactId,
+          displayName: contact.displayName,
+          phoneNumber: contact.phoneNumber,
+        );
+      } else {
+        contact = Contact(
+          contactId: contact.contactId,
+          displayName: contact.displayName,
+          phoneNumber: contact.phoneNumber,
+        );
+      }
+
+      contacts[i] = contact;
+    }
+
+    await isar.writeTxn(() async {
+      await isar.contacts.putAll(contacts);
+      await isar.users.putAll(users.nonNulls.toList());
+    });
+  }
+
+  static Future<void> refreshContacts() async {
+    await isar.writeTxn(() async {
+      await isar.contacts.clear();
+      await isar.users.clear();
+    });
+
+    await IsarDb.addContacts();
+  }
+
+  static Future<List<Contact>> getContacts() async {
+    return isar.contacts.where().findAll();
+  }
+
+  static Future<User?> getUserById(String id) async {
+    return await isar.users.filter().idEqualTo(id).findFirst();
   }
 }

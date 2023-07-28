@@ -88,42 +88,12 @@ int _storedMessageEstimateSize(
               value, allOffsets[EmbeddedAttachment]!, allOffsets);
     }
   }
-  {
-    final value = object.chatId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.content;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.messageId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.receiverId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.senderId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.status;
-    if (value != null) {
-      bytesCount += 3 + value.value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.chatId.length * 3;
+  bytesCount += 3 + object.content.length * 3;
+  bytesCount += 3 + object.messageId.length * 3;
+  bytesCount += 3 + object.receiverId.length * 3;
+  bytesCount += 3 + object.senderId.length * 3;
+  bytesCount += 3 + object.status.value.length * 3;
   return bytesCount;
 }
 
@@ -144,7 +114,7 @@ void _storedMessageSerialize(
   writer.writeString(offsets[3], object.messageId);
   writer.writeString(offsets[4], object.receiverId);
   writer.writeString(offsets[5], object.senderId);
-  writer.writeString(offsets[6], object.status?.value);
+  writer.writeString(offsets[6], object.status.value);
   writer.writeDateTime(offsets[7], object.timestamp);
 }
 
@@ -160,14 +130,15 @@ StoredMessage _storedMessageDeserialize(
       EmbeddedAttachmentSchema.deserialize,
       allOffsets,
     ),
-    chatId: reader.readStringOrNull(offsets[1]),
-    content: reader.readStringOrNull(offsets[2]),
-    messageId: reader.readStringOrNull(offsets[3]),
-    receiverId: reader.readStringOrNull(offsets[4]),
-    senderId: reader.readStringOrNull(offsets[5]),
+    chatId: reader.readString(offsets[1]),
+    content: reader.readString(offsets[2]),
+    messageId: reader.readString(offsets[3]),
+    receiverId: reader.readString(offsets[4]),
+    senderId: reader.readString(offsets[5]),
     status:
-        _StoredMessagestatusValueEnumMap[reader.readStringOrNull(offsets[6])],
-    timestamp: reader.readDateTimeOrNull(offsets[7]),
+        _StoredMessagestatusValueEnumMap[reader.readStringOrNull(offsets[6])] ??
+            MessageStatus.pending,
+    timestamp: reader.readDateTime(offsets[7]),
   );
   object.id = id;
   return object;
@@ -187,20 +158,21 @@ P _storedMessageDeserializeProp<P>(
         allOffsets,
       )) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 6:
-      return (_StoredMessagestatusValueEnumMap[reader.readStringOrNull(offset)])
-          as P;
+      return (_StoredMessagestatusValueEnumMap[
+              reader.readStringOrNull(offset)] ??
+          MessageStatus.pending) as P;
     case 7:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -334,26 +306,8 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      chatIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'chatId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      chatIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'chatId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       chatIdEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -367,7 +321,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       chatIdGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -383,7 +337,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       chatIdLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -399,8 +353,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       chatIdBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -488,26 +442,8 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      contentIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'content',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      contentIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'content',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       contentEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -521,7 +457,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       contentGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -537,7 +473,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       contentLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -553,8 +489,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       contentBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -696,26 +632,8 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      messageIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'messageId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      messageIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'messageId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       messageIdEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -729,7 +647,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       messageIdGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -745,7 +663,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       messageIdLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -761,8 +679,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       messageIdBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -850,26 +768,8 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      receiverIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'receiverId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      receiverIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'receiverId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       receiverIdEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -883,7 +783,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       receiverIdGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -899,7 +799,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       receiverIdLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -915,8 +815,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       receiverIdBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1004,26 +904,8 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      senderIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'senderId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      senderIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'senderId',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       senderIdEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1037,7 +919,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       senderIdGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1053,7 +935,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       senderIdLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1069,8 +951,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       senderIdBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1158,26 +1040,8 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      statusIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'status',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      statusIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'status',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       statusEqualTo(
-    MessageStatus? value, {
+    MessageStatus value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1191,7 +1055,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       statusGreaterThan(
-    MessageStatus? value, {
+    MessageStatus value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1207,7 +1071,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       statusLessThan(
-    MessageStatus? value, {
+    MessageStatus value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1223,8 +1087,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       statusBetween(
-    MessageStatus? lower,
-    MessageStatus? upper, {
+    MessageStatus lower,
+    MessageStatus upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1312,25 +1176,7 @@ extension StoredMessageQueryFilter
   }
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      timestampIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'timestamp',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      timestampIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'timestamp',
-      ));
-    });
-  }
-
-  QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
-      timestampEqualTo(DateTime? value) {
+      timestampEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'timestamp',
@@ -1341,7 +1187,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       timestampGreaterThan(
-    DateTime? value, {
+    DateTime value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1355,7 +1201,7 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       timestampLessThan(
-    DateTime? value, {
+    DateTime value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1369,8 +1215,8 @@ extension StoredMessageQueryFilter
 
   QueryBuilder<StoredMessage, StoredMessage, QAfterFilterCondition>
       timestampBetween(
-    DateTime? lower,
-    DateTime? upper, {
+    DateTime lower,
+    DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1659,44 +1505,44 @@ extension StoredMessageQueryProperty
     });
   }
 
-  QueryBuilder<StoredMessage, String?, QQueryOperations> chatIdProperty() {
+  QueryBuilder<StoredMessage, String, QQueryOperations> chatIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'chatId');
     });
   }
 
-  QueryBuilder<StoredMessage, String?, QQueryOperations> contentProperty() {
+  QueryBuilder<StoredMessage, String, QQueryOperations> contentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'content');
     });
   }
 
-  QueryBuilder<StoredMessage, String?, QQueryOperations> messageIdProperty() {
+  QueryBuilder<StoredMessage, String, QQueryOperations> messageIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'messageId');
     });
   }
 
-  QueryBuilder<StoredMessage, String?, QQueryOperations> receiverIdProperty() {
+  QueryBuilder<StoredMessage, String, QQueryOperations> receiverIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'receiverId');
     });
   }
 
-  QueryBuilder<StoredMessage, String?, QQueryOperations> senderIdProperty() {
+  QueryBuilder<StoredMessage, String, QQueryOperations> senderIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'senderId');
     });
   }
 
-  QueryBuilder<StoredMessage, MessageStatus?, QQueryOperations>
+  QueryBuilder<StoredMessage, MessageStatus, QQueryOperations>
       statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'status');
     });
   }
 
-  QueryBuilder<StoredMessage, DateTime?, QQueryOperations> timestampProperty() {
+  QueryBuilder<StoredMessage, DateTime, QQueryOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timestamp');
     });

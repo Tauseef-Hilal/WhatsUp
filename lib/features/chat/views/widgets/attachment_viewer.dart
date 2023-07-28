@@ -9,10 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_file_plus/open_file_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/repositories/push_notifications.dart';
+import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
@@ -23,12 +23,6 @@ import '../../../../shared/utils/abc.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/attachement.dart';
 import '../../models/message.dart';
-
-Directory? _appDirectory; // Cached directory reference
-
-Future<Directory> getApplicationDirectory() async {
-  return _appDirectory ?? await getApplicationDocumentsDirectory();
-}
 
 class AttachmentPreview extends StatefulWidget {
   const AttachmentPreview({
@@ -41,18 +35,12 @@ class AttachmentPreview extends StatefulWidget {
   State<AttachmentPreview> createState() => _AttachmentPreviewState();
 }
 
-class _AttachmentPreviewState extends State<AttachmentPreview>
-    with AutomaticKeepAliveClientMixin {
-  late Future<bool> doesAttachmentExist = attachmentExists();
-
-  @override
-  bool get wantKeepAlive => true;
-
-  Future<bool> attachmentExists() async {
-    final appDir = await getApplicationDirectory();
-    final fileName =
-        "${widget.message.id}__${widget.message.attachment!.fileName}";
-    final file = File("${appDir.path}/media/$fileName");
+class _AttachmentPreviewState extends State<AttachmentPreview> {
+  bool attachmentExists() {
+    final messageId = widget.message.id;
+    final attachmentName = widget.message.attachment!.fileName;
+    final fileName = "${messageId}__$attachmentName";
+    final file = File("${DeviceStorage.appDocsDirPath}/media/$fileName");
 
     if (file.existsSync()) {
       widget.message.attachment!.file = file;
@@ -64,8 +52,6 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final imgWidth = widget.message.attachment!.width ?? 1;
@@ -76,61 +62,30 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
     height = min(height, maxHeight);
 
     final attachmentType = widget.message.attachment!.type;
-    if (attachmentType == AttachmentType.audio) {
-      width = maxWidth;
-      height = 60;
-    } else if (attachmentType == AttachmentType.document) {
-      width = 80;
-      height = 60;
-    }
-
-    return FutureBuilder(
-        future: doesAttachmentExist,
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return SizedBox(
-              width: width,
-              height: height,
-            );
-          }
-
-          switch (attachmentType) {
-            case AttachmentType.audio:
-              return AttachedAudioViewer(
-                message: widget.message,
-                doesAttachmentExist: snap.data!,
-                onDownloadComplete: () => setState(() {
-                  doesAttachmentExist = attachmentExists();
-                }),
-              );
-            case AttachmentType.voice:
-              return AttachedVoiceViewer(
-                message: widget.message,
-                doesAttachmentExist: snap.data!,
-                onDownloadComplete: () => setState(() {
-                  doesAttachmentExist = attachmentExists();
-                }),
-              );
-            case AttachmentType.document:
-              return AttachedDocumentViewer(
-                message: widget.message,
-                doesAttachmentExist: snap.data!,
-                onDownloadComplete: () => setState(() {
-                  doesAttachmentExist = attachmentExists();
-                }),
-              );
-            default:
-              return AttachedImageVideoViewer(
-                width: width,
-                height: height,
-                message: widget.message,
-                doesAttachmentExist: snap.data!,
-                onDownloadComplete: () => setState(() {
-                  doesAttachmentExist = attachmentExists();
-                }),
-              );
-          }
-        });
+    return switch (attachmentType) {
+      AttachmentType.audio => AttachedAudioViewer(
+          message: widget.message,
+          doesAttachmentExist: attachmentExists(),
+          onDownloadComplete: () => setState(() {}),
+        ),
+      AttachmentType.voice => AttachedVoiceViewer(
+          message: widget.message,
+          doesAttachmentExist: attachmentExists(),
+          onDownloadComplete: () => setState(() {}),
+        ),
+      AttachmentType.document => AttachedDocumentViewer(
+          message: widget.message,
+          doesAttachmentExist: attachmentExists(),
+          onDownloadComplete: () => setState(() {}),
+        ),
+      _ => AttachedImageVideoViewer(
+          width: width,
+          height: height,
+          message: widget.message,
+          doesAttachmentExist: attachmentExists(),
+          onDownloadComplete: () => setState(() {}),
+        )
+    };
   }
 }
 
@@ -157,28 +112,26 @@ class AttachedImageVideoViewer extends ConsumerStatefulWidget {
 
 class _AttachedImageVideoViewerState
     extends ConsumerState<AttachedImageVideoViewer> {
-  late final File? file;
-  late final User self;
-  late final bool clientIsSender;
+  late final String sender;
 
   @override
   void initState() {
-    file = widget.message.attachment!.file;
-    self = ref.read(chatControllerProvider.notifier).self;
-    clientIsSender = widget.message.senderId == self.id;
+    final self = ref.read(chatControllerProvider.notifier).self;
+    final other = ref.read(chatControllerProvider.notifier).other;
+    final clientIsSender = widget.message.senderId == self.id;
+    sender = clientIsSender ? "You" : other.name;
 
     super.initState();
   }
 
   Future<void> navigateToViewer() async {
-    final other = ref.read(chatControllerProvider.notifier).other;
-    final sender = clientIsSender ? "You" : other.name;
+    final file = widget.message.attachment!.file;
 
     if (!mounted || file == null) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AttachmentViewer(
-          file: file!,
+          file: file,
           message: widget.message,
           sender: sender,
         ),
@@ -188,10 +141,11 @@ class _AttachedImageVideoViewerState
 
   @override
   Widget build(BuildContext context) {
+    final file = widget.message.attachment!.file;
     final bool isAttachmentUploaded =
         widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
 
-    final background = clientIsSender
+    final background = sender == "You"
         ? const Color.fromARGB(255, 0, 0, 0)
         : const Color.fromARGB(150, 0, 0, 0);
 
@@ -217,7 +171,7 @@ class _AttachedImageVideoViewerState
                     child: Hero(
                       tag: widget.message.id,
                       child: AttachmentRenderer(
-                        attachment: file!,
+                        attachment: file,
                         attachmentType: widget.message.attachment!.type,
                         fit: BoxFit.cover,
                         controllable: false,
@@ -276,7 +230,6 @@ class AttachedVoiceViewer extends ConsumerStatefulWidget {
 }
 
 class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
-  late final File? file;
   late final User self;
   late final bool clientIsSender;
   final aw.PlayerController player = aw.PlayerController();
@@ -287,12 +240,12 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
 
   @override
   void initState() {
-    file = widget.message.attachment!.file;
+    final file = widget.message.attachment!.file;
     self = ref.read(chatControllerProvider.notifier).self;
     clientIsSender = widget.message.senderId == self.id;
 
     if (file != null) {
-      player.preparePlayer(path: file!.path);
+      player.preparePlayer(path: file.path);
       player.setRefresh(true);
 
       player.onPlayerStateChanged.listen((event) {
@@ -350,6 +303,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final file = widget.message.attachment!.file;
     final bool isAttachmentUploaded =
         widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
     bool showDuration = true;
@@ -462,7 +416,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                             final sampleCount = const aw.PlayerWaveStyle()
                                 .getSamplesForWidth(constraints.maxWidth);
                             player.extractWaveformData(
-                                path: file!.path, noOfSamples: sampleCount);
+                                path: file.path, noOfSamples: sampleCount);
 
                             extractionDone = ranOnce;
                           }
@@ -585,7 +539,6 @@ class AttachedAudioViewer extends ConsumerStatefulWidget {
 }
 
 class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
-  late final File? file;
   late final User self;
   late final bool clientIsSender;
   late final Future<Duration> totalDuration = getDuration();
@@ -595,7 +548,6 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
 
   @override
   void initState() {
-    file = widget.message.attachment!.file;
     self = ref.read(chatControllerProvider.notifier).self;
     clientIsSender = widget.message.senderId == self.id;
     player.onPlayerComplete.listen((event) {
@@ -618,6 +570,8 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
   }
 
   Future<void> changePlayState() async {
+    final file = widget.message.attachment!.file;
+
     if (player.state == PlayerState.playing) {
       await player.pause();
     } else {
@@ -632,6 +586,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
   }
 
   Future<Duration> getDuration() async {
+    final file = widget.message.attachment!.file;
     await player.setSourceDeviceFile(file!.path);
     return await player.getDuration() ?? const Duration();
   }
@@ -855,13 +810,11 @@ class AttachedDocumentViewer extends ConsumerStatefulWidget {
 
 class _AttachedDocumentViewerState
     extends ConsumerState<AttachedDocumentViewer> {
-  late final File? file;
   late final User self;
   late final bool clientIsSender;
 
   @override
   void initState() {
-    file = widget.message.attachment!.file;
     self = ref.read(chatControllerProvider.notifier).self;
     clientIsSender = widget.message.senderId == self.id;
 
@@ -870,6 +823,7 @@ class _AttachedDocumentViewerState
 
   @override
   Widget build(BuildContext context) {
+    final file = widget.message.attachment!.file;
     final bool isAttachmentUploaded =
         widget.message.attachment!.uploadStatus == UploadStatus.uploaded;
     final attachment = widget.message.attachment!;
@@ -955,6 +909,7 @@ class _AttachedDocumentViewerState
                 ],
               ),
             ),
+            const Spacer(),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [trailing ?? const Text("")],

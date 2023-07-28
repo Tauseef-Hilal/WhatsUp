@@ -4,13 +4,13 @@ import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
+import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 
 import '../../../shared/repositories/firebase_storage.dart';
 import '../../../shared/repositories/push_notifications.dart';
@@ -116,8 +116,9 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   Future<void> startRecording() async {
     if (!await hasPermission(Permission.microphone)) return;
 
-    final tmp = await getTemporaryDirectory();
-    await state.soundRecorder.record(path: "${tmp.path}/voice.aac");
+    await state.soundRecorder.record(
+      path: "${DeviceStorage.tempDirPath}/voice.aac",
+    );
 
     setRecordingState(RecordingState.recording);
   }

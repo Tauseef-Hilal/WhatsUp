@@ -1,4 +1,5 @@
-import 'package:whatsapp_clone/shared/models/phone.dart';
+import 'package:isar/isar.dart';
+part 'user.g.dart';
 
 enum UserActivityStatus {
   online('Online'),
@@ -20,11 +21,15 @@ enum UserActivityStatus {
   }
 }
 
+@collection
 class User {
+  Id isarId = Isar.autoIncrement;
   final String id;
   final String name;
   final String avatarUrl;
   final Phone phone;
+
+  @Enumerated(EnumType.value, 'value')
   UserActivityStatus activityStatus;
 
   User({
@@ -52,6 +57,40 @@ class User {
       'avatarUrl': avatarUrl,
       'phone': phone.toMap(),
       'activityStatus': activityStatus.value,
+    };
+  }
+}
+
+
+@embedded
+class Phone {
+  String? code;
+  String? number;
+  String? formattedNumber;
+
+  Phone({
+    this.code,
+    this.number,
+    this.formattedNumber,
+  });
+
+  String getFormattedNumber() => formattedNumber ?? '$code $number';
+  String get rawNumber => '$code$number';
+
+  factory Phone.fromMap(Map<String, dynamic> phoneData) {
+    return Phone(
+      code: phoneData['code'],
+      number: phoneData['number'],
+      formattedNumber: phoneData['formattedNumber'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'code': code,
+      'number': number,
+      'formattedNumber': formattedNumber,
+      'rawNumber': rawNumber,
     };
   }
 }
