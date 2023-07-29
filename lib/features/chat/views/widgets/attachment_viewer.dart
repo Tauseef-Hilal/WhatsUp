@@ -193,6 +193,8 @@ class _AttachedImageVideoViewerState
           DownloadingAttachment(
             message: widget.message,
             onDone: widget.onDownloadComplete,
+            autoDownload:
+                widget.message.attachment!.type == AttachmentType.image,
           )
         ] else if (!isAttachmentUploaded) ...[
           UploadingAttachment(

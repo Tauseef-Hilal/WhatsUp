@@ -57,6 +57,38 @@ class IsarDb {
     });
   }
 
+  static Future<void> addMessages(List<Message> messages) async {
+    final storedMessages = messages
+        .map(
+          (message) => StoredMessage(
+            messageId: message.id,
+            chatId: getChatId(message.senderId, message.receiverId),
+            content: message.content,
+            senderId: message.senderId,
+            receiverId: message.receiverId,
+            status: message.status,
+            timestamp: DateTime.now(),
+            attachment: message.attachment != null
+                ? EmbeddedAttachment(
+                    fileName: message.attachment!.fileName,
+                    fileExtension: message.attachment!.fileExtension,
+                    fileSize: message.attachment!.fileSize,
+                    width: message.attachment!.width,
+                    height: message.attachment!.height,
+                    uploadStatus: message.attachment!.uploadStatus,
+                    url: message.attachment!.url,
+                    type: message.attachment!.type,
+                  )
+                : null,
+          ),
+        )
+        .toList();
+
+    await isar.writeTxn(() async {
+      await isar.storedMessages.putAll(storedMessages);
+    });
+  }
+
   static Future<void> updateMessage(
     String messageId, {
     String? content,

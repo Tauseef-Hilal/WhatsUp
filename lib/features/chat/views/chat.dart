@@ -1023,10 +1023,10 @@ class _ChatBodyState extends State<ChatBody> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      controller: widget.scrollController,
-      physics: const BouncingScrollPhysics(),
-      itemCount: widget.messages.length,
       shrinkWrap: true,
+      physics: const BouncingScrollPhysics(),
+      controller: widget.scrollController,
+      itemCount: widget.messages.length,
       itemBuilder: (context, index) {
         Message message = widget.messages[index];
 

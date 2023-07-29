@@ -53,20 +53,28 @@ class _HomePageState extends ConsumerState<HomePage>
   @override
   void initState() {
     final firestore = ref.read(firebaseFirestoreRepositoryProvider);
-    messageListener =
-        firestore.getChatStream(widget.user.id).listen((messages) async {
-      for (final message in messages) {
-        await IsarDb.addMessage(message..status = MessageStatus.delivered);
-        await firestore.sendSystemMessage(
-          message: SystemMessage(
-            targetId: message.id,
-            action: MessageAction.statusUpdate,
-            update: MessageStatus.delivered.value,
-          ),
-          receiverId: message.senderId,
-        );
-      }
-    });
+    firestore.setActivityStatus(
+      userId: widget.user.id,
+      statusValue: UserActivityStatus.online.value,
+    );
+    
+    messageListener = firestore.getChatStream(widget.user.id).listen(
+      (messages) async {
+        for (final message in messages) {
+          message.status = MessageStatus.delivered;
+          firestore.sendSystemMessage(
+            message: SystemMessage(
+              targetId: message.id,
+              action: MessageAction.statusUpdate,
+              update: MessageStatus.delivered.value,
+            ),
+            receiverId: message.senderId,
+          );
+        }
+
+        IsarDb.addMessages(messages);
+      },
+    );
 
     ref.read(pushNotificationsRepoProvider).init(
       onMessageOpenedApp: (message) async {

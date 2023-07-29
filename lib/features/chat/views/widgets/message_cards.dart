@@ -27,9 +27,9 @@ class MessageCard extends StatefulWidget {
 }
 
 class _MessageCardState extends State<MessageCard> {
-  bool containsSingleEmoji(String text) {
-    return EmojiParser().parseEmojis(text).length == 1 &&
-        text.runes.length == 1;
+  bool shouldHaveBiggerFont(String text) {
+    final x = EmojiParser().parseEmojis(text);
+    return text.runes.length == x.length;
   }
 
   @override
@@ -48,17 +48,21 @@ class _MessageCardState extends State<MessageCard> {
         ((hasAttachment && attachmentType != AttachmentType.audio) &&
             (hasAttachment && attachmentType != AttachmentType.voice));
 
-    final hasSingleEmoji = containsSingleEmoji(widget.message.content);
+    final biggerFont = shouldHaveBiggerFont(widget.message.content);
     int padding = 2;
 
-    if (!hasSingleEmoji) {
+    if (!biggerFont) {
       if (isSentMessageCard) {
         padding = Platform.isAndroid
-            ? (widget.special ? 14 : 12)
-            : (widget.special ? 17 : 15);
+            ? (widget.special ? 17 : 14)
+            : (widget.special ? 19 : 17);
       } else {
-        padding = Platform.isAndroid ? 8 : 12;
+        padding = Platform.isAndroid ? 10 : 13;
       }
+    }
+
+    if (widget.message.content.length % 30 == 0) {
+      padding = 0;
     }
 
     final textPadding = '\u00A0' * padding;
@@ -72,7 +76,7 @@ class _MessageCardState extends State<MessageCard> {
             : null,
         child: Container(
           constraints: BoxConstraints(
-            minHeight: Platform.isIOS ? 36 : 30,
+            minHeight: 34,
             minWidth: widget.special ? (isSentMessageCard ? 98 : 76) : 60,
             maxWidth: size.width * 0.75 + (widget.special ? 10 : 0),
           ),
@@ -107,21 +111,20 @@ class _MessageCardState extends State<MessageCard> {
                       top: 4.0,
                       bottom: 4.0,
                       left: widget.special && !isSentMessageCard ? 14.0 : 4.0,
-                      right: widget.special && isSentMessageCard ? 10.0 : 4.0,
+                      right: widget.special && isSentMessageCard ? 14.0 : 4.0,
                     )
               : EdgeInsets.only(
-                  left: 10.0,
-                  right: 10,
-                  top: widget.special ? 0.0 : 4.0,
-                  bottom: 5.0,
+                  left: 10,
+                  right: widget.special ? 16 : 10,
+                  top: 0,
+                  bottom: 4,
                 ),
           child: Stack(
-            alignment: Alignment.center,
+            alignment: Alignment.centerLeft,
             children: [
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (hasAttachment) ...[
                     AttachmentPreview(
@@ -136,24 +139,30 @@ class _MessageCardState extends State<MessageCard> {
                               ? EdgeInsets.only(
                                   left: 10,
                                   top: 4,
-                                  bottom: hasSingleEmoji ? 12 : 0,
+                                  bottom: biggerFont
+                                      ? 12
+                                      : padding == 0
+                                          ? 14.0
+                                          : 0,
                                 )
                               : EdgeInsets.only(
                                   top: 2.0,
-                                  bottom: hasSingleEmoji
+                                  bottom: biggerFont
                                       ? (Platform.isAndroid ? 16.0 : 12.0)
-                                      : 0,
+                                      : padding == 0
+                                          ? 14.0
+                                          : 0,
                                 ),
                       child: Text(
-                        '${widget.message.content} $textPadding',
+                        '${widget.message.content}$textPadding',
+                        textWidthBasis: TextWidthBasis.longestLine,
                         style: Theme.of(context)
                             .custom
                             .textTheme
                             .bodyText1
                             .copyWith(
-                              fontSize: hasSingleEmoji ? 40 : 16,
-                              height: 1,
-                              color: colorTheme.textColor1,
+                              fontSize: biggerFont ? 40 : 16,
+                              color: Colors.white,
                             ),
                         softWrap: true,
                       ),
@@ -201,7 +210,9 @@ class _MessageCardState extends State<MessageCard> {
                               .copyWith(
                                   fontSize: 11,
                                   color: messageHasText
-                                      ? colorTheme.textColor2
+                                      ? colorTheme.textColor1
+                                          .withOpacity(0.9)
+                                          .withBlue(255)
                                       : Colors.white),
                         )
                       ],
@@ -213,7 +224,9 @@ class _MessageCardState extends State<MessageCard> {
                           'assets/images/${widget.message.status.value}.png',
                           color: widget.message.status.value != 'SEEN'
                               ? messageHasText
-                                  ? colorTheme.textColor2
+                                  ? colorTheme.textColor1
+                                      .withOpacity(0.65)
+                                      .withBlue(255)
                                   : Colors.white
                               : null,
                           width: 16.0,
@@ -221,7 +234,7 @@ class _MessageCardState extends State<MessageCard> {
                       ],
                       if (widget.special &&
                           isSentMessageCard &&
-                          messageHasText) ...[const SizedBox(width: 10)],
+                          messageHasText) ...[const SizedBox(width: 9)],
                     ],
                   ),
                 ),

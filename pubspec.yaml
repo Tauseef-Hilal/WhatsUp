@@ -35,9 +35,9 @@ dependencies:
   video_player: ^2.7.0
   mime: ^1.0.4
   open_file_plus: ^3.4.1
-  audioplayers: ^4.1.0
+  audioplayers: ^5.0.0
   audio_waveforms: ^1.0.4
-  logger: ^1.4.0
+  logger: ^2.0.1
   flutter_webrtc: ^0.9.35
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
