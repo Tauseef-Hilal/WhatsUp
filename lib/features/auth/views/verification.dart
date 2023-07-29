@@ -176,7 +176,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                     ref
                             .read(resendTimerControllerProvider.notifier)
                             .isTimerActive
-                        ? strFormattedTime(resendTime)
+                        ? timeFromSeconds(resendTime)
                         : '',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),

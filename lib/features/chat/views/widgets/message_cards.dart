@@ -113,9 +113,9 @@ class _MessageCardState extends State<MessageCard> {
                       left: widget.special && !isSentMessageCard ? 14.0 : 4.0,
                       right: widget.special && isSentMessageCard ? 14.0 : 4.0,
                     )
-              : EdgeInsets.only(
+              : const EdgeInsets.only(
                   left: 10,
-                  right: widget.special ? 16 : 10,
+                  right: 10,
                   top: 0,
                   bottom: 4,
                 ),

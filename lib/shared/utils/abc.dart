@@ -23,9 +23,6 @@ User? getCurrentUser() {
   return User.fromMap(jsonDecode(userStr));
 }
 
-
-
-
 String getChatId(String senderId, String receiverId) {
   final charList = (senderId + receiverId).split('');
   charList.sort((a, b) => a.compareTo(b));
@@ -50,7 +47,7 @@ String strFormattedSize(num size) {
   return "${size.toStringAsFixed(2)}$suffix";
 }
 
-String strFormattedTime(int seconds, [bool minWidth4 = false]) {
+String timeFromSeconds(int seconds, [bool minWidth4 = false]) {
   if (seconds == 0) return "0:00";
 
   String result = DateFormat('HH:mm:ss').format(
@@ -78,6 +75,23 @@ String formattedTimestamp(Timestamp timestamp,
     return meridiem
         ? DateFormat('hh:mm a').format(date)
         : DateFormat('HH:mm').format(date);
+  }
+
+  if (now.day - date.day == 1 && isSameMonthAndYear) {
+    return 'Yesterday';
+  }
+
+  return DateFormat.yMd().format(date);
+}
+
+String dateFromTimestamp(Timestamp timestamp) {
+  DateTime now = DateTime.now();
+  DateTime date = timestamp.toDate();
+
+  final isSameMonthAndYear = now.month == date.month && now.year == date.year;
+
+  if (now.day == date.day && isSameMonthAndYear) {
+    return 'Today';
   }
 
   if (now.day - date.day == 1 && isSameMonthAndYear) {

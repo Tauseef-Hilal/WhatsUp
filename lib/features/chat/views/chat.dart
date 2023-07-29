@@ -441,7 +441,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                                     ),
                                                   ),
                                                   Text(
-                                                    strFormattedTime(
+                                                    timeFromSeconds(
                                                       duration.inSeconds,
                                                       true,
                                                     ),
@@ -586,7 +586,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                               final duration = snapshot.data!;
 
                               return Text(
-                                strFormattedTime(
+                                timeFromSeconds(
                                   duration.inSeconds,
                                   true,
                                 ),
@@ -1022,6 +1022,8 @@ class _ChatBodyState extends State<ChatBody> {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const BouncingScrollPhysics(),
@@ -1037,10 +1039,11 @@ class _ChatBodyState extends State<ChatBody> {
           }
         }
 
+        Widget card;
         if (index == 0 ||
             (widget.messages[index - 1].senderId !=
                 widget.messages[index].senderId)) {
-          return message.senderId == widget.self.id
+          card = message.senderId == widget.self.id
               ? MessageCard(
                   message: message,
                   special: true,
@@ -1051,17 +1054,47 @@ class _ChatBodyState extends State<ChatBody> {
                   special: true,
                   type: MessageCardType.receivedMessageCard,
                 );
+        } else {
+          card = message.senderId == widget.self.id
+              ? MessageCard(
+                  message: message,
+                  type: MessageCardType.sentMessageCard,
+                )
+              : MessageCard(
+                  message: message,
+                  type: MessageCardType.receivedMessageCard,
+                );
         }
 
-        return message.senderId == widget.self.id
-            ? MessageCard(
-                message: message,
-                type: MessageCardType.sentMessageCard,
+        return Column(
+          children: [
+            if (index == 0 ||
+                widget.messages[index - 1].timestamp.toDate().day !=
+                    widget.messages[index].timestamp.toDate().day) ...[
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: const Color.fromARGB(200, 13, 13, 16),
+                ),
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 24,
+                ),
+                child: Text(
+                  dateFromTimestamp(
+                    widget.messages[index].timestamp,
+                  ),
+                  style: TextStyle(
+                      color: colorTheme.iconColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
+                ),
               )
-            : MessageCard(
-                message: message,
-                type: MessageCardType.receivedMessageCard,
-              );
+            ],
+            card,
+          ],
+        );
       },
     );
   }

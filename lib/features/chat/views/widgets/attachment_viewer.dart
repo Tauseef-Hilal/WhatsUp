@@ -489,7 +489,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                         children: [
                           showDuration
                               ? Text(
-                                  strFormattedTime(
+                                  timeFromSeconds(
                                       player.maxDuration ~/ 1000, true),
                                   style: const TextStyle(fontSize: 12),
                                 )
@@ -769,7 +769,7 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
                                 return Container();
                               }
                               return Text(
-                                strFormattedTime(snap.data!.inSeconds, true),
+                                timeFromSeconds(snap.data!.inSeconds, true),
                                 style: const TextStyle(fontSize: 12),
                               );
                             },
