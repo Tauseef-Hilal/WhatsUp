@@ -57,7 +57,7 @@ class _HomePageState extends ConsumerState<HomePage>
       userId: widget.user.id,
       statusValue: UserActivityStatus.online.value,
     );
-    
+
     messageListener = firestore.getChatStream(widget.user.id).listen(
       (messages) async {
         for (final message in messages) {
@@ -370,7 +370,7 @@ class HomePageContactsList extends StatelessWidget {
           descriptionList[1] =
               ' and ${userCount - 3} more of your contacts\n are on WhatsApp';
         } else if (userCount > 2) {
-          descriptionList[0] = users.join(', ');
+          descriptionList[0] = users.getRange(0, 2).join(', ');
           descriptionList[1] = ' and ${users[2]} are on WhatsApp';
         } else if (userCount > 1) {
           descriptionList[0] = users.join(' and ');
