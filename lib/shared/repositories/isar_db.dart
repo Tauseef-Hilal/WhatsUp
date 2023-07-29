@@ -93,8 +93,7 @@ class IsarDb {
     String messageId, {
     String? content,
     MessageStatus? status,
-    String? attachmentUrl,
-    UploadStatus? uploadStatus,
+    Attachment? attachment,
   }) async {
     await isar.writeTxn(() async {
       StoredMessage? msg = await isar.storedMessages
@@ -104,15 +103,22 @@ class IsarDb {
           .findFirst();
 
       if (msg == null) return;
+
       msg.content = content ?? msg.content;
       msg.status = status ?? msg.status;
-      msg.attachment = msg.attachment != null
-          ? attachmentUrl != null
-              ? (msg.attachment!
-                ..url = attachmentUrl
-                ..uploadStatus = uploadStatus)
-              : msg.attachment
-          : null;
+
+      if (attachment != null) {
+        msg.attachment = EmbeddedAttachment(
+          fileName: attachment.fileName,
+          fileExtension: attachment.fileExtension,
+          fileSize: attachment.fileSize,
+          width: attachment.width,
+          height: attachment.height,
+          uploadStatus: attachment.uploadStatus,
+          url: attachment.url,
+          type: attachment.type,
+        );
+      }
 
       await isar.storedMessages.put(msg);
     });
