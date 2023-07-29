@@ -457,9 +457,30 @@ class RecentChatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trailingChildren = [
+      RecentChatTime(chat: chat, colorTheme: colorTheme),
+      if (chat.unreadCount > 0) ...[
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colorTheme.greenColor,
+          ),
+          margin: const EdgeInsets.only(left: 4.0),
+          padding: const EdgeInsets.all(6.0),
+          child: Text(
+            chat.unreadCount.toString(),
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        )
+      ],
+    ];
+
     return ListTile(
       onTap: () {
-        chat.isNewForUser = false;
+        chat.unreadCount = 0;
 
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -546,21 +567,15 @@ class RecentChatWidget extends StatelessWidget {
               style: Theme.of(context).custom.textTheme.subtitle2)
         ],
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RecentChatTime(chat: chat, colorTheme: colorTheme),
-          if (chat.isNewForUser) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Icon(
-                Icons.circle,
-                color: colorTheme.greenColor,
-              ),
+      trailing: chat.unreadCount > 0
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: trailingChildren,
             )
-          ],
-        ],
-      ),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: trailingChildren,
+            ),
     );
   }
 }
@@ -604,7 +619,7 @@ class _RecentChatTimeState extends State<RecentChatTime> {
         widget.chat.message.timestamp,
       ),
       style: Theme.of(context).custom.textTheme.caption.copyWith(
-            color: widget.chat.isNewForUser
+            color: widget.chat.unreadCount > 0
                 ? widget.colorTheme.greenColor
                 : Theme.of(context).custom.colorTheme.greyColor,
           ),

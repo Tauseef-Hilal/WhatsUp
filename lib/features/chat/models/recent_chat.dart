@@ -4,17 +4,19 @@ import 'package:whatsapp_clone/shared/models/user.dart';
 class RecentChat {
   final Message message;
   final User user;
-  bool isNewForUser = false;
+  int unreadCount;
 
   RecentChat({
     required this.message,
     required this.user,
+    this.unreadCount = 0,
   });
 
   factory RecentChat.fromMap(Map<String, dynamic> chatData) {
     return RecentChat(
       message: Message.fromMap(chatData['message']),
       user: User.fromMap(chatData['user']),
+      unreadCount: chatData['unreadCount'],
     );
   }
 
@@ -27,6 +29,7 @@ class RecentChat {
     return {
       'message': message.toMap(),
       'user': user.toMap(),
+      'unreadCount': unreadCount,
     };
   }
 }

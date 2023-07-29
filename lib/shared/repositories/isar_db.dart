@@ -165,16 +165,24 @@ class IsarDb {
         .sortByTimestampDesc()
         .watch(fireImmediately: true)
         .asyncMap((event) async {
-      final visitedChats = <dynamic>{};
+      final Map<String, int> visitedChats = {};
       final recentChats = <RecentChat>[];
 
       for (final msg in event) {
-        if (visitedChats.contains(msg.chatId)) continue;
+        final clientIsSender = msg.senderId == currentUser.id;
+        if (visitedChats.containsKey(msg.chatId)) {
+          if (clientIsSender) continue;
+          if (msg.status == MessageStatus.seen) continue;
+          
+          visitedChats[msg.chatId] = visitedChats[msg.chatId]! + 1;
+          continue;
+        }
+
         if (msg.attachment != null &&
             msg.attachment!.uploadStatus != UploadStatus.uploaded) continue;
 
         var sender = await IsarDb.getUserById(
-          msg.senderId == currentUser.id ? msg.receiverId : msg.senderId,
+          clientIsSender ? msg.receiverId : msg.senderId,
         );
 
         Contact? contact;
@@ -217,11 +225,16 @@ class IsarDb {
             user: User.fromMap(
               sender!.toMap()..addAll({'name': senderName}),
             ),
-          )..isNewForUser = msg.status != MessageStatus.seen &&
-              msg.senderId != currentUser.id,
+          ),
         );
 
-        visitedChats.add(msg.chatId);
+        visitedChats[msg.chatId] =
+            clientIsSender || msg.status == MessageStatus.seen ? 0 : 1;
+      }
+
+      for (final chat in recentChats) {
+        chat.unreadCount = visitedChats[
+            getChatId(chat.message.senderId, chat.message.receiverId)]!;
       }
 
       return recentChats;
