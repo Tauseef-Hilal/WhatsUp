@@ -15,6 +15,12 @@ class _ScrollButtonState extends State<ScrollButton> {
   @override
   void initState() {
     widget.scrollController.addListener(scrollListener);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final scrollPosition = widget.scrollController.position;
+      setState(() {
+        showScrollBtn = scrollPosition.pixels < scrollPosition.maxScrollExtent;
+      });
+    });
     super.initState();
   }
 
@@ -25,23 +31,25 @@ class _ScrollButtonState extends State<ScrollButton> {
   }
 
   void scrollListener() {
-    final scroll = widget.scrollController.position.pixels;
-    if (showScrollBtn && scroll > 300) {
+    final position = widget.scrollController.position;
+    final diff = position.maxScrollExtent - position.pixels;
+
+    if (showScrollBtn && diff > 300) {
       return;
     }
 
-    if (showScrollBtn && scroll <= 300) {
+    if (showScrollBtn && diff <= 300) {
       setState(() => showScrollBtn = false);
       return;
     }
 
-    if (showScrollBtn || scroll <= 300) return;
+    if (showScrollBtn || diff <= 300) return;
     setState(() => showScrollBtn = true);
   }
 
   void handleScrollBtnClick() {
     widget.scrollController.animateTo(
-      0,
+      widget.scrollController.position.maxScrollExtent,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
     );

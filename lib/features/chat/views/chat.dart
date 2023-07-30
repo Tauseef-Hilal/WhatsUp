@@ -924,7 +924,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final String chatId;
   late Stream<List<Message>> messageStream;
 
-  final scrollController = ScrollController();
+  late final ScrollController scrollController;
 
   @override
   void initState() {
@@ -932,7 +932,20 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     other = ref.read(chatControllerProvider.notifier).other;
     chatId = getChatId(self.id, other.id);
     messageStream = IsarDb.getChatStream(chatId);
+    scrollController = ScrollController(
+      initialScrollOffset: SharedPref.instance.getDouble(chatId) ?? 0,
+    );
+
     super.initState();
+  }
+
+  @override
+  void deactivate() async {
+    await SharedPref.instance.setDouble(
+      chatId,
+      scrollController.position.pixels,
+    );
+    super.deactivate();
   }
 
   @override
@@ -941,116 +954,135 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     super.dispose();
   }
 
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     final colorTheme = Theme.of(context).custom.colorTheme;
 
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        StreamBuilder<List<Message>>(
-          stream: messageStream,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return Container();
-            }
+    return StreamBuilder<List<Message>>(
+      stream: messageStream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container();
+        }
 
-            final messages = snapshot.data!;
-            for (final message in messages) {
-              if (message.senderId == self.id) continue;
-              if (message.status == MessageStatus.seen) continue;
-              if (message.attachment != null &&
-                  message.attachment!.uploadStatus != UploadStatus.uploaded) {
-                continue;
-              }
+        final messages = snapshot.data!;
+        for (final message in messages) {
+          if (message.senderId == self.id) continue;
+          if (message.status == MessageStatus.seen) continue;
+          if (message.attachment != null &&
+              message.attachment!.uploadStatus != UploadStatus.uploaded) {
+            continue;
+          }
 
-              WidgetsBinding.instance.addPostFrameCallback((_) async {
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  if (!mounted) return;
-                  ref
-                      .read(chatControllerProvider.notifier)
-                      .markMessageAsSeen(message);
-                });
-              });
-            }
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (!mounted) return;
+              ref
+                  .read(chatControllerProvider.notifier)
+                  .markMessageAsSeen(message);
+            });
+          });
+        }
 
-            return Align(
-              alignment: Alignment.topCenter,
-              child: ListView.builder(
-                shrinkWrap: true,
-                reverse: true,
-                physics: const BouncingScrollPhysics(),
-                controller: scrollController,
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  Message message = messages[index];
+        if (scrollController.hasClients) {
+          scrollToBottom();
+        }
 
-                  if (message.senderId != self.id) {
-                    if (message.attachment != null &&
-                        message.attachment!.uploadStatus !=
-                            UploadStatus.uploaded) {
-                      return Container();
-                    }
-                  }
-
-                  bool isFirstMsg = index == messages.length - 1;
-                  bool isSpecial = isFirstMsg ||
-                      messages[index].senderId != messages[index + 1].senderId;
-                  final currMsgDate =
-                      dateFromTimestamp(messages[index].timestamp);
-                  bool showDate = isFirstMsg ||
-                      currMsgDate !=
-                          dateFromTimestamp(messages[index + 1].timestamp);
-
-                  return Column(
-                    key: ValueKey(message.id),
-                    children: [
-                      if (showDate) ...[
-                        ChatDate(date: currMsgDate),
-                      ],
-                      if (isFirstMsg) ...[
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: isDarkTheme
-                                ? const Color.fromARGB(200, 24, 34, 40)
-                                : const Color.fromARGB(197, 247, 233, 112),
-                          ),
-                          child: Text(
-                            '🔒Messages and calls are end-to-end encrypted. Not one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
-                            style: TextStyle(
-                              color: isDarkTheme
-                                  ? colorTheme.yellowColor
-                                  : colorTheme.textColor1,
-                            ),
-                            softWrap: true,
-                            textWidthBasis: TextWidthBasis.longestLine,
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      ],
-                      MessageCard(
-                        message: message,
-                        currentUserId: self.id,
-                        special: isSpecial,
+        return Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                children: [
+                  ChatDate(
+                    date: messages.isEmpty
+                        ? 'Today'
+                        : dateFromTimestamp(messages.first.timestamp),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: isDarkTheme
+                          ? const Color.fromARGB(200, 24, 34, 40)
+                          : const Color.fromARGB(197, 247, 233, 112),
+                    ),
+                    child: Text(
+                      '🔒Messages and calls are end-to-end encrypted. Not one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
+                      style: TextStyle(
+                        color: isDarkTheme
+                            ? colorTheme.yellowColor
+                            : colorTheme.textColor1,
                       ),
-                    ],
-                  );
-                },
-                findChildIndexCallback: (key) {
-                  String messageId = (key as ValueKey<String>).value;
-                  return messages.indexWhere((msg) => msg.id == messageId);
-                },
+                      softWrap: true,
+                      textWidthBasis: TextWidthBasis.longestLine,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        Message message = messages[index];
+
+                        if (message.senderId != self.id) {
+                          if (message.attachment != null &&
+                              message.attachment!.uploadStatus !=
+                                  UploadStatus.uploaded) {
+                            return Container();
+                          }
+                        }
+
+                        bool isFirstMsg = index == 0;
+                        bool isSpecial = isFirstMsg ||
+                            messages[index - 1].senderId !=
+                                messages[index].senderId;
+                        final nextMsgDate =
+                            dateFromTimestamp(messages[index].timestamp);
+                        bool showDate = isFirstMsg ||
+                            dateFromTimestamp(messages[index - 1].timestamp) !=
+                                nextMsgDate;
+
+                        return Column(
+                          key: ValueKey(message.id),
+                          children: [
+                            if (!isFirstMsg && showDate) ...[
+                              ChatDate(date: nextMsgDate),
+                            ],
+                            MessageCard(
+                              message: message,
+                              currentUserId: self.id,
+                              special: isSpecial,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
-        ScrollButton(scrollController: scrollController)
-      ],
+            ),
+            ScrollButton(scrollController: scrollController)
+          ],
+        );
+      },
     );
   }
 }

@@ -1268,24 +1268,27 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
   void onUploadDone(TaskSnapshot snapshot) async {
     final url = await snapshot.ref.getDownloadURL();
 
-    await ref.read(firebaseFirestoreRepositoryProvider).sendMessage(
+    ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .sendMessage(
           widget.message
             ..status = MessageStatus.sent
             ..attachment!.url = url
             ..attachment!.uploadStatus = UploadStatus.uploaded,
-        );
+        )
+        .then((_) {
+      IsarDb.updateMessage(
+        widget.message.id,
+        status: widget.message.status,
+        attachment: widget.message.attachment!
+          ..url = url
+          ..uploadStatus = UploadStatus.uploaded,
+      );
 
-    await IsarDb.updateMessage(
-      widget.message.id,
-      status: widget.message.status,
-      attachment: widget.message.attachment!
-        ..url = url
-        ..uploadStatus = UploadStatus.uploaded,
-    );
-
-    await ref
-        .read(pushNotificationsRepoProvider)
-        .sendPushNotification(widget.message);
+      ref
+          .read(pushNotificationsRepoProvider)
+          .sendPushNotification(widget.message);
+    });
   }
 
   Future<void> stopAutoUpload() async {

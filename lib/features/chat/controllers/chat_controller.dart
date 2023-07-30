@@ -204,16 +204,17 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
 
   Future<void> sendMessageNoAttachments(Message message) async {
     await IsarDb.addMessage(message);
-    await ref
+    ref
         .read(firebaseFirestoreRepositoryProvider)
-        .sendMessage(message..status = MessageStatus.sent);
-
-    await IsarDb.updateMessage(message.id, status: message.status);
-    await ref.read(pushNotificationsRepoProvider).sendPushNotification(message);
+        .sendMessage(message..status = MessageStatus.sent)
+        .then((_) {
+      IsarDb.updateMessage(message.id, status: message.status);
+      ref.read(pushNotificationsRepoProvider).sendPushNotification(message);
+    });
   }
 
-  void sendMessageWithAttachments(Message message) {
-    IsarDb.addMessage(message);
+  void sendMessageWithAttachments(Message message) async {
+    await IsarDb.addMessage(message);
   }
 
   Future<void> markMessageAsSeen(Message message) async {
