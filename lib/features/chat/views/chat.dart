@@ -955,6 +955,9 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   }
 
   void scrollToBottom() {
+    final position = scrollController.position;
+    if (position.maxScrollExtent - position.pixels > 300) return;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
@@ -1000,7 +1003,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         return Stack(
-          alignment: Alignment.bottomRight,
+          alignment: Alignment.topCenter,
           children: [
             SingleChildScrollView(
               controller: scrollController,
@@ -1033,53 +1036,53 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        Message message = messages[index];
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      Message message = messages[index];
 
-                        if (message.senderId != self.id) {
-                          if (message.attachment != null &&
-                              message.attachment!.uploadStatus !=
-                                  UploadStatus.uploaded) {
-                            return Container();
-                          }
+                      if (message.senderId != self.id) {
+                        if (message.attachment != null &&
+                            message.attachment!.uploadStatus !=
+                                UploadStatus.uploaded) {
+                          return Container();
                         }
+                      }
 
-                        bool isFirstMsg = index == 0;
-                        bool isSpecial = isFirstMsg ||
-                            messages[index - 1].senderId !=
-                                messages[index].senderId;
-                        final nextMsgDate =
-                            dateFromTimestamp(messages[index].timestamp);
-                        bool showDate = isFirstMsg ||
-                            dateFromTimestamp(messages[index - 1].timestamp) !=
-                                nextMsgDate;
+                      bool isFirstMsg = index == 0;
+                      bool isSpecial = isFirstMsg ||
+                          messages[index - 1].senderId !=
+                              messages[index].senderId;
+                      final nextMsgDate =
+                          dateFromTimestamp(messages[index].timestamp);
+                      bool showDate = isFirstMsg ||
+                          dateFromTimestamp(messages[index - 1].timestamp) !=
+                              nextMsgDate;
 
-                        return Column(
-                          key: ValueKey(message.id),
-                          children: [
-                            if (!isFirstMsg && showDate) ...[
-                              ChatDate(date: nextMsgDate),
-                            ],
-                            MessageCard(
-                              message: message,
-                              currentUserId: self.id,
-                              special: isSpecial,
-                            ),
+                      return Column(
+                        key: ValueKey(message.id),
+                        children: [
+                          if (!isFirstMsg && showDate) ...[
+                            ChatDate(date: nextMsgDate),
                           ],
-                        );
-                      },
-                    ),
+                          MessageCard(
+                            message: message,
+                            currentUserId: self.id,
+                            special: isSpecial,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-            ScrollButton(scrollController: scrollController)
+            Align(
+              alignment: Alignment.bottomRight,
+              child: ScrollButton(scrollController: scrollController),
+            )
           ],
         );
       },
