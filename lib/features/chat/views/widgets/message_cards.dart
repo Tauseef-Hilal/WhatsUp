@@ -161,7 +161,7 @@ class _MessageCardState extends State<MessageCard> {
                             .bodyText1
                             .copyWith(
                               fontSize: biggerFont ? 40 : 16,
-                              color: Colors.white,
+                              color: colorTheme.textColor1,
                             ),
                         softWrap: true,
                       ),
@@ -207,12 +207,18 @@ class _MessageCardState extends State<MessageCard> {
                               .textTheme
                               .caption
                               .copyWith(
-                                  fontSize: 11,
-                                  color: messageHasText
-                                      ? colorTheme.textColor1
-                                          .withOpacity(0.9)
-                                          .withBlue(255)
-                                      : Colors.white),
+                                fontSize: 11,
+                                color: messageHasText
+                                    ? colorTheme.textColor1
+                                        .withOpacity(0.9)
+                                        .withBlue(
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? 255
+                                              : 100,
+                                        )
+                                    : Colors.white,
+                              ),
                         )
                       ],
                       if (isSentMessageCard) ...[
@@ -225,7 +231,10 @@ class _MessageCardState extends State<MessageCard> {
                               ? messageHasText
                                   ? colorTheme.textColor1
                                       .withOpacity(0.65)
-                                      .withBlue(255)
+                                      .withBlue(Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? 255
+                                          : 150)
                                   : Colors.white
                               : null,
                           width: 16.0,

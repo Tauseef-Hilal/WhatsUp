@@ -13,6 +13,7 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/chat_date.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/scroll_btn.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
@@ -921,90 +922,108 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User self;
   late final User other;
   late final String chatId;
+  late Stream<List<Message>> messageStream;
+
+  final scrollController = ScrollController();
 
   @override
   void initState() {
     self = ref.read(chatControllerProvider.notifier).self;
     other = ref.read(chatControllerProvider.notifier).other;
     chatId = getChatId(self.id, other.id);
-
+    messageStream = IsarDb.getChatStream(chatId);
     super.initState();
   }
 
   @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Message>>(
-      stream: IsarDb.getChatStream(chatId),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Container();
-        }
+    return Stack(
+      alignment: Alignment.bottomRight,
+      children: [
+        StreamBuilder<List<Message>>(
+          stream: messageStream,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Container();
+            }
 
-        final messages = snapshot.data!;
-        for (final message in messages) {
-          if (message.senderId == self.id) continue;
-          if (message.status == MessageStatus.seen) continue;
-          if (message.attachment != null &&
-              message.attachment!.uploadStatus != UploadStatus.uploaded) {
-            continue;
-          }
-
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (!mounted) return;
-              ref
-                  .read(chatControllerProvider.notifier)
-                  .markMessageAsSeen(message);
-            });
-          });
-        }
-
-        return Align(
-          alignment: Alignment.topCenter,
-          child: ListView.builder(
-            shrinkWrap: true,
-            reverse: true,
-            physics: const BouncingScrollPhysics(),
-            itemCount: messages.length,
-            itemBuilder: (context, index) {
-              Message message = messages[index];
-
-              if (message.senderId != self.id) {
-                if (message.attachment != null &&
-                    message.attachment!.uploadStatus != UploadStatus.uploaded) {
-                  return Container();
-                }
+            final messages = snapshot.data!;
+            for (final message in messages) {
+              if (message.senderId == self.id) continue;
+              if (message.status == MessageStatus.seen) continue;
+              if (message.attachment != null &&
+                  message.attachment!.uploadStatus != UploadStatus.uploaded) {
+                continue;
               }
 
-              bool isFirstMsg = index == messages.length - 1;
-              bool isSpecial = isFirstMsg ||
-                  messages[index].senderId != messages[index + 1].senderId;
-              final currMsgDate = dateFromTimestamp(messages[index].timestamp);
-              bool showDate = isFirstMsg ||
-                  currMsgDate !=
-                      dateFromTimestamp(messages[index + 1].timestamp);
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (!mounted) return;
+                  ref
+                      .read(chatControllerProvider.notifier)
+                      .markMessageAsSeen(message);
+                });
+              });
+            }
 
-              return Column(
-                key: ValueKey(message.id),
-                children: [
-                  if (showDate) ...[
-                    ChatDate(date: currMsgDate),
-                  ],
-                  MessageCard(
-                    message: message,
-                    currentUserId: self.id,
-                    special: isSpecial,
-                  ),
-                ],
-              );
-            },
-            findChildIndexCallback: (key) {
-              String messageId = (key as ValueKey<String>).value;
-              return messages.indexWhere((msg) => msg.id == messageId);
-            },
-          ),
-        );
-      },
+            return Align(
+              alignment: Alignment.topCenter,
+              child: ListView.builder(
+                shrinkWrap: true,
+                reverse: true,
+                physics: const BouncingScrollPhysics(),
+                controller: scrollController,
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  Message message = messages[index];
+
+                  if (message.senderId != self.id) {
+                    if (message.attachment != null &&
+                        message.attachment!.uploadStatus !=
+                            UploadStatus.uploaded) {
+                      return Container();
+                    }
+                  }
+
+                  bool isFirstMsg = index == messages.length - 1;
+                  bool isSpecial = isFirstMsg ||
+                      messages[index].senderId != messages[index + 1].senderId;
+                  final currMsgDate =
+                      dateFromTimestamp(messages[index].timestamp);
+                  bool showDate = isFirstMsg ||
+                      currMsgDate !=
+                          dateFromTimestamp(messages[index + 1].timestamp);
+
+                  return Column(
+                    key: ValueKey(message.id),
+                    children: [
+                      if (showDate) ...[
+                        ChatDate(date: currMsgDate),
+                      ],
+                      MessageCard(
+                        message: message,
+                        currentUserId: self.id,
+                        special: isSpecial,
+                      ),
+                    ],
+                  );
+                },
+                findChildIndexCallback: (key) {
+                  String messageId = (key as ValueKey<String>).value;
+                  return messages.indexWhere((msg) => msg.id == messageId);
+                },
+              ),
+            );
+          },
+        ),
+        ScrollButton(scrollController: scrollController)
+      ],
     );
   }
 }

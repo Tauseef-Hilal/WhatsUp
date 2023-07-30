@@ -13,10 +13,13 @@ class ChatDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Color.fromARGB(transparency ? 160 : 230, 13, 13, 16),
+        color: isDarkTheme
+            ? const Color.fromARGB(255, 24, 34, 40)
+            : const Color.fromARGB(255, 233, 232, 232),
       ),
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.symmetric(
@@ -26,7 +29,9 @@ class ChatDate extends StatelessWidget {
       child: Text(
         date,
         style: TextStyle(
-          color: Theme.of(context).custom.colorTheme.iconColor,
+          color: isDarkTheme
+              ? Theme.of(context).custom.colorTheme.iconColor
+              : Colors.black54,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),
