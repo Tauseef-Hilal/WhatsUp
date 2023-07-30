@@ -53,10 +53,10 @@ class _MessageCardState extends State<MessageCard> {
     if (!biggerFont) {
       if (isSentMessageCard) {
         padding = Platform.isAndroid
-            ? (widget.special ? 17 : 14)
-            : (widget.special ? 19 : 17);
+            ? (widget.special ? 14 : 13)
+            : (widget.special ? 18 : 17);
       } else {
-        padding = Platform.isAndroid ? 10 : 13;
+        padding = Platform.isAndroid ? 9 : 13;
       }
     }
 

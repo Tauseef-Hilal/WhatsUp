@@ -9,7 +9,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
@@ -171,9 +170,8 @@ Future<bool> hasPermission(Permission permission) async {
   return false;
 }
 
-Future<double> getKeyboardHeight() async {
-  var sharedPreferences = await SharedPreferences.getInstance();
-  return sharedPreferences.getDouble('keyboardHeight')!;
+double getKeyboardHeight() {
+  return SharedPref.instance.getDouble('keyboardHeight')!;
 }
 
 Future<(double, double)> getImageDimensions(File imageFile) async {

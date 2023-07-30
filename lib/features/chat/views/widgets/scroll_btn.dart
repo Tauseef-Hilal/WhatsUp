@@ -34,23 +34,23 @@ class _ScrollButtonState extends State<ScrollButton> {
     final position = widget.scrollController.position;
     final diff = position.maxScrollExtent - position.pixels;
 
-    if (showScrollBtn && diff > 300) {
+    if (showScrollBtn && diff > 500) {
       return;
     }
 
-    if (showScrollBtn && diff <= 300) {
+    if (showScrollBtn && diff <= 500) {
       setState(() => showScrollBtn = false);
       return;
     }
 
-    if (showScrollBtn || diff <= 300) return;
+    if (showScrollBtn || diff <= 500) return;
     setState(() => showScrollBtn = true);
   }
 
   void handleScrollBtnClick() {
     widget.scrollController.animateTo(
       widget.scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
     );
 

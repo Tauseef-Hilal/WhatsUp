@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_waveforms/audio_waveforms.dart';
@@ -923,7 +924,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User other;
   late final String chatId;
   late Stream<List<Message>> messageStream;
-
+  late StreamSubscription<bool> keyboardListener;
   late final ScrollController scrollController;
 
   @override
@@ -935,6 +936,23 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     scrollController = ScrollController(
       initialScrollOffset: SharedPref.instance.getDouble(chatId) ?? 0,
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      keyboardListener = KeyboardVisibilityController().onChange.listen(
+        (isKeyboardVisible) {
+          final scrollPosition = scrollController.position;
+          final shouldScroll =
+              scrollPosition.maxScrollExtent - scrollPosition.pixels <= 100;
+
+          if (!shouldScroll) return;
+          double scrollAmount = scrollPosition.maxScrollExtent;
+          scrollAmount +=
+              isKeyboardVisible ? getKeyboardHeight() : -getKeyboardHeight();
+
+          scrollController.jumpTo(scrollAmount);
+        },
+      );
+    });
 
     super.initState();
   }
@@ -950,15 +968,18 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
   @override
   void dispose() {
+    keyboardListener.cancel();
     scrollController.dispose();
     super.dispose();
   }
 
-  void scrollToBottom() {
-    final position = scrollController.position;
-    if (position.maxScrollExtent - position.pixels > 300) return;
-
+  void scrollToBottom({bool animate = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!animate) {
+        scrollController.jumpTo(scrollController.position.maxScrollExtent);
+        return;
+      }
+
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),
@@ -999,85 +1020,169 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         if (scrollController.hasClients) {
-          scrollToBottom();
+          scrollToBottom(animate: true);
         }
 
         return Stack(
           alignment: Alignment.topCenter,
           children: [
-            SingleChildScrollView(
-              controller: scrollController,
-              child: Column(
-                children: [
-                  ChatDate(
-                    date: messages.isEmpty
-                        ? 'Today'
-                        : dateFromTimestamp(messages.first.timestamp),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: isDarkTheme
-                          ? const Color.fromARGB(200, 24, 34, 40)
-                          : const Color.fromARGB(197, 247, 233, 112),
-                    ),
-                    child: Text(
-                      '🔒Messages and calls are end-to-end encrypted. Not one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
-                      style: TextStyle(
-                        color: isDarkTheme
-                            ? colorTheme.yellowColor
-                            : colorTheme.textColor1,
-                      ),
-                      softWrap: true,
-                      textWidthBasis: TextWidthBasis.longestLine,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SizedBox(
+                  height: constraints.maxHeight,
+                  child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      Message message = messages[index];
-
-                      if (message.senderId != self.id) {
-                        if (message.attachment != null &&
-                            message.attachment!.uploadStatus !=
-                                UploadStatus.uploaded) {
-                          return Container();
-                        }
-                      }
-
-                      bool isFirstMsg = index == 0;
-                      bool isSpecial = isFirstMsg ||
-                          messages[index - 1].senderId !=
-                              messages[index].senderId;
-                      final nextMsgDate =
-                          dateFromTimestamp(messages[index].timestamp);
-                      bool showDate = isFirstMsg ||
-                          dateFromTimestamp(messages[index - 1].timestamp) !=
-                              nextMsgDate;
-
-                      return Column(
-                        key: ValueKey(message.id),
-                        children: [
-                          if (!isFirstMsg && showDate) ...[
-                            ChatDate(date: nextMsgDate),
-                          ],
-                          MessageCard(
-                            message: message,
-                            currentUserId: self.id,
-                            special: isSpecial,
+                    controller: scrollController,
+                    child: Column(
+                      children: [
+                        ChatDate(
+                          date: messages.isEmpty
+                              ? 'Today'
+                              : dateFromTimestamp(messages.first.timestamp),
+                        ),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          margin: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: isDarkTheme
+                                ? const Color.fromARGB(200, 24, 34, 40)
+                                : const Color.fromARGB(197, 247, 233, 112),
                           ),
-                        ],
-                      );
-                    },
+                          child: Text(
+                            '🔒Messages and calls are end-to-end encrypted. No one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
+                            style: TextStyle(
+                              color: isDarkTheme
+                                  ? colorTheme.yellowColor
+                                  : colorTheme.textColor1,
+                            ),
+                            softWrap: true,
+                            textWidthBasis: TextWidthBasis.longestLine,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            Message message = messages[index];
+
+                            if (message.senderId != self.id) {
+                              if (message.attachment != null &&
+                                  message.attachment!.uploadStatus !=
+                                      UploadStatus.uploaded) {
+                                return Container();
+                              }
+                            }
+
+                            bool isFirstMsg = index == 0;
+                            bool isSpecial = isFirstMsg ||
+                                messages[index - 1].senderId !=
+                                    messages[index].senderId;
+                            final nextMsgDate =
+                                dateFromTimestamp(messages[index].timestamp);
+                            bool showDate = isFirstMsg ||
+                                dateFromTimestamp(
+                                        messages[index - 1].timestamp) !=
+                                    nextMsgDate;
+
+                            return Column(
+                              key: ValueKey(message.id),
+                              children: [
+                                if (!isFirstMsg && showDate) ...[
+                                  ChatDate(date: nextMsgDate),
+                                ],
+                                MessageCard(
+                                  message: message,
+                                  currentUserId: self.id,
+                                  special: isSpecial,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
+              // child: SingleChildScrollView(
+              //   physics: const BouncingScrollPhysics(),
+              //   controller: scrollController,
+              //   child: Column(
+              //     children: [
+              //       ChatDate(
+              //         date: messages.isEmpty
+              //             ? 'Today'
+              //             : dateFromTimestamp(messages.first.timestamp),
+              //       ),
+              //       Container(
+              //         width: MediaQuery.of(context).size.width * 0.8,
+              //         margin: const EdgeInsets.only(bottom: 4),
+              //         padding: const EdgeInsets.all(6),
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.circular(12),
+              //           color: isDarkTheme
+              //               ? const Color.fromARGB(200, 24, 34, 40)
+              //               : const Color.fromARGB(197, 247, 233, 112),
+              //         ),
+              //         child: Text(
+              //           '🔒Messages and calls are end-to-end encrypted. No one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
+              //           style: TextStyle(
+              //             color: isDarkTheme
+              //                 ? colorTheme.yellowColor
+              //                 : colorTheme.textColor1,
+              //           ),
+              //           softWrap: true,
+              //           textWidthBasis: TextWidthBasis.longestLine,
+              //           textAlign: TextAlign.center,
+              //         ),
+              //       ),
+              //       ListView.builder(
+              //         shrinkWrap: true,
+              //         physics: const BouncingScrollPhysics(),
+              //         itemCount: messages.length,
+              //         itemBuilder: (context, index) {
+              //           Message message = messages[index];
+
+              //           if (message.senderId != self.id) {
+              //             if (message.attachment != null &&
+              //                 message.attachment!.uploadStatus !=
+              //                     UploadStatus.uploaded) {
+              //               return Container();
+              //             }
+              //           }
+
+              //           bool isFirstMsg = index == 0;
+              //           bool isSpecial = isFirstMsg ||
+              //               messages[index - 1].senderId !=
+              //                   messages[index].senderId;
+              //           final nextMsgDate =
+              //               dateFromTimestamp(messages[index].timestamp);
+              //           bool showDate = isFirstMsg ||
+              //               dateFromTimestamp(messages[index - 1].timestamp) !=
+              //                   nextMsgDate;
+
+              //           return Column(
+              //             key: ValueKey(message.id),
+              //             children: [
+              //               if (!isFirstMsg && showDate) ...[
+              //                 ChatDate(date: nextMsgDate),
+              //               ],
+              //               MessageCard(
+              //                 message: message,
+              //                 currentUserId: self.id,
+              //                 special: isSpecial,
+              //               ),
+              //             ],
+              //           );
+              //         },
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ),
             Align(
               alignment: Alignment.bottomRight,
