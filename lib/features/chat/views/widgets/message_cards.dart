@@ -9,18 +9,17 @@ import 'package:whatsapp_clone/theme/theme.dart';
 import '../../models/attachement.dart';
 import 'attachment_viewer.dart';
 
-enum MessageCardType { sentMessageCard, receivedMessageCard }
-
 class MessageCard extends StatefulWidget {
-  MessageCard({
+  const MessageCard({
+    super.key,
     required this.message,
-    required this.type,
+    required this.currentUserId,
     this.special = false,
-  }) : super(key: ValueKey(message.id));
+  });
 
   final Message message;
   final bool special;
-  final MessageCardType type;
+  final String currentUserId;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -38,7 +37,7 @@ class _MessageCardState extends State<MessageCard> {
     final size = MediaQuery.of(context).size;
     final hasAttachment = widget.message.attachment != null;
     final attachmentType = widget.message.attachment?.type;
-    final isSentMessageCard = widget.type == MessageCardType.sentMessageCard;
+    final isSentMessageCard = widget.currentUserId == widget.message.senderId;
     final messageHasText = widget.message.content.isNotEmpty;
 
     final showTimeStamp = !hasAttachment ||

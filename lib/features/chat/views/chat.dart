@@ -11,6 +11,7 @@ import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/chat_date.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
@@ -920,8 +921,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User self;
   late final User other;
   late final String chatId;
-  final scrollController = ScrollController();
-  bool initialScroll = true;
 
   @override
   void initState() {
@@ -933,12 +932,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   }
 
   @override
-  void dispose() {
-    scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Message>>(
       stream: IsarDb.getChatStream(chatId),
@@ -946,14 +939,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         if (!snapshot.hasData) {
           return Container();
         }
-
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-          );
-        });
 
         final messages = snapshot.data!;
         for (final message in messages) {
@@ -974,126 +959,50 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           });
         }
 
-        return ChatBody(
-          messages: messages,
-          self: self,
-          scrollController: scrollController,
-        );
-      },
-    );
-  }
-}
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ListView.builder(
+            shrinkWrap: true,
+            reverse: true,
+            physics: const BouncingScrollPhysics(),
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              Message message = messages[index];
 
-class ChatBody extends StatefulWidget {
-  const ChatBody({
-    super.key,
-    required this.scrollController,
-    required this.messages,
-    required this.self,
-  });
+              if (message.senderId != self.id) {
+                if (message.attachment != null &&
+                    message.attachment!.uploadStatus != UploadStatus.uploaded) {
+                  return Container();
+                }
+              }
 
-  final ScrollController scrollController;
-  final List<Message> messages;
-  final User self;
+              bool isFirstMsg = index == messages.length - 1;
+              bool isSpecial = isFirstMsg ||
+                  messages[index].senderId != messages[index + 1].senderId;
+              final currMsgDate = dateFromTimestamp(messages[index].timestamp);
+              bool showDate = isFirstMsg ||
+                  currMsgDate !=
+                      dateFromTimestamp(messages[index + 1].timestamp);
 
-  @override
-  State<ChatBody> createState() => _ChatBodyState();
-}
-
-class _ChatBodyState extends State<ChatBody> {
-  @override
-  void initState() {
-    KeyboardVisibilityController().onChange.listen((event) {
-      if (event) {
-        scrollToBottom();
-      }
-    });
-
-    scrollToBottom();
-    super.initState();
-  }
-
-  void scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      widget.scrollController
-          .jumpTo(widget.scrollController.position.maxScrollExtent);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorTheme = Theme.of(context).custom.colorTheme;
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const BouncingScrollPhysics(),
-      controller: widget.scrollController,
-      itemCount: widget.messages.length,
-      itemBuilder: (context, index) {
-        Message message = widget.messages[index];
-
-        if (message.senderId != widget.self.id) {
-          if (message.attachment != null &&
-              message.attachment!.uploadStatus != UploadStatus.uploaded) {
-            return Container();
-          }
-        }
-
-        Widget card;
-        if (index == 0 ||
-            (widget.messages[index - 1].senderId !=
-                widget.messages[index].senderId)) {
-          card = message.senderId == widget.self.id
-              ? MessageCard(
-                  message: message,
-                  special: true,
-                  type: MessageCardType.sentMessageCard,
-                )
-              : MessageCard(
-                  message: message,
-                  special: true,
-                  type: MessageCardType.receivedMessageCard,
-                );
-        } else {
-          card = message.senderId == widget.self.id
-              ? MessageCard(
-                  message: message,
-                  type: MessageCardType.sentMessageCard,
-                )
-              : MessageCard(
-                  message: message,
-                  type: MessageCardType.receivedMessageCard,
-                );
-        }
-
-        return Column(
-          children: [
-            if (index == 0 ||
-                widget.messages[index - 1].timestamp.toDate().day !=
-                    widget.messages[index].timestamp.toDate().day) ...[
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: const Color.fromARGB(200, 13, 13, 16),
-                ),
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 4,
-                  horizontal: 24,
-                ),
-                child: Text(
-                  dateFromTimestamp(
-                    widget.messages[index].timestamp,
+              return Column(
+                key: ValueKey(message.id),
+                children: [
+                  if (showDate) ...[
+                    ChatDate(date: currMsgDate),
+                  ],
+                  MessageCard(
+                    message: message,
+                    currentUserId: self.id,
+                    special: isSpecial,
                   ),
-                  style: TextStyle(
-                      color: colorTheme.iconColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12),
-                ),
-              )
-            ],
-            card,
-          ],
+                ],
+              );
+            },
+            findChildIndexCallback: (key) {
+              String messageId = (key as ValueKey<String>).value;
+              return messages.indexWhere((msg) => msg.id == messageId);
+            },
+          ),
         );
       },
     );
