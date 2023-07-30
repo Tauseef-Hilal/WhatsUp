@@ -943,6 +943,9 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
@@ -1005,6 +1008,30 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                     children: [
                       if (showDate) ...[
                         ChatDate(date: currMsgDate),
+                      ],
+                      if (isFirstMsg) ...[
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          margin: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: isDarkTheme
+                                ? const Color.fromARGB(200, 24, 34, 40)
+                                : const Color.fromARGB(197, 247, 233, 112),
+                          ),
+                          child: Text(
+                            '🔒Messages and calls are end-to-end encrypted. Not one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
+                            style: TextStyle(
+                              color: isDarkTheme
+                                  ? colorTheme.yellowColor
+                                  : colorTheme.textColor1,
+                            ),
+                            softWrap: true,
+                            textWidthBasis: TextWidthBasis.longestLine,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
                       ],
                       MessageCard(
                         message: message,

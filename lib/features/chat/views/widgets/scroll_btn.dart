@@ -26,16 +26,16 @@ class _ScrollButtonState extends State<ScrollButton> {
 
   void scrollListener() {
     final scroll = widget.scrollController.position.pixels;
-    if (showScrollBtn && scroll > 500) {
+    if (showScrollBtn && scroll > 300) {
       return;
     }
 
-    if (showScrollBtn && scroll <= 500) {
+    if (showScrollBtn && scroll <= 300) {
       setState(() => showScrollBtn = false);
       return;
     }
 
-    if (showScrollBtn || scroll <= 500) return;
+    if (showScrollBtn || scroll <= 300) return;
     setState(() => showScrollBtn = true);
   }
 

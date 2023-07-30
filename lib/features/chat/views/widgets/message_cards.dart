@@ -112,11 +112,11 @@ class _MessageCardState extends State<MessageCard> {
                       left: widget.special && !isSentMessageCard ? 14.0 : 4.0,
                       right: widget.special && isSentMessageCard ? 14.0 : 4.0,
                     )
-              : const EdgeInsets.only(
+              : EdgeInsets.only(
                   left: 10,
-                  right: 10,
-                  top: 0,
-                  bottom: 4,
+                  right: widget.special && isSentMessageCard ? 16 : 10,
+                  top: 4,
+                  bottom: 6,
                 ),
           child: Stack(
             alignment: Alignment.centerLeft,
@@ -170,7 +170,7 @@ class _MessageCardState extends State<MessageCard> {
                 ],
               ),
               Positioned(
-                right: 0,
+                right: widget.special && isSentMessageCard ? -6 : 0,
                 bottom: -1,
                 child: Container(
                   padding: !messageHasText &&
