@@ -9,9 +9,13 @@ import 'package:whatsapp_clone/shared/models/contact.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
+import 'package:whatsapp_clone/shared/utils/abc.dart';
 
 final contactsProvider = FutureProvider<List<Contact>>((ref) async {
-  await IsarDb.refreshContacts();
+  if (await isConnected()) {
+    await IsarDb.refreshContacts();
+  }
+
   return IsarDb.getContacts();
 });
 

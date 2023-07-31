@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mime/mime.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
@@ -141,8 +142,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-              image: Theme.of(context).themedImage('chat_bg.png'),
-              fit: BoxFit.cover),
+            image: Theme.of(context).themedImage('chat_bg.png'),
+            fit: BoxFit.cover,
+          ),
         ),
         child: Column(
           children: [
@@ -923,25 +925,19 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User self;
   late final User other;
   late final String chatId;
-  late Stream<List<Message>> messageStream;
-  // late StreamSubscription<bool> keyboardListener;
   late final ScrollController scrollController;
+  late Stream<List<Message>> messageStream;
 
   @override
   void initState() {
     self = ref.read(chatControllerProvider.notifier).self;
     other = ref.read(chatControllerProvider.notifier).other;
     chatId = getChatId(self.id, other.id);
+
     messageStream = IsarDb.getChatStream(chatId);
     scrollController = ScrollController(
       initialScrollOffset: SharedPref.instance.getDouble(chatId) ?? 0,
     );
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   keyboardListener = KeyboardVisibilityController()
-    //       .onChange
-    //       .listen(keyboardVisibilityListener);
-    // });
 
     super.initState();
   }
@@ -952,12 +948,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
       chatId,
       scrollController.position.pixels,
     );
+
     super.deactivate();
   }
 
   @override
   void dispose() {
-    // keyboardListener.cancel();
     scrollController.dispose();
     super.dispose();
   }
@@ -989,18 +985,34 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     });
   }
 
-  void scrollToBottom({bool animate = false}) {
+  void scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!animate) {
-        scrollController.jumpTo(scrollController.position.maxScrollExtent);
-        return;
-      }
-
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
+    });
+  }
+
+  void markAsSeen(Message message) {
+    if (message.senderId == self.id) return;
+    if (message.status == MessageStatus.seen) return;
+    ref.read(chatControllerProvider.notifier).markMessageAsSeen(message);
+    ref
+        .read(chatControllerProvider.notifier)
+        .setUnreadCount(ref.read(chatControllerProvider).unreadCount - 1);
+  }
+
+  void updateUnreadCount(List<Message> messages) {
+    int unreadCount = 0;
+    for (var message in messages.reversed) {
+      if (message.status == MessageStatus.seen) break;
+      unreadCount++;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
     });
   }
 
@@ -1028,26 +1040,11 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         final messages = snapshot.data!;
-        for (final message in messages) {
-          if (message.senderId == self.id) continue;
-          if (message.status == MessageStatus.seen) continue;
-          if (message.attachment != null &&
-              message.attachment!.uploadStatus != UploadStatus.uploaded) {
-            continue;
-          }
+        updateUnreadCount(messages);
 
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (!mounted) return;
-              ref
-                  .read(chatControllerProvider.notifier)
-                  .markMessageAsSeen(message);
-            });
-          });
-        }
-
-        if (scrollController.hasClients) {
-          scrollToBottom(animate: true);
+        if (scrollController.hasClients &&
+            !ref.read(chatControllerProvider).showScrollBtn) {
+          scrollToBottom();
         }
 
         return Stack(
@@ -1096,14 +1093,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                           itemBuilder: (context, index) {
                             Message message = messages[index];
 
-                            if (message.senderId != self.id) {
-                              if (message.attachment != null &&
-                                  message.attachment!.uploadStatus !=
-                                      UploadStatus.uploaded) {
-                                return Container();
-                              }
-                            }
-
                             bool isFirstMsg = index == 0;
                             bool isSpecial = isFirstMsg ||
                                 messages[index - 1].senderId !=
@@ -1121,10 +1110,17 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                                 if (!isFirstMsg && showDate) ...[
                                   ChatDate(date: nextMsgDate),
                                 ],
-                                MessageCard(
-                                  message: message,
-                                  currentUserId: self.id,
-                                  special: isSpecial,
+                                VisibilityDetector(
+                                  key: ValueKey('${message.id}_vd'),
+                                  onVisibilityChanged: (info) {
+                                    if (info.visibleFraction < 0.8) return;
+                                    markAsSeen(message);
+                                  },
+                                  child: MessageCard(
+                                    message: message,
+                                    currentUserId: self.id,
+                                    special: isSpecial,
+                                  ),
                                 ),
                               ],
                             );

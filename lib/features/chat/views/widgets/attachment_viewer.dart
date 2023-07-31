@@ -1197,8 +1197,15 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      CircularProgressIndicator(
-                        value: snapData.bytesTransferred / snapData.totalBytes,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: overlayColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircularProgressIndicator(
+                          value:
+                              snapData.bytesTransferred / snapData.totalBytes,
+                        ),
                       ),
                       const Icon(Icons.close),
                     ],
@@ -1321,6 +1328,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
+                color: overlayColor,
                 border: Border.all(
                   width: 2,
                   color: Theme.of(context).custom.colorTheme.greenColor,
@@ -1397,8 +1405,15 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      CircularProgressIndicator(
-                        value: snapData.bytesTransferred / snapData.totalBytes,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: overlayColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircularProgressIndicator(
+                          value:
+                              snapData.bytesTransferred / snapData.totalBytes,
+                        ),
                       ),
                       const Icon(Icons.close),
                     ],

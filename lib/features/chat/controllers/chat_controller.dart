@@ -33,6 +33,8 @@ class ChatState {
   ChatState({
     this.hideElements = false,
     this.recordingState = RecordingState.notRecording,
+    this.showScrollBtn = false,
+    this.unreadCount = 0,
     required this.soundRecorder,
     required this.messageController,
   });
@@ -41,6 +43,8 @@ class ChatState {
   final RecordingState recordingState;
   final TextEditingController messageController;
   final RecorderController soundRecorder;
+  final bool showScrollBtn;
+  final int unreadCount;
 
   void dispose() {
     messageController.dispose();
@@ -50,10 +54,14 @@ class ChatState {
   ChatState copyWith({
     bool? hideElements,
     RecordingState? recordingState,
+    bool? showScrollBtn,
+    int? unreadCount,
   }) {
     return ChatState(
       hideElements: hideElements ?? this.hideElements,
       recordingState: recordingState ?? this.recordingState,
+      showScrollBtn: showScrollBtn ?? this.showScrollBtn,
+      unreadCount: unreadCount ?? this.unreadCount,
       messageController: messageController,
       soundRecorder: soundRecorder,
     );
@@ -184,6 +192,14 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  void toggleScrollBtnVisibility() {
+    state = state.copyWith(showScrollBtn: !state.showScrollBtn);
+  }
+
+  void setUnreadCount(int count) {
+    state = state.copyWith(unreadCount: count);
+  }
+
   void onSendBtnPressed(WidgetRef ref, User sender, User receiver) async {
     sendMessageNoAttachments(
       Message(
@@ -204,12 +220,16 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
 
   Future<void> sendMessageNoAttachments(Message message) async {
     await IsarDb.addMessage(message);
-    ref
-        .read(firebaseFirestoreRepositoryProvider)
-        .sendMessage(message..status = MessageStatus.sent)
-        .then((_) {
-      IsarDb.updateMessage(message.id, status: message.status);
-      ref.read(pushNotificationsRepoProvider).sendPushNotification(message);
+
+    // Delay for smooth animation
+    Future.delayed(const Duration(milliseconds: 300), () {
+      ref
+          .read(firebaseFirestoreRepositoryProvider)
+          .sendMessage(message..status = MessageStatus.sent)
+          .then((_) {
+        IsarDb.updateMessage(message.id, status: message.status);
+        ref.read(pushNotificationsRepoProvider).sendPushNotification(message);
+      });
     });
   }
 
