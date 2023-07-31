@@ -924,7 +924,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final User other;
   late final String chatId;
   late Stream<List<Message>> messageStream;
-  late StreamSubscription<bool> keyboardListener;
+  // late StreamSubscription<bool> keyboardListener;
   late final ScrollController scrollController;
 
   @override
@@ -937,11 +937,11 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
       initialScrollOffset: SharedPref.instance.getDouble(chatId) ?? 0,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      keyboardListener = KeyboardVisibilityController()
-          .onChange
-          .listen(keyboardVisibilityListener);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   keyboardListener = KeyboardVisibilityController()
+    //       .onChange
+    //       .listen(keyboardVisibilityListener);
+    // });
 
     super.initState();
   }
@@ -957,7 +957,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
   @override
   void dispose() {
-    keyboardListener.cancel();
+    // keyboardListener.cancel();
     scrollController.dispose();
     super.dispose();
   }
@@ -965,7 +965,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   void keyboardVisibilityListener(bool isKeyboardVisible) {
     final keyboardHeight = getKeyboardHeight();
     final scrollPos = scrollController.position;
-
     final shouldScrollPreFrame =
         (scrollPos.pixels >= keyboardHeight) || scrollPos.extentAfter != 0;
 
@@ -1007,6 +1006,17 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(emojiPickerControllerProvider, (prev, next) {
+      if (prev == 1 || prev == 0 && next == 1) return;
+
+      if (next == 0) {
+        keyboardVisibilityListener(true);
+        return;
+      }
+
+      keyboardVisibilityListener(next == 1 ? true : false);
+    });
+
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     final colorTheme = Theme.of(context).custom.colorTheme;
 
