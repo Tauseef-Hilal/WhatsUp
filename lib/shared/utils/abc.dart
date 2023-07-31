@@ -68,15 +68,13 @@ String formattedTimestamp(Timestamp timestamp,
   DateTime now = DateTime.now();
   DateTime date = timestamp.toDate();
 
-  final isSameMonthAndYear = now.month == date.month && now.year == date.year;
-
-  if (timeOnly || (now.day == date.day && isSameMonthAndYear)) {
+  if (timeOnly || datesHaveSameDay(now, date)) {
     return meridiem
         ? DateFormat('hh:mm a').format(date)
         : DateFormat('HH:mm').format(date);
   }
 
-  if (now.day - date.day == 1 && isSameMonthAndYear) {
+  if (isYesterday(date)) {
     return 'Yesterday';
   }
 
@@ -87,17 +85,24 @@ String dateFromTimestamp(Timestamp timestamp) {
   DateTime now = DateTime.now();
   DateTime date = timestamp.toDate();
 
-  final isSameMonthAndYear = now.month == date.month && now.year == date.year;
-
-  if (now.day == date.day && isSameMonthAndYear) {
+  if (datesHaveSameDay(now, date)) {
     return 'Today';
   }
 
-  if (now.day - date.day == 1 && isSameMonthAndYear) {
+  if (isYesterday(date)) {
     return 'Yesterday';
   }
 
   return DateFormat.yMd().format(date);
+}
+
+bool isYesterday(DateTime date) {
+  final yesterday = DateTime.now().subtract(const Duration(days: 1));
+  return datesHaveSameDay(date, yesterday);
+}
+
+bool datesHaveSameDay(DateTime d1, DateTime d2) {
+  return d1.day == d2.day && d1.month == d2.month && d1.year == d2.year;
 }
 
 Future<File?> capturePhoto() async {
