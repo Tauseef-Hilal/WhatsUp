@@ -25,6 +25,7 @@ import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import 'widgets/attachment_sender.dart';
+import 'widgets/unread_banner.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final User self;
@@ -928,6 +929,10 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final ScrollController scrollController;
   late Stream<List<Message>> messageStream;
 
+  final bannerKey = GlobalKey();
+  int firstUnreadMsgIndex = -1;
+  int unreadCount = -1;
+
   @override
   void initState() {
     self = ref.read(chatControllerProvider.notifier).self;
@@ -1004,16 +1009,25 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         .setUnreadCount(ref.read(chatControllerProvider).unreadCount - 1);
   }
 
-  void updateUnreadCount(List<Message> messages) {
-    int unreadCount = 0;
-    for (var message in messages.reversed) {
-      if (message.status == MessageStatus.seen) break;
+  (int, int) updateUnreadCount(List<Message> messages) {
+    int i, unreadCount = 0;
+
+    for (i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].senderId == self.id) break;
+      if (messages[i].status == MessageStatus.seen) break;
       unreadCount++;
     }
 
+    if (unreadCount == 0) return (-1, unreadCount);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
     });
+
+    if (messages[i].status == MessageStatus.seen) {
+      return (i < messages.length ? i + 1 : i, unreadCount);
+    }
+
+    return (i, unreadCount);
   }
 
   @override
@@ -1040,10 +1054,30 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         final messages = snapshot.data!;
-        updateUnreadCount(messages);
+        final result = updateUnreadCount(messages);
+        if (unreadCount == -1) {
+          firstUnreadMsgIndex = result.$1;
+          unreadCount = result.$2;
+          if (unreadCount > 0) {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              Scrollable.ensureVisible(
+                bannerKey.currentContext!,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.ease,
+              );
+            });
+          }
+        } else {
+          if (messages.last.senderId == self.id) {
+            firstUnreadMsgIndex = -1;
+          } else if (messages.last.status != MessageStatus.seen) {
+            unreadCount += 1;
+          }
+        }
 
-        if (scrollController.hasClients &&
-            !ref.read(chatControllerProvider).showScrollBtn) {
+        if (messages.last.senderId == self.id ||
+            (scrollController.hasClients &&
+                !ref.read(chatControllerProvider).showScrollBtn)) {
           scrollToBottom();
         }
 
@@ -1110,10 +1144,16 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                                 if (!isFirstMsg && showDate) ...[
                                   ChatDate(date: nextMsgDate),
                                 ],
+                                if (index == firstUnreadMsgIndex) ...[
+                                  UnreadMessagesBanner(
+                                    key: bannerKey,
+                                    unreadCount: unreadCount,
+                                  )
+                                ],
                                 VisibilityDetector(
                                   key: ValueKey('${message.id}_vd'),
                                   onVisibilityChanged: (info) {
-                                    if (info.visibleFraction < 0.8) return;
+                                    if (info.visibleFraction < 0.5) return;
                                     markAsSeen(message);
                                   },
                                   child: MessageCard(
