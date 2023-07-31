@@ -1023,7 +1023,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
       ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
     });
 
-    if (messages[i].status == MessageStatus.seen) {
+    if (i < 0 || messages[i].status == MessageStatus.seen) {
       return (i < messages.length ? i + 1 : i, unreadCount);
     }
 
@@ -1075,7 +1075,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           }
         }
 
-        if (messages.last.senderId == self.id ||
+        if (messages.isNotEmpty && messages.last.senderId == self.id ||
             (scrollController.hasClients &&
                 !ref.read(chatControllerProvider).showScrollBtn)) {
           scrollToBottom();
