@@ -938,20 +938,9 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      keyboardListener = KeyboardVisibilityController().onChange.listen(
-        (isKeyboardVisible) {
-          final scrollPosition = scrollController.position;
-          final shouldScroll =
-              scrollPosition.maxScrollExtent - scrollPosition.pixels <= 100;
-
-          if (!shouldScroll) return;
-          double scrollAmount = scrollPosition.maxScrollExtent;
-          scrollAmount +=
-              isKeyboardVisible ? getKeyboardHeight() : -getKeyboardHeight();
-
-          scrollController.jumpTo(scrollAmount);
-        },
-      );
+      keyboardListener = KeyboardVisibilityController()
+          .onChange
+          .listen(keyboardVisibilityListener);
     });
 
     super.initState();
@@ -971,6 +960,34 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     keyboardListener.cancel();
     scrollController.dispose();
     super.dispose();
+  }
+
+  void keyboardVisibilityListener(bool isKeyboardVisible) {
+    final keyboardHeight = getKeyboardHeight();
+    final scrollPos = scrollController.position;
+
+    final shouldScrollPreFrame =
+        (scrollPos.pixels >= keyboardHeight) || scrollPos.extentAfter != 0;
+
+    if (shouldScrollPreFrame) {
+      double scrollAmount =
+          isKeyboardVisible ? keyboardHeight : -keyboardHeight;
+
+      if (Platform.isIOS && scrollPos.extentAfter == 0) {
+        scrollAmount += isKeyboardVisible ? -34 : 0;
+      }
+
+      scrollController.jumpTo(scrollPos.pixels + scrollAmount);
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final scrollAmount = (isKeyboardVisible
+          ? scrollPos.extentAfter - (Platform.isIOS ? 34 : 0) // For IOS: -34
+          : -scrollPos.pixels);
+
+      scrollController.jumpTo(scrollPos.pixels + scrollAmount);
+    });
   }
 
   void scrollToBottom({bool animate = false}) {
@@ -1108,81 +1125,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                   ),
                 );
               },
-              // child: SingleChildScrollView(
-              //   physics: const BouncingScrollPhysics(),
-              //   controller: scrollController,
-              //   child: Column(
-              //     children: [
-              //       ChatDate(
-              //         date: messages.isEmpty
-              //             ? 'Today'
-              //             : dateFromTimestamp(messages.first.timestamp),
-              //       ),
-              //       Container(
-              //         width: MediaQuery.of(context).size.width * 0.8,
-              //         margin: const EdgeInsets.only(bottom: 4),
-              //         padding: const EdgeInsets.all(6),
-              //         decoration: BoxDecoration(
-              //           borderRadius: BorderRadius.circular(12),
-              //           color: isDarkTheme
-              //               ? const Color.fromARGB(200, 24, 34, 40)
-              //               : const Color.fromARGB(197, 247, 233, 112),
-              //         ),
-              //         child: Text(
-              //           '🔒Messages and calls are end-to-end encrypted. No one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
-              //           style: TextStyle(
-              //             color: isDarkTheme
-              //                 ? colorTheme.yellowColor
-              //                 : colorTheme.textColor1,
-              //           ),
-              //           softWrap: true,
-              //           textWidthBasis: TextWidthBasis.longestLine,
-              //           textAlign: TextAlign.center,
-              //         ),
-              //       ),
-              //       ListView.builder(
-              //         shrinkWrap: true,
-              //         physics: const BouncingScrollPhysics(),
-              //         itemCount: messages.length,
-              //         itemBuilder: (context, index) {
-              //           Message message = messages[index];
-
-              //           if (message.senderId != self.id) {
-              //             if (message.attachment != null &&
-              //                 message.attachment!.uploadStatus !=
-              //                     UploadStatus.uploaded) {
-              //               return Container();
-              //             }
-              //           }
-
-              //           bool isFirstMsg = index == 0;
-              //           bool isSpecial = isFirstMsg ||
-              //               messages[index - 1].senderId !=
-              //                   messages[index].senderId;
-              //           final nextMsgDate =
-              //               dateFromTimestamp(messages[index].timestamp);
-              //           bool showDate = isFirstMsg ||
-              //               dateFromTimestamp(messages[index - 1].timestamp) !=
-              //                   nextMsgDate;
-
-              //           return Column(
-              //             key: ValueKey(message.id),
-              //             children: [
-              //               if (!isFirstMsg && showDate) ...[
-              //                 ChatDate(date: nextMsgDate),
-              //               ],
-              //               MessageCard(
-              //                 message: message,
-              //                 currentUserId: self.id,
-              //                 special: isSpecial,
-              //               ),
-              //             ],
-              //           );
-              //         },
-              //       ),
-              //     ],
-              //   ),
-              // ),
             ),
             Align(
               alignment: Alignment.bottomRight,
