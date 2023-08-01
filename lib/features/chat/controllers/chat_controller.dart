@@ -12,7 +12,6 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 
-import '../../../shared/repositories/firebase_storage.dart';
 import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
 import '../models/attachement.dart';
@@ -155,9 +154,9 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     final ext = path.split(".").last;
     final fileName = "AUD_${timestamp.seconds}.$ext";
 
-    await recordedFile.copy(await ref
-        .read(firebaseStorageRepoProvider)
-        .getMediaFilePath("${messageId}__$fileName"));
+    await recordedFile.copy(
+      DeviceStorage.getMediaFilePath("${messageId}__$fileName"),
+    );
 
     final senderId = ref.read(chatControllerProvider.notifier).self.id;
     final receiverId = ref.read(chatControllerProvider.notifier).other.id;

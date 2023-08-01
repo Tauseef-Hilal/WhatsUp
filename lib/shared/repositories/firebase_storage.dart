@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
+
+import '../utils/storage_paths.dart';
 
 final firebaseStorageRepoProvider =
     Provider((ref) => FirebaseStorageRepo(FirebaseStorage.instance));
@@ -35,21 +36,9 @@ class FirebaseStorageRepo {
     }
 
     final ref = firebaseStorage.refFromURL(url);
-    final path = await getMediaFilePath(fileName);
+    final path = "${DeviceStorage.mediaDirPath}/$fileName";
     final file = File(path);
 
     return (file, ref.writeToFile(file));
-  }
-
-  Future<String> getMediaFilePath(String fileName) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final path = appDir.path;
-
-    final dir = Directory("$path/media");
-    if (!(dir.existsSync())) {
-      dir.createSync(recursive: true);
-    }
-
-    return "$path/media/$fileName";
   }
 }

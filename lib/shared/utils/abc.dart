@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
+import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 
 List<Country> get countriesList => CountryService().getAll();
 
@@ -103,33 +105,6 @@ bool isYesterday(DateTime date) {
 
 bool datesHaveSameDay(DateTime d1, DateTime d2) {
   return d1.day == d2.day && d1.month == d2.month && d1.year == d2.year;
-}
-
-Future<File?> capturePhoto() async {
-  if (!await hasPermission(Permission.camera)) return null;
-
-  final ImagePicker picker = ImagePicker();
-  final XFile? image = await picker.pickImage(source: ImageSource.camera);
-
-  return image != null ? File(image.path) : null;
-}
-
-Future<File?> pickImageFromGallery() async {
-  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
-
-  final ImagePicker picker = ImagePicker();
-  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-  return image != null ? File(image.path) : null;
-}
-
-Future<List<File>?> pickMultimedia() async {
-  if (Platform.isIOS && !await hasPermission(Permission.photos)) return null;
-
-  final picker = ImagePicker();
-  final List<XFile> media = await picker.pickMultipleMedia();
-
-  return media.map((e) => File(e.path)).toList();
 }
 
 Future<bool> isConnected() async {

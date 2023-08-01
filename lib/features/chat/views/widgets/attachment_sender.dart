@@ -6,10 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
+import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../../shared/models/user.dart';
-import '../../../../shared/repositories/firebase_storage.dart';
 import '../../../../shared/widgets/emoji_picker.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/attachement.dart';
@@ -293,9 +293,10 @@ class _AttachmentMessageSenderState
                             msgContent = "\u00A0";
                           }
 
-                          attachedFile.copy(await ref
-                              .read(firebaseStorageRepoProvider)
-                              .getMediaFilePath("${messageId}__$fileName"));
+                          attachedFile.rename(
+                            DeviceStorage.getMediaFilePath(
+                                "${messageId}__$fileName"),
+                          );
 
                           ref
                               .read(chatControllerProvider.notifier)

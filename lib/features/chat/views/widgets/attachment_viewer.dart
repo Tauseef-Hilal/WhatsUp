@@ -58,13 +58,19 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
   Widget build(BuildContext context) {
     super.build(context);
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
-    final maxHeight = MediaQuery.of(context).size.height * 0.60;
+    final maxHeight = MediaQuery.of(context).size.height * 0.40;
     final imgWidth = widget.message.attachment!.width ?? 1;
     final imgHeight = widget.message.attachment!.height ?? 1;
+    final aspectRatio = imgWidth / imgHeight * 1.6;
 
-    double width = min(imgWidth, maxWidth);
-    double height = width / (imgWidth / imgHeight);
-    height = min(height, maxHeight);
+    double width, height;
+    if (imgHeight > imgWidth) {
+      height = min(imgHeight, maxHeight);
+      width = min(aspectRatio * height, 0.70 * maxHeight);
+    } else {
+      width = min(imgWidth, maxWidth);
+      height = min(imgWidth / aspectRatio, 0.70 * maxWidth);
+    }
 
     final attachmentType = widget.message.attachment!.type;
     return switch (attachmentType) {

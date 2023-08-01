@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/auth_complete.dart';
 
@@ -11,6 +12,8 @@ import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
+
+import '../../../shared/repositories/image_service.dart';
 
 final userDetailsControllerProvider =
     StateNotifierProvider.autoDispose<UserDetailsController, File?>(
@@ -52,11 +55,11 @@ class UserDetailsController extends StateNotifier<File?> {
   }
 
   void setImageFromCamera(BuildContext context) async {
-    state = await capturePhoto();
+    state = (await ImageService.getImages(source: ImageSource.camera))?.first;
   }
 
   void setImageFromGallery(BuildContext context) async {
-    state = await pickImageFromGallery();
+    state = (await ImageService.getImages(source: ImageSource.gallery))?.first;
   }
 
   void onNextBtnPressed(

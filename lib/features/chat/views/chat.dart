@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
@@ -24,6 +25,7 @@ import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
+import '../../../shared/repositories/image_service.dart';
 import 'widgets/attachment_sender.dart';
 import 'widgets/unread_banner.dart';
 
@@ -359,16 +361,19 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                               ),
                                               child: InkWell(
                                                 onTap: () async {
-                                                  final image =
-                                                      await capturePhoto();
-                                                  if (image == null) return;
+                                                  final images =
+                                                      await ImageService
+                                                          .getImages(
+                                                    source: ImageSource.camera,
+                                                  );
+                                                  if (images == null) return;
                                                   if (!mounted) return;
                                                   Navigator.of(context).pop();
                                                   Navigator.of(context).push(
                                                     MaterialPageRoute(
                                                       builder: (_) =>
                                                           AttachmentMessageSender(
-                                                        attachments: [image],
+                                                        attachments: images,
                                                         attachmentTypes: const [
                                                           AttachmentType.image
                                                         ],
@@ -771,14 +776,16 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    final image = await capturePhoto();
-                    if (image == null) return;
+                    final images = await ImageService.getImages(
+                      source: ImageSource.camera,
+                    );
+                    if (images == null) return;
                     if (!mounted) return;
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => AttachmentMessageSender(
-                          attachments: [image],
+                          attachments: images,
                           attachmentTypes: const [AttachmentType.image],
                         ),
                       ),
@@ -794,8 +801,11 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    final media = await pickMultimedia();
-                    if (media == null || media.isEmpty) return;
+                    final media = await ImageService.getImages(
+                      source: ImageSource.gallery,
+                      single: false,
+                    );
+                    if (media == null) return;
                     if (!mounted) return;
 
                     Navigator.of(context).pop();
