@@ -62,7 +62,11 @@ class WhatsApp extends ConsumerWidget {
             return const WelcomePage();
           }
 
-          final user = getCurrentUser()!;
+          final user = getCurrentUser();
+          if (user == null) {
+            return const WelcomePage();
+          }
+          
           return HomePage(user: user);
         },
       ),

@@ -166,7 +166,9 @@ class _MessageCardState extends State<MessageCard> {
                 ],
               ),
               Positioned(
-                right: widget.special && isSentMessageCard ? -6 : 0,
+                right: widget.special && isSentMessageCard && messageHasText
+                    ? -6
+                    : 0,
                 bottom: -1,
                 child: Container(
                   padding: !messageHasText &&

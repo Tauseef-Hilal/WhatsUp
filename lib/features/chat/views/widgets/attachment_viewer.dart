@@ -1125,7 +1125,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: overlayColor,
+                color: widget.showSize ? overlayColor : Colors.transparent,
                 border: Border.all(
                   width: 2,
                   color: Theme.of(context).custom.colorTheme.greenColor,
@@ -1200,7 +1200,9 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: overlayColor,
+                          color: widget.showSize
+                              ? overlayColor
+                              : Colors.transparent,
                           shape: BoxShape.circle,
                         ),
                         child: CircularProgressIndicator(
@@ -1329,7 +1331,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: overlayColor,
+                color: widget.showSize ? overlayColor : Colors.transparent,
                 border: Border.all(
                   width: 2,
                   color: Theme.of(context).custom.colorTheme.greenColor,
@@ -1408,7 +1410,9 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: overlayColor,
+                          color: widget.showSize
+                              ? overlayColor
+                              : Colors.transparent,
                           shape: BoxShape.circle,
                         ),
                         child: CircularProgressIndicator(

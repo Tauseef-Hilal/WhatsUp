@@ -985,10 +985,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
       ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
     });
 
-    if (i == messages.length) {
-      return (i - 2, unreadCount);
-    }
-
     return (i - 1, unreadCount);
   }
 
