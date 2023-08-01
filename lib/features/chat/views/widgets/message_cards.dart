@@ -53,15 +53,11 @@ class _MessageCardState extends State<MessageCard> {
     if (!biggerFont) {
       if (isSentMessageCard) {
         padding = Platform.isAndroid
-            ? (widget.special ? 14 : 13)
-            : (widget.special ? 18 : 17);
+            ? (widget.special ? 13 : 12)
+            : (widget.special ? 17 : 16);
       } else {
-        padding = Platform.isAndroid ? 9 : 13;
+        padding = Platform.isAndroid ? 8 : 12;
       }
-    }
-
-    if (widget.message.content.length % 30 == 0) {
-      padding = 0;
     }
 
     final textPadding = '\u00A0' * padding;
@@ -77,7 +73,7 @@ class _MessageCardState extends State<MessageCard> {
           constraints: BoxConstraints(
             minHeight: 34,
             minWidth: widget.special ? (isSentMessageCard ? 98 : 76) : 60,
-            maxWidth: size.width * 0.75 + (widget.special ? 10 : 0),
+            maxWidth: size.width * 0.80 + (widget.special ? 10 : 0),
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -153,7 +149,7 @@ class _MessageCardState extends State<MessageCard> {
                                           : 0,
                                 ),
                       child: Text(
-                        '${widget.message.content}$textPadding',
+                        '${widget.message.content} $textPadding',
                         textWidthBasis: TextWidthBasis.longestLine,
                         style: Theme.of(context)
                             .custom

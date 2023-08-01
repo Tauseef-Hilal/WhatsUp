@@ -140,31 +140,31 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: Theme.of(context).themedImage('chat_bg.png'),
-            fit: BoxFit.cover,
+      body: KeyboardDismissOnTap(
+        child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: Theme.of(context).themedImage('chat_bg.png'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            const Expanded(
-              child: KeyboardDismissOnTap(
+          child: Column(
+            children: [
+              const Expanded(
                 child: ChatStream(),
               ),
-            ),
-            const SizedBox(
-              height: 4.0,
-            ),
-            ChatInputContainer(
-              self: self,
-              other: other,
-            ),
-            const SizedBox(
-              height: 16.0,
-            ),
-          ],
+              const SizedBox(
+                height: 4.0,
+              ),
+              ChatInputContainer(
+                self: self,
+                other: other,
+              ),
+              const SizedBox(
+                height: 16.0,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -940,21 +940,9 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     chatId = getChatId(self.id, other.id);
 
     messageStream = IsarDb.getChatStream(chatId);
-    scrollController = ScrollController(
-      initialScrollOffset: SharedPref.instance.getDouble(chatId) ?? 0,
-    );
+    scrollController = ScrollController();
 
     super.initState();
-  }
-
-  @override
-  void deactivate() async {
-    await SharedPref.instance.setDouble(
-      chatId,
-      scrollController.position.pixels,
-    );
-
-    super.deactivate();
   }
 
   @override
@@ -963,37 +951,10 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     super.dispose();
   }
 
-  void keyboardVisibilityListener(bool isKeyboardVisible) {
-    final keyboardHeight = getKeyboardHeight();
-    final scrollPos = scrollController.position;
-    final shouldScrollPreFrame =
-        (scrollPos.pixels >= keyboardHeight) || scrollPos.extentAfter != 0;
-
-    if (shouldScrollPreFrame) {
-      double scrollAmount =
-          isKeyboardVisible ? keyboardHeight : -keyboardHeight;
-
-      if (Platform.isIOS && scrollPos.extentAfter == 0) {
-        scrollAmount += isKeyboardVisible ? -34 : 0;
-      }
-
-      scrollController.jumpTo(scrollPos.pixels + scrollAmount);
-      return;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final scrollAmount = (isKeyboardVisible
-          ? scrollPos.extentAfter - (Platform.isIOS ? 34 : 0) // For IOS: -34
-          : -scrollPos.pixels);
-
-      scrollController.jumpTo(scrollPos.pixels + scrollAmount);
-    });
-  }
-
   void scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
+        scrollController.position.minScrollExtent,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
@@ -1012,37 +973,27 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   (int, int) updateUnreadCount(List<Message> messages) {
     int i, unreadCount = 0;
 
-    for (i = messages.length - 1; i >= 0; i--) {
+    for (i = 0; i < messages.length; i++) {
       if (messages[i].senderId == self.id) break;
       if (messages[i].status == MessageStatus.seen) break;
       unreadCount++;
     }
 
-    if (unreadCount == 0) return (-1, unreadCount);
+    if (unreadCount == 0) return (-1, 0);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
     });
 
-    if (i < 0 || messages[i].status == MessageStatus.seen) {
-      return (i < messages.length ? i + 1 : i, unreadCount);
+    if (i == messages.length) {
+      return (i - 2, unreadCount);
     }
 
-    return (i, unreadCount);
+    return (i - 1, unreadCount);
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(emojiPickerControllerProvider, (prev, next) {
-      if (prev == 1 || prev == 0 && next == 1) return;
-
-      if (next == 0) {
-        keyboardVisibilityListener(true);
-        return;
-      }
-
-      keyboardVisibilityListener(next == 1 ? true : false);
-    });
-
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     final colorTheme = Theme.of(context).custom.colorTheme;
 
@@ -1061,116 +1012,119 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           if (unreadCount > 0) {
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               Scrollable.ensureVisible(
+                alignmentPolicy:
+                    ScrollPositionAlignmentPolicy.keepVisibleAtStart,
                 bannerKey.currentContext!,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.ease,
               );
             });
           }
-        } else {
-          if (messages.last.senderId == self.id) {
+        } else if (messages.isNotEmpty) {
+          final firstMsg = messages.first;
+          if (firstMsg.senderId == self.id) {
             firstUnreadMsgIndex = -1;
-          } else if (messages.last.status != MessageStatus.seen) {
+            if (firstMsg.status == MessageStatus.pending) {
+              scrollToBottom();
+            }
+          } else if (firstMsg.status != MessageStatus.seen) {
             unreadCount += 1;
           }
-        }
-
-        if (messages.isNotEmpty && messages.last.senderId == self.id ||
-            (scrollController.hasClients &&
-                !ref.read(chatControllerProvider).showScrollBtn)) {
-          scrollToBottom();
         }
 
         return Stack(
           alignment: Alignment.topCenter,
           children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return SizedBox(
-                  height: constraints.maxHeight,
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    controller: scrollController,
-                    child: Column(
+            CustomScrollView(
+              shrinkWrap: true,
+              reverse: true,
+              controller: scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverList.builder(
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    Message message = messages[index];
+
+                    bool isFirstMsg = index == messages.length - 1;
+                    bool isSpecial = isFirstMsg ||
+                        messages[index].senderId !=
+                            messages[index + 1].senderId;
+                    final currMsgDate =
+                        dateFromTimestamp(messages[index].timestamp);
+                    bool showDate = isFirstMsg ||
+                        currMsgDate !=
+                            dateFromTimestamp(messages[index + 1].timestamp);
+
+                    return Column(
+                      key: ValueKey(message.id),
                       children: [
-                        ChatDate(
-                          date: messages.isEmpty
-                              ? 'Today'
-                              : dateFromTimestamp(messages.first.timestamp),
-                        ),
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: isDarkTheme
-                                ? const Color.fromARGB(200, 24, 34, 40)
-                                : const Color.fromARGB(197, 247, 233, 112),
-                          ),
-                          child: Text(
-                            '🔒Messages and calls are end-to-end encrypted. No one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
-                            style: TextStyle(
-                              color: isDarkTheme
-                                  ? colorTheme.yellowColor
-                                  : colorTheme.textColor1,
-                            ),
-                            softWrap: true,
-                            textWidthBasis: TextWidthBasis.longestLine,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) {
-                            Message message = messages[index];
-
-                            bool isFirstMsg = index == 0;
-                            bool isSpecial = isFirstMsg ||
-                                messages[index - 1].senderId !=
-                                    messages[index].senderId;
-                            final nextMsgDate =
-                                dateFromTimestamp(messages[index].timestamp);
-                            bool showDate = isFirstMsg ||
-                                dateFromTimestamp(
-                                        messages[index - 1].timestamp) !=
-                                    nextMsgDate;
-
-                            return Column(
-                              key: ValueKey(message.id),
-                              children: [
-                                if (!isFirstMsg && showDate) ...[
-                                  ChatDate(date: nextMsgDate),
-                                ],
-                                if (index == firstUnreadMsgIndex) ...[
-                                  UnreadMessagesBanner(
-                                    key: bannerKey,
-                                    unreadCount: unreadCount,
-                                  )
-                                ],
-                                VisibilityDetector(
-                                  key: ValueKey('${message.id}_vd'),
-                                  onVisibilityChanged: (info) {
-                                    if (info.visibleFraction < 0.5) return;
-                                    markAsSeen(message);
-                                  },
-                                  child: MessageCard(
-                                    message: message,
-                                    currentUserId: self.id,
-                                    special: isSpecial,
-                                  ),
-                                ),
-                              ],
-                            );
+                        if (!isFirstMsg && showDate) ...[
+                          ChatDate(date: currMsgDate),
+                        ],
+                        if (index == firstUnreadMsgIndex) ...[
+                          UnreadMessagesBanner(
+                            key: bannerKey,
+                            unreadCount: unreadCount,
+                          )
+                        ],
+                        VisibilityDetector(
+                          key: ValueKey('${message.id}_vd'),
+                          onVisibilityChanged: (info) {
+                            if (info.visibleFraction < 0.5) return;
+                            markAsSeen(message);
                           },
+                          child: MessageCard(
+                            message: message,
+                            currentUserId: self.id,
+                            special: isSpecial,
+                          ),
                         ),
                       ],
+                    );
+                  },
+                  findChildIndexCallback: (key) {
+                    final messageKey = key as ValueKey;
+                    return messages
+                        .indexWhere((msg) => msg.id == messageKey.value);
+                  },
+                ),
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      margin: const EdgeInsets.only(bottom: 4),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: isDarkTheme
+                            ? const Color.fromARGB(200, 24, 34, 40)
+                            : const Color.fromARGB(197, 247, 233, 112),
+                      ),
+                      child: Text(
+                        '🔒Messages and calls are end-to-end encrypted. No one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
+                        style: TextStyle(
+                          color: isDarkTheme
+                              ? colorTheme.yellowColor
+                              : colorTheme.textColor1,
+                        ),
+                        softWrap: true,
+                        textWidthBasis: TextWidthBasis.longestLine,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                );
-              },
+                ),
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: ChatDate(
+                      date: messages.isEmpty
+                          ? 'Today'
+                          : dateFromTimestamp(messages.first.timestamp),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Align(
               alignment: Alignment.bottomRight,

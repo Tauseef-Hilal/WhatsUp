@@ -559,8 +559,8 @@ class RecentChatWidget extends StatelessWidget {
             )
           ],
           Text(
-              msgContent.length > 20
-                  ? '${msgContent.substring(0, 20)}...'
+              msgContent.length > 30
+                  ? '${msgContent.substring(0, 30)}...'
                   : msgContent == "\u00A0" || msgContent.isEmpty
                       ? chat.message.attachment!.type.value
                       : msgContent,

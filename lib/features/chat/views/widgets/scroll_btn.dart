@@ -15,13 +15,6 @@ class _ScrollButtonState extends ConsumerState<ScrollButton> {
   @override
   void initState() {
     widget.scrollController.addListener(scrollListener);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final scrollPosition = widget.scrollController.position;
-      if (scrollPosition.extentAfter == 0) return;
-      ref.read(chatControllerProvider.notifier).toggleScrollBtnVisibility();
-    });
-
     super.initState();
   }
 
@@ -33,7 +26,7 @@ class _ScrollButtonState extends ConsumerState<ScrollButton> {
 
   void scrollListener() {
     final position = widget.scrollController.position;
-    final diff = position.maxScrollExtent - position.pixels;
+    final diff = position.pixels - position.minScrollExtent;
     final showScrollBtn = ref.read(chatControllerProvider).showScrollBtn;
 
     if (showScrollBtn && diff > 80) {
@@ -51,7 +44,7 @@ class _ScrollButtonState extends ConsumerState<ScrollButton> {
 
   void handleScrollBtnClick() {
     widget.scrollController.animateTo(
-      widget.scrollController.position.maxScrollExtent,
+      widget.scrollController.position.minScrollExtent,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
     );

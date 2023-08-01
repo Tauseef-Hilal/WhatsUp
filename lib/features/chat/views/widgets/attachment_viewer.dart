@@ -1125,6 +1125,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
+                color: overlayColor,
                 border: Border.all(
                   width: 2,
                   color: Theme.of(context).custom.colorTheme.greenColor,
