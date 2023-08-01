@@ -1126,7 +1126,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                     child: ChatDate(
                       date: messages.isEmpty
                           ? 'Today'
-                          : dateFromTimestamp(messages.first.timestamp),
+                          : dateFromTimestamp(messages.last.timestamp),
                     ),
                   ),
                 ),
