@@ -173,13 +173,10 @@ class IsarDb {
         if (visitedChats.containsKey(msg.chatId)) {
           if (clientIsSender) continue;
           if (msg.status == MessageStatus.seen) continue;
-          
+
           visitedChats[msg.chatId] = visitedChats[msg.chatId]! + 1;
           continue;
         }
-
-        if (msg.attachment != null &&
-            msg.attachment!.uploadStatus != UploadStatus.uploaded) continue;
 
         var sender = await IsarDb.getUserById(
           clientIsSender ? msg.receiverId : msg.senderId,
@@ -198,7 +195,8 @@ class IsarDb {
               msg.senderId == currentUser.id ? msg.receiverId : msg.senderId,
             );
 
-        final senderName = contact?.displayName ?? sender!.name;
+        final senderName =
+            contact?.displayName ?? sender!.phone.formattedNumber;
 
         recentChats.add(
           RecentChat(
