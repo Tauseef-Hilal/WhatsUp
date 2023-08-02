@@ -33,8 +33,8 @@ class PushNotificationsRepo {
         .read(firebaseFirestoreRepositoryProvider)
         .getFcmToken(message.receiverId);
 
-    const String serverUrl =
-        'https://class-digest-juice-format.trycloudflare.com/new_message';
+    const String url =
+        'https://wa_notifications-1-q2097095.deta.app/new_message';
     final Map<String, String> headers = {"Content-Type": "application/json"};
 
     String messageContent = message.content;
@@ -54,7 +54,7 @@ class PushNotificationsRepo {
     );
 
     await post(
-      Uri.parse(serverUrl),
+      Uri.parse(url),
       headers: headers,
       body: messageJson,
     );
