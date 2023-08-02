@@ -44,7 +44,7 @@ dependencies:
   firebase_messaging: ^14.6.5
   http: ^0.13.6
   visibility_detector: ^0.4.0+2
-  flutter_image_compress: ^2.0.4
+  image: ^4.0.17
 
 dev_dependencies:
   flutter_test:

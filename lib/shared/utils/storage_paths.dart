@@ -25,4 +25,8 @@ class DeviceStorage {
   static String getMediaFilePath(String fileName) {
     return "$mediaDirPath/$fileName";
   }
+
+  static String getTempFilePath(String fileName) {
+    return "$tempDirPath/$fileName";
+  }
 }

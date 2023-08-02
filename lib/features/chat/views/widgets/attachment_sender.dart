@@ -293,9 +293,10 @@ class _AttachmentMessageSenderState
                             msgContent = "\u00A0";
                           }
 
-                          attachedFile.rename(
+                          await attachedFile.copy(
                             DeviceStorage.getMediaFilePath(
-                                "${messageId}__$fileName"),
+                              "${messageId}__$fileName",
+                            ),
                           );
 
                           ref
