@@ -37,7 +37,7 @@ class IsarDb {
       senderId: message.senderId,
       receiverId: message.receiverId,
       status: message.status,
-      timestamp: DateTime.now(),
+      timestamp: message.timestamp.toDate(),
       attachment: message.attachment != null
           ? EmbeddedAttachment(
               fileName: message.attachment!.fileName,
@@ -67,7 +67,7 @@ class IsarDb {
             senderId: message.senderId,
             receiverId: message.receiverId,
             status: message.status,
-            timestamp: DateTime.now(),
+            timestamp: message.timestamp.toDate(),
             attachment: message.attachment != null
                 ? EmbeddedAttachment(
                     fileName: message.attachment!.fileName,
