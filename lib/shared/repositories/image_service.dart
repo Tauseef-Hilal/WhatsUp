@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
@@ -92,11 +93,27 @@ class ImageService {
       result = result as Image;
       final imagePath = imagePaths[i];
       final newPath = DeviceStorage.getTempFilePath(imagePath);
+      final aspectRatio = result.width / result.height;
+
+      double width, height;
+      if (result.height > result.width) {
+        height = min(1280, result.height * 1.0);
+        width = aspectRatio * height;
+      } else {
+        width = min(1280, result.width * 1.0);
+        height = width / aspectRatio;
+      }
+
+      result = copyResize(
+        result,
+        width: width.round(),
+        height: height.round(),
+      );
 
       final success = await encodeJpgFile(
         DeviceStorage.getTempFilePath(imagePath),
         result,
-        quality: 25,
+        quality: 40,
       );
 
       if (!success) {
