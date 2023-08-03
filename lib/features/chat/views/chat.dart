@@ -1035,6 +1035,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
             }
           } else if (firstMsg.status != MessageStatus.seen) {
             unreadCount += 1;
+            firstUnreadMsgIndex += 1;
           }
         }
 
