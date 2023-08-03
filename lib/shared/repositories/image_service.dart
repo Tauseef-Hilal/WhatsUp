@@ -108,12 +108,13 @@ class ImageService {
         result,
         width: width.round(),
         height: height.round(),
+        interpolation: Interpolation.linear,
       );
 
       final success = await encodeJpgFile(
         DeviceStorage.getTempFilePath(imagePath),
         result,
-        quality: 40,
+        quality: 50,
       );
 
       if (!success) {
