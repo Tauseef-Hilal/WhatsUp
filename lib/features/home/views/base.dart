@@ -401,9 +401,12 @@ class HomePageContactsList extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 24,
-                          foregroundImage: CachedNetworkImageProvider(
-                            users[i].avatarUrl,
-                          ),
+                          backgroundImage: users[i].avatarUrl != null
+                              ? CachedNetworkImageProvider(
+                                  users[i].avatarUrl!,
+                                )
+                              : const AssetImage('assets/images/avatar.png')
+                                  as ImageProvider,
                         ),
                       ),
                     )

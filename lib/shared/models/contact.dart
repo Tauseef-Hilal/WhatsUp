@@ -8,14 +8,14 @@ class Contact {
   String contactId;
   String displayName;
   String phoneNumber;
-  String avatarUrl;
+  String? avatarUrl;
   String? userId;
 
   Contact({
     required this.contactId,
     required this.displayName,
     required this.phoneNumber,
-    this.avatarUrl = 'http://www.gravatar.com/avatar/?d=mp',
+    this.avatarUrl,
     this.userId,
   });
 

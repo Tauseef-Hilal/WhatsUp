@@ -63,7 +63,12 @@ int _contactEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.avatarUrl.length * 3;
+  {
+    final value = object.avatarUrl;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.contactId.length * 3;
   bytesCount += 3 + object.displayName.length * 3;
   bytesCount += 3 + object.phoneNumber.length * 3;
@@ -96,8 +101,7 @@ Contact _contactDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Contact(
-    avatarUrl: reader.readStringOrNull(offsets[0]) ??
-        'http://www.gravatar.com/avatar/?d=mp',
+    avatarUrl: reader.readStringOrNull(offsets[0]),
     contactId: reader.readString(offsets[1]),
     displayName: reader.readString(offsets[2]),
     phoneNumber: reader.readString(offsets[3]),
@@ -115,8 +119,7 @@ P _contactDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset) ??
-          'http://www.gravatar.com/avatar/?d=mp') as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
@@ -219,8 +222,24 @@ extension ContactQueryWhere on QueryBuilder<Contact, Contact, QWhereClause> {
 
 extension ContactQueryFilter
     on QueryBuilder<Contact, Contact, QFilterCondition> {
+  QueryBuilder<Contact, Contact, QAfterFilterCondition> avatarUrlIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'avatarUrl',
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition> avatarUrlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'avatarUrl',
+      ));
+    });
+  }
+
   QueryBuilder<Contact, Contact, QAfterFilterCondition> avatarUrlEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -233,7 +252,7 @@ extension ContactQueryFilter
   }
 
   QueryBuilder<Contact, Contact, QAfterFilterCondition> avatarUrlGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -248,7 +267,7 @@ extension ContactQueryFilter
   }
 
   QueryBuilder<Contact, Contact, QAfterFilterCondition> avatarUrlLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -263,8 +282,8 @@ extension ContactQueryFilter
   }
 
   QueryBuilder<Contact, Contact, QAfterFilterCondition> avatarUrlBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1129,7 +1148,7 @@ extension ContactQueryProperty
     });
   }
 
-  QueryBuilder<Contact, String, QQueryOperations> avatarUrlProperty() {
+  QueryBuilder<Contact, String?, QQueryOperations> avatarUrlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatarUrl');
     });

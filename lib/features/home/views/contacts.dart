@@ -134,6 +134,7 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListView(
+          physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
           children: [
             if (!buildWhatsAppContactsList &&
@@ -387,9 +388,8 @@ class LocalContactsList extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundImage:
-                        CachedNetworkImageProvider(contact.avatarUrl),
+                  const CircleAvatar(
+                    backgroundImage: AssetImage('assets/images/avatar.png'),
                   ),
                   const SizedBox(
                     width: 18.0,
@@ -456,8 +456,12 @@ class WhatsAppContactsList extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage:
-                        CachedNetworkImageProvider(contact.avatarUrl),
+                    backgroundImage: contact.avatarUrl != null
+                        ? CachedNetworkImageProvider(
+                            contact.avatarUrl!,
+                          )
+                        : const AssetImage('assets/images/avatar.png')
+                            as ImageProvider,
                   ),
                   const SizedBox(
                     width: 18.0,
