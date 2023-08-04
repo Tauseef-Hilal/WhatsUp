@@ -1145,13 +1145,11 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   Widget buildMessageCard(int index, List<Message> messages) {
     final message = messages[index];
     final isFirstMsg = index == messages.length - 1;
-    final nextMsgHasSameSender =
-        messages[index].senderId != messages[index + 1].senderId;
-    final isSpecial = isFirstMsg || nextMsgHasSameSender;
+    final isSpecial =
+        isFirstMsg || messages[index].senderId != messages[index + 1].senderId;
     final currMsgDate = dateFromTimestamp(messages[index].timestamp);
-    final haveDifferentDates =
+    final showDate = isFirstMsg ||
         currMsgDate != dateFromTimestamp(messages[index + 1].timestamp);
-    final showDate = isFirstMsg || haveDifferentDates;
 
     return Column(
       key: ValueKey(message.id),
