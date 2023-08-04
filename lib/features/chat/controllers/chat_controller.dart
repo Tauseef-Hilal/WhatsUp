@@ -196,6 +196,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   void setUnreadCount(int count) {
+    if (state.unreadCount == count) return;
     state = state.copyWith(unreadCount: count);
   }
 

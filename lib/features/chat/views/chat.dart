@@ -939,9 +939,10 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   late final ScrollController scrollController;
   late Stream<List<Message>> messageStream;
 
+  bool isInitialRender = true;
+  int unreadCount = 0;
+  int prevMsgCount = 0;
   final bannerKey = GlobalKey();
-  int firstUnreadMsgIndex = -1;
-  int unreadCount = -1;
 
   @override
   void initState() {
@@ -956,9 +957,63 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
   }
 
   @override
-  void dispose() {
+  void deactivate() async {
+    await SharedPref.instance.setDouble(
+      chatId,
+      scrollController.position.pixels,
+    );
+    super.deactivate();
+  }
+
+  @override
+  void dispose() async {
     scrollController.dispose();
     super.dispose();
+  }
+
+  void handleNewMessage(Message message) {
+    if (message.senderId == self.id) {
+      unreadCount = 0;
+      if (message.status == MessageStatus.pending) {
+        scrollToBottom();
+      }
+    } else {
+      unreadCount = unreadCount > 0 ? unreadCount + 1 : 0;
+    }
+  }
+
+  void handleInitialData(int unreadMsgCount) {
+    isInitialRender = false;
+    unreadCount = unreadMsgCount;
+
+    if (unreadCount > 0) {
+      scrollToUnreadBanner();
+    }
+  }
+
+  int updateUnreadCount(List<Message> messages) {
+    int unreadCount = 0;
+
+    for (final message in messages) {
+      if (message.senderId == self.id) break;
+      if (message.status == MessageStatus.seen) break;
+      unreadCount++;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
+    });
+
+    return unreadCount;
+  }
+
+  void scrollToUnreadBanner() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      Scrollable.ensureVisible(
+        bannerKey.currentContext!,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+    });
   }
 
   void scrollToBottom() {
@@ -975,27 +1030,11 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     if (message.senderId == self.id) return;
     if (message.status == MessageStatus.seen) return;
     ref.read(chatControllerProvider.notifier).markMessageAsSeen(message);
-    ref
-        .read(chatControllerProvider.notifier)
-        .setUnreadCount(ref.read(chatControllerProvider).unreadCount - 1);
   }
 
-  (int, int) updateUnreadCount(List<Message> messages) {
-    int i, unreadCount = 0;
-
-    for (i = 0; i < messages.length; i++) {
-      if (messages[i].senderId == self.id) break;
-      if (messages[i].status == MessageStatus.seen) break;
-      unreadCount++;
-    }
-
-    if (unreadCount == 0) return (-1, 0);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatControllerProvider.notifier).setUnreadCount(unreadCount);
-    });
-
-    return (i - 1, unreadCount);
+  int getMessageIndexByKey(Key key, List<Message> messages) {
+    final messageKey = key as ValueKey;
+    return messages.indexWhere((msg) => msg.id == messageKey.value);
   }
 
   @override
@@ -1011,34 +1050,15 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         }
 
         final messages = snapshot.data!;
-        final result = updateUnreadCount(messages);
-        if (unreadCount == -1) {
-          firstUnreadMsgIndex = result.$1;
-          unreadCount = result.$2;
-          if (unreadCount > 0) {
-            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              Scrollable.ensureVisible(
-                alignmentPolicy:
-                    ScrollPositionAlignmentPolicy.keepVisibleAtStart,
-                bannerKey.currentContext!,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.ease,
-              );
-            });
-          }
-        } else if (messages.isNotEmpty) {
-          final firstMsg = messages.first;
-          if (firstMsg.senderId == self.id) {
-            firstUnreadMsgIndex = -1;
-            if (firstMsg.status == MessageStatus.pending) {
-              scrollToBottom();
-            }
-          } else if (firstMsg.status != MessageStatus.seen) {
-            unreadCount += 1;
-            firstUnreadMsgIndex += 1;
-          }
+        final unreadMsgCount = updateUnreadCount(messages);
+
+        if (isInitialRender) {
+          handleInitialData(unreadMsgCount);
+        } else if (messages.length - prevMsgCount > 0) {
+          handleNewMessage(messages.first);
         }
 
+        prevMsgCount = messages.length;
         return Stack(
           alignment: Alignment.topCenter,
           children: [
@@ -1048,52 +1068,31 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
               controller: scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
+                if (unreadCount > 0) ...[
+                  SliverList.builder(
+                    itemCount: unreadCount,
+                    itemBuilder: (context, index) {
+                      return buildMessageCard(index, messages);
+                    },
+                    findChildIndexCallback: (key) {
+                      return getMessageIndexByKey(key, messages);
+                    },
+                  ),
+                  SliverToBoxAdapter(
+                    key: bannerKey,
+                    child: UnreadMessagesBanner(
+                      unreadCount: unreadCount,
+                    ),
+                  ),
+                ],
                 SliverList.builder(
-                  itemCount: messages.length,
+                  itemCount: messages.length - unreadCount,
                   itemBuilder: (context, index) {
-                    Message message = messages[index];
-
-                    bool isFirstMsg = index == messages.length - 1;
-                    bool isSpecial = isFirstMsg ||
-                        messages[index].senderId !=
-                            messages[index + 1].senderId;
-                    final currMsgDate =
-                        dateFromTimestamp(messages[index].timestamp);
-                    bool showDate = isFirstMsg ||
-                        currMsgDate !=
-                            dateFromTimestamp(messages[index + 1].timestamp);
-
-                    return Column(
-                      key: ValueKey(message.id),
-                      children: [
-                        if (!isFirstMsg && showDate) ...[
-                          ChatDate(date: currMsgDate),
-                        ],
-                        if (index == firstUnreadMsgIndex) ...[
-                          UnreadMessagesBanner(
-                            key: bannerKey,
-                            unreadCount: unreadCount,
-                          )
-                        ],
-                        VisibilityDetector(
-                          key: ValueKey('${message.id}_vd'),
-                          onVisibilityChanged: (info) {
-                            if (info.visibleFraction < 0.5) return;
-                            markAsSeen(message);
-                          },
-                          child: MessageCard(
-                            message: message,
-                            currentUserId: self.id,
-                            special: isSpecial,
-                          ),
-                        ),
-                      ],
-                    );
+                    index = index + unreadCount;
+                    return buildMessageCard(index, messages);
                   },
                   findChildIndexCallback: (key) {
-                    final messageKey = key as ValueKey;
-                    return messages
-                        .indexWhere((msg) => msg.id == messageKey.value);
+                    return getMessageIndexByKey(key, messages);
                   },
                 ),
                 SliverToBoxAdapter(
@@ -1140,6 +1139,39 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
           ],
         );
       },
+    );
+  }
+
+  Widget buildMessageCard(int index, List<Message> messages) {
+    final message = messages[index];
+    final isFirstMsg = index == messages.length - 1;
+    final nextMsgHasSameSender =
+        messages[index].senderId != messages[index + 1].senderId;
+    final isSpecial = isFirstMsg || nextMsgHasSameSender;
+    final currMsgDate = dateFromTimestamp(messages[index].timestamp);
+    final haveDifferentDates =
+        currMsgDate != dateFromTimestamp(messages[index + 1].timestamp);
+    final showDate = isFirstMsg || haveDifferentDates;
+
+    return Column(
+      key: ValueKey(message.id),
+      children: [
+        if (!isFirstMsg && showDate) ...[
+          ChatDate(date: currMsgDate),
+        ],
+        VisibilityDetector(
+          key: ValueKey('${message.id}_vd'),
+          onVisibilityChanged: (info) {
+            if (info.visibleFraction < 0.5) return;
+            markAsSeen(message);
+          },
+          child: MessageCard(
+            message: message,
+            currentUserId: self.id,
+            special: isSpecial,
+          ),
+        ),
+      ],
     );
   }
 }
