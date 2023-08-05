@@ -20,7 +20,7 @@ import '../../../shared/repositories/compression_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
 import '../models/attachement.dart';
-import '../views/widgets/attachment_sender.dart';
+import '../views/attachment_sender.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatStateNotifier, ChatState>(
@@ -161,7 +161,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     final fileName = "AUD_${timestamp.seconds}.$ext";
 
     await recordedFile.copy(
-      DeviceStorage.getMediaFilePath("${messageId}__$fileName"),
+      DeviceStorage.getMediaFilePath(fileName),
     );
 
     final senderId = ref.read(chatControllerProvider.notifier).self.id;
@@ -181,6 +181,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
               fileName: fileName,
               fileSize: recordedFile.lengthSync(),
               fileExtension: ext,
+              uploadStatus: UploadStatus.uploading,
               file: recordedFile,
             ),
           ),
@@ -298,22 +299,28 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     navigateToAttachmentSender(context, attachments);
   }
 
-  Future<void> pickDocuments(
-    BuildContext context,
-  ) async {
+  Future<List<Attachment>?> pickDocuments(
+    BuildContext context, {
+    bool returnAttachments = false,
+  }) async {
     final key = showLoading(context);
 
     List<File>? files = await pickFiles(type: FileType.any);
     if (files == null) {
       Navigator.pop(key.currentContext!);
-      return;
+      return null;
     }
 
     final attachments = await _prepareAttachments(files, areDocuments: true);
+    if (returnAttachments) {
+      Navigator.pop(key.currentContext!);
+      return attachments;
+    }
 
-    if (!mounted) return;
+    if (!mounted) return null;
     Navigator.pop(key.currentContext!);
     navigateToAttachmentSender(context, attachments);
+    return null;
   }
 
   GlobalKey showLoading(context) {

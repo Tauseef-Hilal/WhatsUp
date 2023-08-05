@@ -16,13 +16,13 @@ import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
-import '../../../../shared/models/user.dart';
-import '../../../../shared/repositories/firebase_firestore.dart';
-import '../../../../shared/repositories/firebase_storage.dart';
-import '../../../../shared/utils/abc.dart';
-import '../../controllers/chat_controller.dart';
-import '../../models/attachement.dart';
-import '../../models/message.dart';
+import '../../../shared/models/user.dart';
+import '../../../shared/repositories/firebase_firestore.dart';
+import '../../../shared/repositories/firebase_storage.dart';
+import '../../../shared/utils/abc.dart';
+import '../controllers/chat_controller.dart';
+import '../models/attachement.dart';
+import '../models/message.dart';
 
 class AttachmentPreview extends StatefulWidget {
   const AttachmentPreview({

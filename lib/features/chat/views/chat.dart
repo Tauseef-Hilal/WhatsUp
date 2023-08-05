@@ -11,6 +11,7 @@ import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/chat_date.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/chat_field.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/message_cards.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/scroll_btn.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
@@ -231,162 +232,99 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                     ? colorTheme.appBarColor
                                     : colorTheme.backgroundColor,
                           ),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: recordingState == RecordingState.notRecording
-                                ? Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 12.0),
-                                        child: GestureDetector(
-                                          onTap: ref
-                                              .read(
-                                                  emojiPickerControllerProvider
-                                                      .notifier)
-                                              .toggleEmojiPicker,
-                                          child: Icon(
-                                            showEmojiPicker == 1
-                                                ? Icons.keyboard
-                                                : Icons.emoji_emotions,
+                          child: recordingState == RecordingState.notRecording
+                              ? ChatField(
+                                  leading: GestureDetector(
+                                    onTap: ref
+                                        .read(emojiPickerControllerProvider
+                                            .notifier)
+                                        .toggleEmojiPicker,
+                                    child: Icon(
+                                      showEmojiPicker == 1
+                                          ? Icons.keyboard
+                                          : Icons.emoji_emotions,
+                                      size: 24.0,
+                                    ),
+                                  ),
+                                  onTextChanged: (value) => ref
+                                      .read(chatControllerProvider.notifier)
+                                      .onTextChanged(value),
+                                  textController: ref
+                                      .read(chatControllerProvider)
+                                      .messageController,
+                                  focusNode: ref
+                                      .read(emojiPickerControllerProvider
+                                          .notifier)
+                                      .fieldFocusNode,
+                                  actions: [
+                                      InkWell(
+                                        onTap: () {
+                                          onAttachmentsIconPressed(
+                                            context,
+                                          );
+                                        },
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: const Icon(
+                                            Icons.attach_file_rounded,
                                             size: 24.0,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 8.0,
-                                      ),
-                                      Expanded(
-                                        child: TextField(
-                                          textCapitalization:
-                                              TextCapitalization.sentences,
-                                          onChanged: (value) => ref
-                                              .read(chatControllerProvider
-                                                  .notifier)
-                                              .onTextChanged(value),
-                                          controller: ref
-                                              .read(chatControllerProvider)
-                                              .messageController,
-                                          focusNode: ref
-                                              .read(
-                                                  emojiPickerControllerProvider
-                                                      .notifier)
-                                              .fieldFocusNode,
-                                          maxLines: 6,
-                                          minLines: 1,
-                                          cursorColor: colorTheme.greenColor,
-                                          cursorHeight: 20,
-                                          style: Theme.of(context)
-                                              .custom
-                                              .textTheme
-                                              .bodyText1,
-                                          decoration: InputDecoration(
-                                            hintText: 'Message',
-                                            hintStyle: Theme.of(context)
-                                                .custom
-                                                .textTheme
-                                                .bodyText1
-                                                .copyWith(),
-                                            border: InputBorder.none,
+                                      if (!hideElements) ...[
+                                        InkWell(
+                                          onTap: () {},
+                                          child: CircleAvatar(
+                                            radius: 11,
+                                            backgroundColor:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.light
+                                                    ? colorTheme.greyColor
+                                                    : colorTheme.iconColor,
+                                            child: Icon(
+                                              Icons.currency_rupee_sharp,
+                                              size: 14,
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.light
+                                                  ? colorTheme.backgroundColor
+                                                  : colorTheme.appBarColor,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        width: 8.0,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              bottom: 12.0,
-                                            ),
-                                            child: InkWell(
-                                              onTap: () {
-                                                onAttachmentsIconPressed(
-                                                  context,
-                                                );
-                                              },
-                                              child: Transform.rotate(
-                                                angle: -0.5,
-                                                child: const Icon(
-                                                  Icons.attach_file_rounded,
-                                                  size: 24.0,
-                                                ),
-                                              ),
-                                            ),
+                                        InkWell(
+                                          onTap: () async {
+                                            // final images =
+                                            //     await ImageService
+                                            //         .compressFiles(
+                                            //   source: ImageSource.camera,
+                                            // );
+                                            // if (images == null) return;
+                                            // if (!mounted) return;
+                                            // Navigator.of(context).pop();
+                                            // Navigator.of(context).push(
+                                            //   MaterialPageRoute(
+                                            //     builder: (_) =>
+                                            //         AttachmentMessageSender(
+                                            //       attachments: images,
+                                            //       attachmentTypes: const [
+                                            //         AttachmentType.image
+                                            //       ],
+                                            //     ),
+                                            //   ),
+                                            // );
+                                          },
+                                          child: const Icon(
+                                            Icons.camera_alt_rounded,
+                                            size: 24.0,
                                           ),
-                                          if (!hideElements) ...[
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 12.0,
-                                                left: 16.0,
-                                              ),
-                                              child: InkWell(
-                                                onTap: () {},
-                                                child: CircleAvatar(
-                                                  radius: 11,
-                                                  backgroundColor:
-                                                      Theme.of(context)
-                                                                  .brightness ==
-                                                              Brightness.light
-                                                          ? colorTheme.greyColor
-                                                          : colorTheme
-                                                              .iconColor,
-                                                  child: Icon(
-                                                    Icons.currency_rupee_sharp,
-                                                    size: 14,
-                                                    color: Theme.of(context)
-                                                                .brightness ==
-                                                            Brightness.light
-                                                        ? colorTheme
-                                                            .backgroundColor
-                                                        : colorTheme
-                                                            .appBarColor,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 12.0,
-                                                left: 16.0,
-                                              ),
-                                              child: InkWell(
-                                                onTap: () async {
-                                                  // final images =
-                                                  //     await ImageService
-                                                  //         .compressFiles(
-                                                  //   source: ImageSource.camera,
-                                                  // );
-                                                  // if (images == null) return;
-                                                  // if (!mounted) return;
-                                                  // Navigator.of(context).pop();
-                                                  // Navigator.of(context).push(
-                                                  //   MaterialPageRoute(
-                                                  //     builder: (_) =>
-                                                  //         AttachmentMessageSender(
-                                                  //       attachments: images,
-                                                  //       attachmentTypes: const [
-                                                  //         AttachmentType.image
-                                                  //       ],
-                                                  //     ),
-                                                  //   ),
-                                                  // );
-                                                },
-                                                child: const Icon(
-                                                  Icons.camera_alt_rounded,
-                                                  size: 24.0,
-                                                ),
-                                              ),
-                                            ),
-                                          ]
-                                        ],
-                                      )
-                                    ],
-                                  )
-                                : Row(
+                                        ),
+                                      ],
+                                    ])
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0, vertical: 1),
+                                  child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
@@ -471,7 +409,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                       ),
                                     ],
                                   ),
-                          ),
+                                ),
                         ),
                       ),
                       const SizedBox(

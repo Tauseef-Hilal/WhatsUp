@@ -7,7 +7,7 @@ import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../models/attachement.dart';
-import 'attachment_viewer.dart';
+import '../attachment_viewer.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard({
