@@ -1291,8 +1291,8 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
             ..attachment!.url = url
             ..attachment!.uploadStatus = UploadStatus.uploaded,
         )
-        .then((_) {
-      IsarDb.updateMessage(
+        .then((_) async {
+      await IsarDb.updateMessage(
         widget.message.id,
         status: widget.message.status,
         attachment: widget.message.attachment!

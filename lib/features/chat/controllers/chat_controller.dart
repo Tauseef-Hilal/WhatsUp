@@ -256,22 +256,28 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         );
   }
 
-  Future<void> pickAttachmentsFromGallery(
-    BuildContext context,
-  ) async {
+  Future<List<Attachment>?> pickAttachmentsFromGallery(
+    BuildContext context, {
+    bool returnAttachments = false,
+  }) async {
     final key = showLoading(context);
 
     List<File>? files = await pickMultimedia();
     if (files == null) {
       Navigator.pop(key.currentContext!);
-      return;
+      return null;
     }
 
     final attachments = await _prepareAttachments(files, shouldCompress: true);
+    if (returnAttachments) {
+      Navigator.pop(key.currentContext!);
+      return attachments;
+    }
 
-    if (!mounted) return;
+    if (!mounted) return null;
     Navigator.pop(key.currentContext!);
     navigateToAttachmentSender(context, attachments);
+    return null;
   }
 
   Future<void> pickAudioFiles(
