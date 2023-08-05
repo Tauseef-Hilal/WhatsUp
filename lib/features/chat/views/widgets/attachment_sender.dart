@@ -1,15 +1,12 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
-import 'package:whatsapp_clone/shared/utils/abc.dart';
-import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../../shared/models/user.dart';
+import '../../../../shared/utils/storage_paths.dart';
 import '../../../../shared/widgets/emoji_picker.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/attachement.dart';
@@ -19,11 +16,9 @@ class AttachmentMessageSender extends ConsumerStatefulWidget {
   const AttachmentMessageSender({
     super.key,
     required this.attachments,
-    required this.attachmentTypes,
   });
 
-  final List<File> attachments;
-  final List<AttachmentType> attachmentTypes;
+  final List<Attachment> attachments;
 
   @override
   ConsumerState<AttachmentMessageSender> createState() =>
@@ -34,7 +29,7 @@ class _AttachmentMessageSenderState
     extends ConsumerState<AttachmentMessageSender> {
   late User self;
   late User other;
-  late File current;
+  late Attachment current;
   late List<TextEditingController> controllers;
 
   @override
@@ -60,8 +55,7 @@ class _AttachmentMessageSenderState
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
-    final currentType =
-        widget.attachmentTypes[widget.attachments.indexOf(current)];
+    final currentType = current.type;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -119,7 +113,7 @@ class _AttachmentMessageSenderState
               const SizedBox(height: 18),
               Expanded(
                 child: AttachmentRenderer(
-                  attachment: current,
+                  attachment: current.file!,
                   attachmentType: currentType,
                   fit: BoxFit.contain,
                   controllable: true,
@@ -146,20 +140,20 @@ class _AttachmentMessageSenderState
                           scrollDirection: Axis.horizontal,
                           itemCount: widget.attachments.length,
                           itemBuilder: (context, idx) {
-                            final file = widget.attachments[idx];
-                            final fileType = widget.attachmentTypes[idx];
+                            final attachment = widget.attachments[idx];
+                            final attachmentType = attachment.type;
 
                             return Center(
                               child: GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      current = file;
+                                      current = attachment;
                                     });
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
-                                      border: current == file
+                                      border: current == attachment
                                           ? Border.all(
                                               color: Colors.blue,
                                               width: 4,
@@ -172,8 +166,8 @@ class _AttachmentMessageSenderState
                                         height: 50,
                                         width: 50,
                                         child: AttachmentRenderer(
-                                          attachment: file,
-                                          attachmentType: fileType,
+                                          attachment: attachment.file!,
+                                          attachmentType: attachmentType,
                                           fit: BoxFit.cover,
                                           compact: true,
                                         ),
@@ -273,29 +267,18 @@ class _AttachmentMessageSenderState
                     InkWell(
                       onTap: () async {
                         for (var i = 0; i < controllers.length; i++) {
-                          final attachedFile = widget.attachments[i];
-                          final attachmentType = widget.attachmentTypes[i];
-
-                          double? width, height;
-                          if (attachmentType == AttachmentType.image) {
-                            (width, height) =
-                                await getImageDimensions(attachedFile);
-                          } else if (attachmentType == AttachmentType.video) {
-                            (width, height) =
-                                await getVideoDimensions(attachedFile);
-                          }
+                          final attachment = widget.attachments[i];
 
                           String messageId = const Uuid().v4();
-                          String fileName = attachedFile.path.split("/").last;
                           String msgContent = controllers[i].text.trim();
                           if (msgContent.isEmpty &&
-                              attachmentType == AttachmentType.document) {
+                              attachment.type == AttachmentType.document) {
                             msgContent = "\u00A0";
                           }
 
-                          await attachedFile.copy(
+                          await attachment.file!.copy(
                             DeviceStorage.getMediaFilePath(
-                              "${messageId}__$fileName",
+                              attachment.fileName,
                             ),
                           );
 
@@ -309,16 +292,8 @@ class _AttachmentMessageSenderState
                                   senderId: self.id,
                                   receiverId: other.id,
                                   timestamp: Timestamp.now(),
-                                  attachment: Attachment(
-                                    type: attachmentType,
-                                    url: "",
-                                    fileName: fileName,
-                                    fileSize: attachedFile.lengthSync(),
-                                    fileExtension: fileName.split(".").last,
-                                    file: attachedFile,
-                                    width: width,
-                                    height: height,
-                                  ),
+                                  attachment: attachment
+                                    ..uploadStatus = UploadStatus.uploading,
                                 ),
                               );
                         }

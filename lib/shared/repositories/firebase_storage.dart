@@ -36,7 +36,7 @@ class FirebaseStorageRepo {
     }
 
     final ref = firebaseStorage.refFromURL(url);
-    final path = "${DeviceStorage.mediaDirPath}/$fileName";
+    final path = DeviceStorage.getMediaFilePath(fileName);
     final file = File(path);
 
     return (file, ref.writeToFile(file));

@@ -3,15 +3,11 @@ import 'dart:io';
 
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
-import 'package:whatsapp_clone/features/chat/models/attachement.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/chat_date.dart';
@@ -25,8 +21,6 @@ import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
-import '../../../shared/repositories/image_service.dart';
-import 'widgets/attachment_sender.dart';
 import 'widgets/unread_banner.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -361,25 +355,25 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                               ),
                                               child: InkWell(
                                                 onTap: () async {
-                                                  final images =
-                                                      await ImageService
-                                                          .getImages(
-                                                    source: ImageSource.camera,
-                                                  );
-                                                  if (images == null) return;
-                                                  if (!mounted) return;
-                                                  Navigator.of(context).pop();
-                                                  Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          AttachmentMessageSender(
-                                                        attachments: images,
-                                                        attachmentTypes: const [
-                                                          AttachmentType.image
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
+                                                  // final images =
+                                                  //     await ImageService
+                                                  //         .compressFiles(
+                                                  //   source: ImageSource.camera,
+                                                  // );
+                                                  // if (images == null) return;
+                                                  // if (!mounted) return;
+                                                  // Navigator.of(context).pop();
+                                                  // Navigator.of(context).push(
+                                                  //   MaterialPageRoute(
+                                                  //     builder: (_) =>
+                                                  //         AttachmentMessageSender(
+                                                  //       attachments: images,
+                                                  //       attachmentTypes: const [
+                                                  //         AttachmentType.image
+                                                  //       ],
+                                                  //     ),
+                                                  //   ),
+                                                  // );
                                                 },
                                                 child: const Icon(
                                                   Icons.camera_alt_rounded,
@@ -747,24 +741,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
               children: [
                 LabelledButton(
                   onTap: () async {
-                    final files = await pickFiles(
-                      type: FileType.any,
-                      allowCompression: false,
-                      allowMultiple: true,
-                    );
-                    if (!mounted || files == null || files.isEmpty) return;
-                    Navigator.pop(context);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AttachmentMessageSender(
-                          attachments: files,
-                          attachmentTypes: List.filled(
-                            files.length,
-                            AttachmentType.document,
-                          ),
-                        ),
-                      ),
-                    );
+                    ref
+                        .read(chatControllerProvider.notifier)
+                        .pickDocuments(context);
                   },
                   backgroundColor: Colors.deepPurpleAccent,
                   label: 'Document',
@@ -776,20 +755,20 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    final images = await ImageService.getImages(
-                      source: ImageSource.camera,
-                    );
-                    if (images == null) return;
-                    if (!mounted) return;
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AttachmentMessageSender(
-                          attachments: images,
-                          attachmentTypes: const [AttachmentType.image],
-                        ),
-                      ),
-                    );
+                    // final images = await ImageService.compressFiles(
+                    //   source: ImageSource.camera,
+                    // );
+                    // if (images == null) return;
+                    // if (!mounted) return;
+                    // Navigator.of(context).pop();
+                    // Navigator.of(context).push(
+                    //   MaterialPageRoute(
+                    //     builder: (_) => AttachmentMessageSender(
+                    //       attachments: images,
+                    //       attachmentTypes: const [AttachmentType.image],
+                    //     ),
+                    //   ),
+                    // );
                   },
                   label: 'Camera',
                   backgroundColor: Colors.redAccent[400],
@@ -801,36 +780,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    final media = await ImageService.getImages(
-                      source: ImageSource.gallery,
-                      single: false,
-                    );
-                    if (media == null) return;
-                    if (!mounted) return;
-
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AttachmentMessageSender(
-                          attachments: media,
-                          attachmentTypes: media.map((e) {
-                            AttachmentType? attachmentType;
-                            final mimeType = lookupMimeType(e.path);
-
-                            if (mimeType == null) {
-                              return AttachmentType.document;
-                            }
-
-                            final type = mimeType.split("/")[0].toUpperCase();
-                            if (['IMAGE', 'VIDEO'].contains(type)) {
-                              attachmentType = AttachmentType.fromValue(type);
-                            }
-
-                            return attachmentType ?? AttachmentType.document;
-                          }).toList(),
-                        ),
-                      ),
-                    );
+                    ref
+                        .read(chatControllerProvider.notifier)
+                        .pickAttachmentsFromGallery(context);
                   },
                   label: 'Gallery',
                   backgroundColor: Colors.purple[400],
@@ -843,24 +795,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 if (Platform.isAndroid) ...[
                   LabelledButton(
                     onTap: () async {
-                      final files = await pickFiles(
-                        type: FileType.audio,
-                        allowMultiple: true,
-                        allowCompression: false,
-                      );
-                      if (!mounted || files == null || files.isEmpty) return;
-                      Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => AttachmentMessageSender(
-                            attachments: files,
-                            attachmentTypes: List.filled(
-                              files.length,
-                              AttachmentType.audio,
-                            ),
-                          ),
-                        ),
-                      );
+                      ref
+                          .read(chatControllerProvider.notifier)
+                          .pickAudioFiles(context);
                     },
                     label: 'Audio',
                     backgroundColor: Colors.orange[900],
@@ -1105,11 +1042,12 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
                         borderRadius: BorderRadius.circular(12),
                         color: isDarkTheme
                             ? const Color.fromARGB(200, 24, 34, 40)
-                            : const Color.fromARGB(197, 247, 233, 112),
+                            : const Color.fromARGB(148, 248, 236, 130),
                       ),
                       child: Text(
                         '🔒Messages and calls are end-to-end encrypted. No one outside this chat, not even WhatsApp, can read or listen to them. Tap to learn more.',
                         style: TextStyle(
+                          fontSize: 13,
                           color: isDarkTheme
                               ? colorTheme.yellowColor
                               : colorTheme.textColor1,

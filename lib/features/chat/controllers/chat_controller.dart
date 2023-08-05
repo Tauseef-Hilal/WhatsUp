@@ -1,20 +1,26 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
+import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 
+import '../../../shared/repositories/compression_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
 import '../models/attachement.dart';
+import '../views/widgets/attachment_sender.dart';
 
 final chatControllerProvider =
     StateNotifierProvider.autoDispose<ChatStateNotifier, ChatState>(
@@ -248,5 +254,169 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
           ),
           receiverId: message.senderId,
         );
+  }
+
+  Future<void> pickAttachmentsFromGallery(
+    BuildContext context,
+  ) async {
+    final key = showLoading(context);
+
+    List<File>? files = await pickMultimedia();
+    if (files == null) {
+      Navigator.pop(key.currentContext!);
+      return;
+    }
+
+    final attachments = await _prepareAttachments(files, shouldCompress: true);
+
+    if (!mounted) return;
+    Navigator.pop(key.currentContext!);
+    navigateToAttachmentSender(context, attachments);
+  }
+
+  Future<void> pickAudioFiles(
+    BuildContext context,
+  ) async {
+    final key = showLoading(context);
+
+    List<File>? files = await pickFiles(type: FileType.audio);
+    if (files == null) {
+      Navigator.pop(key.currentContext!);
+      return;
+    }
+
+    final attachments = await _prepareAttachments(files, areDocuments: false);
+
+    if (!mounted) return;
+    Navigator.pop(key.currentContext!);
+    navigateToAttachmentSender(context, attachments);
+  }
+
+  Future<void> pickDocuments(
+    BuildContext context,
+  ) async {
+    final key = showLoading(context);
+
+    List<File>? files = await pickFiles(type: FileType.any);
+    if (files == null) {
+      Navigator.pop(key.currentContext!);
+      return;
+    }
+
+    final attachments = await _prepareAttachments(files, areDocuments: true);
+
+    if (!mounted) return;
+    Navigator.pop(key.currentContext!);
+    navigateToAttachmentSender(context, attachments);
+  }
+
+  GlobalKey showLoading(context) {
+    final dialogKey = GlobalKey();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          key: dialogKey,
+          content: const Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 24),
+              Text(
+                'Preparing media',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    return dialogKey;
+  }
+
+  void prepareAttachments(
+    BuildContext context,
+    List<File> files, {
+    bool shouldCompress = false,
+    bool areDocuments = false,
+  }) {
+    final dialogKey = GlobalKey();
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _prepareAttachments(
+        files,
+        shouldCompress: shouldCompress,
+        areDocuments: areDocuments,
+      ).then((attachments) {
+        if (!mounted) return;
+        Navigator.pop(dialogKey.currentContext!);
+        Navigator.pop(context);
+        navigateToAttachmentSender(context, attachments);
+      });
+    });
+  }
+
+  Future<List<Attachment>> _prepareAttachments(
+    List<File> files, {
+    bool shouldCompress = false,
+    bool areDocuments = false,
+  }) async {
+    if (shouldCompress) {
+      files = await CompressionService.compressFiles(files);
+    }
+
+    return await createAttachmentsFromFiles(files, areDocuments: areDocuments);
+  }
+
+  Future<List<Attachment>> createAttachmentsFromFiles(
+    List<File> files, {
+    bool areDocuments = false,
+  }) async {
+    return await Future.wait(
+      files.map((file) async {
+        final type = areDocuments
+            ? AttachmentType.document
+            : AttachmentType.fromValue(
+                lookupMimeType(file.path)?.split("/")[0].toUpperCase() ??
+                    'DOCUMENT',
+              );
+
+        double? width, height;
+        if (type == AttachmentType.image) {
+          (width, height) = await getImageDimensions(File(file.path));
+        } else if (type == AttachmentType.video) {
+          (width, height) = await getVideoDimensions(File(file.path));
+        }
+
+        final fileName = file.path.split("/").last;
+
+        return Attachment(
+          type: type,
+          url: "",
+          fileName: fileName,
+          fileSize: file.lengthSync(),
+          fileExtension: fileName.split(".").last,
+          width: width,
+          height: height,
+          file: file,
+        );
+      }),
+    );
+  }
+
+  void navigateToAttachmentSender(
+    BuildContext context,
+    List<Attachment> attachments,
+  ) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => AttachmentMessageSender(
+          attachments: attachments,
+        ),
+      ),
+    );
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
@@ -113,20 +112,6 @@ Future<bool> isConnected() async {
   } on SocketException catch (_) {}
 
   return false;
-}
-
-Future<List<File>?> pickFiles({
-  required FileType type,
-  bool allowMultiple = false,
-  bool allowCompression = true,
-}) async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-    type: type,
-    allowCompression: allowCompression,
-    allowMultiple: allowMultiple,
-  );
-
-  return result?.files.map((e) => File(e.path!)).toList();
 }
 
 Future<Contact?> pickContact() async {

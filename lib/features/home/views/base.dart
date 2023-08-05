@@ -384,7 +384,7 @@ class HomePageContactsList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: 50,
+              height: 55,
               width: (avatarDisplayCount * 36) + 30,
               child: Stack(
                 children: [
@@ -396,7 +396,7 @@ class HomePageContactsList extends StatelessWidget {
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(
                             width: 2,
-                            color: colorTheme.backgroundColor,
+                            color: AppColorsDark.backgroundColor,
                           ),
                         ),
                         child: CircleAvatar(
@@ -423,7 +423,9 @@ class HomePageContactsList extends StatelessWidget {
                 text: descriptionList[0],
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: colorTheme.unselectedLabelColor,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? colorTheme.unselectedLabelColor
+                      : colorTheme.textColor1,
                 ),
                 children: [
                   TextSpan(

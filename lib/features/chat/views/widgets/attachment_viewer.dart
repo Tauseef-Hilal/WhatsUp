@@ -38,10 +38,8 @@ class AttachmentPreview extends StatefulWidget {
 class _AttachmentPreviewState extends State<AttachmentPreview>
     with AutomaticKeepAliveClientMixin {
   bool attachmentExists() {
-    final messageId = widget.message.id;
-    final attachmentName = widget.message.attachment!.fileName;
-    final fileName = "${messageId}__$attachmentName";
-    final file = File("${DeviceStorage.appDocsDirPath}/media/$fileName");
+    final fileName = widget.message.attachment!.fileName;
+    final file = File(DeviceStorage.getMediaFilePath(fileName));
 
     if (file.existsSync()) {
       widget.message.attachment!.file = file;
@@ -1109,7 +1107,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
   Future<(File, DownloadTask)> download() {
     return ref.read(firebaseStorageRepoProvider).downloadFileFromFirebase(
           widget.message.attachment!.url,
-          "${widget.message.id}__${widget.message.attachment!.fileName}",
+          widget.message.attachment!.fileName,
         );
   }
 
@@ -1275,10 +1273,11 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
   }
 
   Future<UploadTask> upload() {
-    final fileName =
-        "${widget.message.id}__${widget.message.attachment!.fileName}";
+    final fileName = widget.message.attachment!.fileName;
     return ref.read(firebaseStorageRepoProvider).uploadFileToFirebase(
-        widget.message.attachment!.file!, "attachments/$fileName");
+          widget.message.attachment!.file!,
+          "attachments/$fileName",
+        );
   }
 
   void onUploadDone(TaskSnapshot snapshot) async {

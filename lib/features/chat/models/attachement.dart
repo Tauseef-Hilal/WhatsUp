@@ -60,7 +60,7 @@ class Attachment {
     required this.fileName,
     required this.fileSize,
     required this.fileExtension,
-    this.uploadStatus = UploadStatus.uploading,
+    this.uploadStatus = UploadStatus.notUploading,
     this.width,
     this.height,
     this.file,

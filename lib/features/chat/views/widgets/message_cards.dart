@@ -176,20 +176,6 @@ class _MessageCardState extends State<MessageCard> {
                           attachmentType != AttachmentType.audio
                       ? const EdgeInsets.all(4.0)
                       : null,
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      if (!messageHasText &&
-                          (attachmentType != AttachmentType.document &&
-                              attachmentType != AttachmentType.audio &&
-                              attachmentType != AttachmentType.voice)) ...[
-                        const BoxShadow(
-                          offset: Offset(-2, -2),
-                          color: Color.fromARGB(225, 0, 0, 0),
-                          blurRadius: 12,
-                        )
-                      ]
-                    ],
-                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -205,18 +191,31 @@ class _MessageCardState extends State<MessageCard> {
                               .textTheme
                               .caption
                               .copyWith(
-                                fontSize: 11,
-                                color: messageHasText
-                                    ? colorTheme.textColor1
-                                        .withOpacity(0.9)
-                                        .withBlue(
-                                          Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? 255
-                                              : 100,
-                                        )
-                                    : Colors.white,
-                              ),
+                            shadows: [
+                              if (!messageHasText &&
+                                  (attachmentType != AttachmentType.document &&
+                                      attachmentType != AttachmentType.audio &&
+                                      attachmentType !=
+                                          AttachmentType.voice)) ...[
+                                const BoxShadow(
+                                  offset: Offset(-2, -2),
+                                  color: Color.fromARGB(250, 0, 0, 0),
+                                  blurRadius: 12,
+                                )
+                              ]
+                            ],
+                            fontSize: 11,
+                            color: messageHasText
+                                ? colorTheme.textColor1
+                                    .withOpacity(0.9)
+                                    .withBlue(
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? 255
+                                          : 100,
+                                    )
+                                : Colors.white,
+                          ),
                         )
                       ],
                       if (isSentMessageCard) ...[

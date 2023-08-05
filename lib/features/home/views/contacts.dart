@@ -389,6 +389,7 @@ class LocalContactsList extends StatelessWidget {
               child: Row(
                 children: [
                   const CircleAvatar(
+                    backgroundColor: Colors.black,
                     backgroundImage: AssetImage('assets/images/avatar.png'),
                   ),
                   const SizedBox(
@@ -456,12 +457,10 @@ class WhatsAppContactsList extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: contact.avatarUrl != null
-                        ? CachedNetworkImageProvider(
-                            contact.avatarUrl!,
-                          )
-                        : const AssetImage('assets/images/avatar.png')
-                            as ImageProvider,
+                    backgroundColor: Colors.black,
+                    backgroundImage: CachedNetworkImageProvider(
+                      contact.avatarUrl!,
+                    ),
                   ),
                   const SizedBox(
                     width: 18.0,
