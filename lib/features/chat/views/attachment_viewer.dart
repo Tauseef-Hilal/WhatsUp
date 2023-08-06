@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:audio_waveforms/audio_waveforms.dart' as aw;
 import 'package:audioplayers/audioplayers.dart';
@@ -28,16 +27,20 @@ class AttachmentPreview extends StatefulWidget {
   const AttachmentPreview({
     super.key,
     required this.message,
+    required this.width,
+    required this.height,
   });
+
   final Message message;
+  final double width;
+  final double height;
 
   @override
   State<AttachmentPreview> createState() => _AttachmentPreviewState();
 }
 
-class _AttachmentPreviewState extends State<AttachmentPreview>
-    with AutomaticKeepAliveClientMixin {
-  bool attachmentExists() {
+class _AttachmentPreviewState extends State<AttachmentPreview> {
+  bool _doesAttachmentExist() {
     final fileName = widget.message.attachment!.fileName;
     final file = File(DeviceStorage.getMediaFilePath(fileName));
 
@@ -50,48 +53,28 @@ class _AttachmentPreviewState extends State<AttachmentPreview>
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
-    final maxWidth = MediaQuery.of(context).size.width * 0.80;
-    final maxHeight = MediaQuery.of(context).size.height * 0.40;
-    final imgWidth = widget.message.attachment!.width ?? 1;
-    final imgHeight = widget.message.attachment!.height ?? 1;
-    final aspectRatio = imgWidth / imgHeight * 1.6;
-
-    double width, height;
-    if (imgHeight > imgWidth) {
-      height = min(imgHeight, maxHeight);
-      width = min(aspectRatio * height, 0.70 * maxHeight);
-    } else {
-      width = min(imgWidth, maxWidth);
-      height = min(imgWidth / aspectRatio, 0.70 * maxWidth);
-    }
-
-    final attachmentType = widget.message.attachment!.type;
-    return switch (attachmentType) {
+    return switch (widget.message.attachment!.type) {
       AttachmentType.audio => AttachedAudioViewer(
           message: widget.message,
-          doesAttachmentExist: attachmentExists(),
+          doesAttachmentExist: _doesAttachmentExist(),
           onDownloadComplete: () => setState(() {}),
         ),
       AttachmentType.voice => AttachedVoiceViewer(
           message: widget.message,
-          doesAttachmentExist: attachmentExists(),
+          doesAttachmentExist: _doesAttachmentExist(),
           onDownloadComplete: () => setState(() {}),
         ),
       AttachmentType.document => AttachedDocumentViewer(
           message: widget.message,
-          doesAttachmentExist: attachmentExists(),
+          doesAttachmentExist: _doesAttachmentExist(),
           onDownloadComplete: () => setState(() {}),
         ),
       _ => AttachedImageVideoViewer(
-          width: width,
-          height: height,
+          width: widget.width,
+          height: widget.height,
           message: widget.message,
-          doesAttachmentExist: attachmentExists(),
+          doesAttachmentExist: _doesAttachmentExist(),
           onDownloadComplete: () => setState(() {}),
         )
     };

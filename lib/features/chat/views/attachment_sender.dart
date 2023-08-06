@@ -231,78 +231,72 @@ class _AttachmentMessageSenderState
                     onDeleteClicked: removeSelectedAttachment,
                   ),
                 ),
-                Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: ChatField(
-                        textController:
-                            controllers[attachments.indexOf(current)],
-                        leading: GestureDetector(
-                          onTap: addNewAttachments,
-                          child: Icon(
-                            Icons.add_box_rounded,
-                            size: 24.0,
-                            color: colorTheme.greyColor,
+                Column(children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: ChatField(
+                      textController: controllers[attachments.indexOf(current)],
+                      leading: GestureDetector(
+                        onTap: addNewAttachments,
+                        child: Icon(
+                          Icons.add_box_rounded,
+                          size: 24.0,
+                          color: colorTheme.greyColor,
+                        ),
+                      ),
+                      actions: [
+                        GestureDetector(
+                          child: const Icon(Icons.hide_source_rounded),
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    color: const Color.fromARGB(152, 0, 0, 0),
+                    padding: const EdgeInsets.only(
+                      top: 12.0,
+                      bottom: 32,
+                      left: 12,
+                      right: 12,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? colorTheme.appBarColor
+                                  : const Color.fromARGB(255, 242, 251, 254),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Text(other.name),
                           ),
                         ),
-                        actions: [
-                          GestureDetector(
-                            child: const Icon(Icons.hide_source_rounded),
-                          )
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (!isKeyboardVisible) ...[
-                      Container(
-                        color: const Color.fromARGB(152, 0, 0, 0),
-                        padding: const EdgeInsets.only(
-                          top: 12.0,
-                          bottom: 32,
-                          left: 12,
-                          right: 12,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? colorTheme.appBarColor
-                                      : const Color.fromARGB(
-                                          255, 242, 251, 254),
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Text(other.name),
-                              ),
+                        InkWell(
+                          onTap: sendAttachments,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colorTheme.greenColor),
+                            child: const Icon(
+                              Icons.send,
+                              color: Colors.white,
                             ),
-                            InkWell(
-                              onTap: sendAttachments,
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: colorTheme.greenColor),
-                                child: const Icon(
-                                  Icons.send,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ]
-                  ],
-                ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ]),
                 if (isKeyboardVisible) ...[
                   SizedBox(
                     height: getKeyboardHeight(),

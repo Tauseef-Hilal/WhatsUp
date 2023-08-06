@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_emoji/flutter_emoji.dart';
@@ -25,14 +26,19 @@ class MessageCard extends StatefulWidget {
   State<MessageCard> createState() => _MessageCardState();
 }
 
-class _MessageCardState extends State<MessageCard> {
+class _MessageCardState extends State<MessageCard>
+    with AutomaticKeepAliveClientMixin {
   bool shouldHaveBiggerFont(String text) {
     final x = EmojiParser().parseEmojis(text);
     return text.runes.length == x.length;
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final colorTheme = Theme.of(context).custom.colorTheme;
     final size = MediaQuery.of(context).size;
     final hasAttachment = widget.message.attachment != null;
@@ -61,6 +67,22 @@ class _MessageCardState extends State<MessageCard> {
     }
 
     final textPadding = '\u00A0' * padding;
+    final hasImageOrVideo = attachmentType == AttachmentType.image ||
+        attachmentType == AttachmentType.video;
+    final maxWidth = MediaQuery.of(context).size.width * 0.80;
+    final maxHeight = MediaQuery.of(context).size.height * 0.40;
+    final imgWidth = widget.message.attachment?.width ?? 1;
+    final imgHeight = widget.message.attachment?.height ?? 1;
+    final aspectRatio = imgWidth / imgHeight * 1.6;
+
+    double width, height;
+    if (imgHeight > imgWidth) {
+      height = min(imgHeight, maxHeight);
+      width = min(aspectRatio * height, 0.70 * maxHeight);
+    } else {
+      width = min(imgWidth, maxWidth);
+      height = min(imgWidth / aspectRatio, 0.70 * maxWidth);
+    }
 
     return Align(
       alignment:
@@ -71,9 +93,11 @@ class _MessageCardState extends State<MessageCard> {
             : null,
         child: Container(
           constraints: BoxConstraints(
-            minHeight: 34,
+            minHeight: hasImageOrVideo ? height : 34,
             minWidth: widget.special ? (isSentMessageCard ? 98 : 76) : 60,
-            maxWidth: size.width * 0.80 + (widget.special ? 10 : 0),
+            maxWidth: hasImageOrVideo
+                ? width
+                : size.width * 0.80 + (widget.special ? 10 : 0),
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -124,6 +148,8 @@ class _MessageCardState extends State<MessageCard> {
                   if (hasAttachment) ...[
                     AttachmentPreview(
                       message: widget.message,
+                      width: width,
+                      height: height,
                     ),
                   ],
                   if (messageHasText) ...[
@@ -172,15 +198,15 @@ class _MessageCardState extends State<MessageCard> {
                 bottom: -1,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                     boxShadow: [
                       if (!messageHasText &&
                           (attachmentType != AttachmentType.document &&
                               attachmentType != AttachmentType.audio &&
                               attachmentType != AttachmentType.voice)) ...[
                         const BoxShadow(
-                          color: Color.fromARGB(120, 2, 7, 25),
-                          blurRadius: 4,
+                          color: Color.fromARGB(174, 1, 4, 21),
+                          blurRadius: 0,
                         )
                       ],
                     ],
