@@ -73,15 +73,15 @@ class _MessageCardState extends State<MessageCard>
     final maxHeight = MediaQuery.of(context).size.height * 0.40;
     final imgWidth = widget.message.attachment?.width ?? 1;
     final imgHeight = widget.message.attachment?.height ?? 1;
-    final aspectRatio = imgWidth / imgHeight * 1.6;
+    final aspectRatio = imgWidth / imgHeight;
 
     double width, height;
     if (imgHeight > imgWidth) {
       height = min(imgHeight, maxHeight);
-      width = min(aspectRatio * height, 0.70 * maxHeight);
+      width = aspectRatio * height;
     } else {
       width = min(imgWidth, maxWidth);
-      height = min(imgWidth / aspectRatio, 0.70 * maxWidth);
+      height = width / aspectRatio;
     }
 
     return Align(
@@ -93,7 +93,7 @@ class _MessageCardState extends State<MessageCard>
             : null,
         child: Container(
           constraints: BoxConstraints(
-            minHeight: hasImageOrVideo ? height : 34,
+            minHeight: 34,
             minWidth: widget.special ? (isSentMessageCard ? 98 : 76) : 60,
             maxWidth: hasImageOrVideo
                 ? width
@@ -146,10 +146,16 @@ class _MessageCardState extends State<MessageCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (hasAttachment) ...[
-                    AttachmentPreview(
-                      message: widget.message,
-                      width: width,
-                      height: height,
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight:
+                            height < width ? 0.65 * width : double.infinity,
+                      ),
+                      child: AttachmentPreview(
+                        message: widget.message,
+                        width: width,
+                        height: height,
+                      ),
                     ),
                   ],
                   if (messageHasText) ...[

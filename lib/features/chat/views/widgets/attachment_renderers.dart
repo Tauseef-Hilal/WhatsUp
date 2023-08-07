@@ -149,23 +149,23 @@ class _VideoViewerState extends State<VideoViewer> {
     Widget button = videoController.value.isPlaying
         ? CircleAvatar(
             backgroundColor: const Color.fromARGB(255, 209, 208, 208),
-            radius: 30,
+            radius: 25,
             child: GestureDetector(
               onTap: () => changePlayState(),
               child: const Icon(
                 Icons.pause_rounded,
-                size: 50,
+                size: 30,
               ),
             ),
           )
         : CircleAvatar(
             backgroundColor: const Color.fromARGB(255, 209, 208, 208),
-            radius: 30,
+            radius: 25,
             child: GestureDetector(
               onTap: () => changePlayState(),
               child: const Icon(
                 Icons.play_arrow_rounded,
-                size: 50,
+                size: 30,
               ),
             ),
           );

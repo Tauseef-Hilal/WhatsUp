@@ -147,7 +147,7 @@ class _AttachedImageVideoViewerState
         GestureDetector(
           onTap: navigateToViewer,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(8.0),
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -191,12 +191,12 @@ class _AttachedImageVideoViewerState
           CircleAvatar(
             backgroundColor: const Color.fromARGB(255, 209, 208, 208),
             foregroundColor: Colors.black87,
-            radius: 30,
+            radius: 25,
             child: GestureDetector(
               onTap: navigateToViewer,
               child: const Icon(
                 Icons.play_arrow_rounded,
-                size: 50,
+                size: 40,
               ),
             ),
           )
@@ -1102,6 +1102,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
 
     if (!isDownloading) {
       return Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           InkWell(
@@ -1309,6 +1310,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
 
     if (!isUploading) {
       return Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           InkWell(
