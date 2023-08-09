@@ -36,6 +36,14 @@ At the heart of WhatsUp is the mighty Firebase Firestore. We rely on Firestore t
 
 In WhatsUp, messages within a chat are stored exclusively on the phones of the communicating individuals. This design ensures that your conversations remain private and inaccessible to unauthorized parties. Your messages are your own, and we're committed to keeping it that way.
 
+## Known Issues
+
+- Voice not playing after download
+- Voice/Music not seeking properly
+- Android recorded files not working on iOS (issue with the package [audio_waveforms](https://github.com/SimformSolutionsPvtLtd/audio_waveforms/issues/237))
+- Unread banner not rendering properly when unread message count is high
+- Keyboard height issues on some devices (specifically Android devices)
+
 ## Contribute and Elevate 🤝
 
 We heartily welcome contributions from the community to elevate the project. Share your insights, submit those bug reports, request features, and send those pull requests to make WhatsUp shine even brighter.
