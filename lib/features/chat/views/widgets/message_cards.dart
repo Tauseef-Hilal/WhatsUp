@@ -71,6 +71,7 @@ class _MessageCardState extends State<MessageCard>
         attachmentType == AttachmentType.video;
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     final maxHeight = MediaQuery.of(context).size.height * 0.40;
+    final minWidth = 0.8 * maxWidth;
     final imgWidth = widget.message.attachment?.width ?? 1;
     final imgHeight = widget.message.attachment?.height ?? 1;
     final aspectRatio = imgWidth / imgHeight;
@@ -78,7 +79,7 @@ class _MessageCardState extends State<MessageCard>
     double width, height;
     if (imgHeight > imgWidth) {
       height = min(imgHeight, maxHeight);
-      width = aspectRatio * height;
+      width = max(aspectRatio * height, minWidth);
     } else {
       width = min(imgWidth, maxWidth);
       height = width / aspectRatio;
