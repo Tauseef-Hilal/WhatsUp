@@ -213,7 +213,7 @@ class _MessageCardState extends State<MessageCard>
                               attachmentType != AttachmentType.voice)) ...[
                         const BoxShadow(
                           color: Color.fromARGB(174, 1, 4, 21),
-                          blurRadius: 0,
+                          blurRadius: 20,
                         )
                       ],
                     ],
