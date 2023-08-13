@@ -509,7 +509,7 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                                       if (snap.hasData) {
                                         text = timeFromSeconds(
                                           player.state == PlayerState.playing ||
-                                                  val >= 0 && val <= 1
+                                                  val > 0 && val < 1
                                               ? (snap.data!.inSeconds * val)
                                                   .toInt()
                                               : snap.data!.inSeconds,
