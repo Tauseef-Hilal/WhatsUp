@@ -39,6 +39,7 @@ class EmbeddedAttachment {
   double? width;
   double? height;
   String? url;
+  List<double>? samples;
 
   @Enumerated(EnumType.value, 'value')
   UploadStatus? uploadStatus;
@@ -55,5 +56,6 @@ class EmbeddedAttachment {
     this.url,
     this.uploadStatus,
     this.type,
+    this.samples,
   });
 }

@@ -53,6 +53,7 @@ class Attachment {
   UploadStatus uploadStatus;
   String url;
   File? file;
+  List<double>? samples;
 
   Attachment({
     required this.type,
@@ -64,6 +65,7 @@ class Attachment {
     this.width,
     this.height,
     this.file,
+    this.samples,
   });
 
   factory Attachment.fromMap(Map<String, dynamic> data) {
@@ -76,6 +78,9 @@ class Attachment {
       height: data["height"],
       type: AttachmentType.fromValue(data["type"]),
       uploadStatus: UploadStatus.fromValue(data["uploadStatus"]),
+      samples: data["samples"] != null
+          ? List.castFrom<dynamic, double>(data["samples"])
+          : null,
     );
   }
 
@@ -94,6 +99,7 @@ class Attachment {
       "uploadStatus": uploadStatus.value,
       "width": width,
       "height": height,
+      "samples": samples,
     };
   }
 }

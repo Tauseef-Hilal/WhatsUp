@@ -1580,25 +1580,30 @@ const EmbeddedAttachmentSchema = Schema(
       name: r'height',
       type: IsarType.double,
     ),
-    r'type': PropertySchema(
+    r'samples': PropertySchema(
       id: 4,
+      name: r'samples',
+      type: IsarType.doubleList,
+    ),
+    r'type': PropertySchema(
+      id: 5,
       name: r'type',
       type: IsarType.string,
       enumMap: _EmbeddedAttachmenttypeEnumValueMap,
     ),
     r'uploadStatus': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'uploadStatus',
       type: IsarType.string,
       enumMap: _EmbeddedAttachmentuploadStatusEnumValueMap,
     ),
     r'url': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'url',
       type: IsarType.string,
     ),
     r'width': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'width',
       type: IsarType.double,
     )
@@ -1625,6 +1630,12 @@ int _embeddedAttachmentEstimateSize(
     final value = object.fileName;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.samples;
+    if (value != null) {
+      bytesCount += 3 + value.length * 8;
     }
   }
   {
@@ -1658,10 +1669,11 @@ void _embeddedAttachmentSerialize(
   writer.writeString(offsets[1], object.fileName);
   writer.writeLong(offsets[2], object.fileSize);
   writer.writeDouble(offsets[3], object.height);
-  writer.writeString(offsets[4], object.type?.value);
-  writer.writeString(offsets[5], object.uploadStatus?.value);
-  writer.writeString(offsets[6], object.url);
-  writer.writeDouble(offsets[7], object.width);
+  writer.writeDoubleList(offsets[4], object.samples);
+  writer.writeString(offsets[5], object.type?.value);
+  writer.writeString(offsets[6], object.uploadStatus?.value);
+  writer.writeString(offsets[7], object.url);
+  writer.writeDouble(offsets[8], object.width);
 }
 
 EmbeddedAttachment _embeddedAttachmentDeserialize(
@@ -1675,12 +1687,13 @@ EmbeddedAttachment _embeddedAttachmentDeserialize(
     fileName: reader.readStringOrNull(offsets[1]),
     fileSize: reader.readLongOrNull(offsets[2]),
     height: reader.readDoubleOrNull(offsets[3]),
+    samples: reader.readDoubleList(offsets[4]),
     type: _EmbeddedAttachmenttypeValueEnumMap[
-        reader.readStringOrNull(offsets[4])],
-    uploadStatus: _EmbeddedAttachmentuploadStatusValueEnumMap[
         reader.readStringOrNull(offsets[5])],
-    url: reader.readStringOrNull(offsets[6]),
-    width: reader.readDoubleOrNull(offsets[7]),
+    uploadStatus: _EmbeddedAttachmentuploadStatusValueEnumMap[
+        reader.readStringOrNull(offsets[6])],
+    url: reader.readStringOrNull(offsets[7]),
+    width: reader.readDoubleOrNull(offsets[8]),
   );
   return object;
 }
@@ -1701,14 +1714,16 @@ P _embeddedAttachmentDeserializeProp<P>(
     case 3:
       return (reader.readDoubleOrNull(offset)) as P;
     case 4:
+      return (reader.readDoubleList(offset)) as P;
+    case 5:
       return (_EmbeddedAttachmenttypeValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
-    case 5:
+    case 6:
       return (_EmbeddedAttachmentuploadStatusValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
-    case 6:
-      return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2205,6 +2220,179 @@ extension EmbeddedAttachmentQueryFilter
         includeUpper: includeUpper,
         epsilon: epsilon,
       ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'samples',
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'samples',
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesElementEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'samples',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesElementGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'samples',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesElementLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'samples',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesElementBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'samples',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'samples',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'samples',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'samples',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'samples',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'samples',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      samplesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'samples',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 

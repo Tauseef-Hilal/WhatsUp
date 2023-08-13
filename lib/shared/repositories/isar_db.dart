@@ -48,6 +48,7 @@ class IsarDb {
               uploadStatus: message.attachment!.uploadStatus,
               url: message.attachment!.url,
               type: message.attachment!.type,
+              samples: message.attachment!.samples,
             )
           : null,
     );
@@ -78,6 +79,7 @@ class IsarDb {
                     uploadStatus: message.attachment!.uploadStatus,
                     url: message.attachment!.url,
                     type: message.attachment!.type,
+                    samples: message.attachment!.samples,
                   )
                 : null,
           ),
@@ -117,6 +119,7 @@ class IsarDb {
           uploadStatus: attachment.uploadStatus,
           url: attachment.url,
           type: attachment.type,
+          samples: attachment.samples,
         );
       }
 
@@ -149,6 +152,7 @@ class IsarDb {
                           uploadStatus: msg.attachment!.uploadStatus!,
                           url: msg.attachment!.url!,
                           type: msg.attachment!.type!,
+                          samples: msg.attachment!.samples,
                         )
                       : null,
                 ))

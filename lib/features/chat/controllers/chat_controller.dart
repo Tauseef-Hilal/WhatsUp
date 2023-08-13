@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:logger/logger.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
@@ -40,6 +42,7 @@ class ChatState {
     this.recordingState = RecordingState.notRecording,
     this.showScrollBtn = false,
     this.unreadCount = 0,
+    required this.recordingSamples,
     required this.soundRecorder,
     required this.messageController,
   });
@@ -47,13 +50,14 @@ class ChatState {
   final bool hideElements;
   final RecordingState recordingState;
   final TextEditingController messageController;
-  final RecorderController soundRecorder;
+  final FlutterSoundRecorder soundRecorder;
   final bool showScrollBtn;
   final int unreadCount;
+  final List<RecordingDisposition> recordingSamples;
 
   void dispose() {
     messageController.dispose();
-    soundRecorder.dispose();
+    soundRecorder.closeRecorder();
   }
 
   ChatState copyWith({
@@ -61,6 +65,7 @@ class ChatState {
     RecordingState? recordingState,
     bool? showScrollBtn,
     int? unreadCount,
+    List<RecordingDisposition>? recordingSamples,
   }) {
     return ChatState(
       hideElements: hideElements ?? this.hideElements,
@@ -69,6 +74,7 @@ class ChatState {
       unreadCount: unreadCount ?? this.unreadCount,
       messageController: messageController,
       soundRecorder: soundRecorder,
+      recordingSamples: recordingSamples ?? this.recordingSamples,
     );
   }
 }
@@ -78,23 +84,44 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       : super(
           ChatState(
             messageController: TextEditingController(),
-            soundRecorder: RecorderController(),
+            soundRecorder: FlutterSoundRecorder(logLevel: Level.error),
+            recordingSamples: [],
           ),
         );
 
   final AutoDisposeStateNotifierProviderRef ref;
   late User self;
   late User other;
+  StreamSubscription<RecordingDisposition>? recordingStream;
 
   void initUsers(User self, User other) {
     this.self = self;
     this.other = other;
   }
 
-  void initSoundRecorder() {
-    state.soundRecorder.androidOutputFormat = AndroidOutputFormat.aac_adts;
-    state.soundRecorder.sampleRate = 44100;
-    state.soundRecorder.bitRate = 48000;
+  Future<void> initRecorder() async {
+    await state.soundRecorder.openRecorder();
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.allowBluetooth |
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.speech,
+        flags: AndroidAudioFlags.none,
+        usage: AndroidAudioUsage.voiceCommunication,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: true,
+    ));
+    state.soundRecorder.setSubscriptionDuration(
+      const Duration(milliseconds: 120),
+    );
   }
 
   @override
@@ -112,34 +139,50 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> pauseRecording() async {
-    await state.soundRecorder.pause();
+    await state.soundRecorder.pauseRecorder();
     setRecordingState(RecordingState.paused);
   }
 
   Future<void> resumeRecording() async {
-    await state.soundRecorder.record();
+    await state.soundRecorder.resumeRecorder();
     setRecordingState(RecordingState.recordingLocked);
   }
 
   Future<void> cancelRecording() async {
-    await state.soundRecorder.stop();
-    setRecordingState(RecordingState.notRecording);
+    await state.soundRecorder.stopRecorder();
+    recordingStream?.cancel();
+    recordingStream = null;
+    state = state.copyWith(
+      recordingSamples: [],
+      recordingState: RecordingState.notRecording,
+    );
   }
 
   Future<void> startRecording() async {
     if (!await hasPermission(Permission.microphone)) return;
-
-    await state.soundRecorder.record(
-      path: "${DeviceStorage.tempDirPath}/voice.aac",
+    await state.soundRecorder.startRecorder(
+      codec: Codec.aacADTS,
+      sampleRate: 44100,
+      bitRate: 48000,
+      toFile: "voice.aac",
     );
 
+    recordingStream = state.soundRecorder.onProgress!.listen(
+      recordingListener,
+    );
     setRecordingState(RecordingState.recording);
+  }
+
+  void recordingListener(RecordingDisposition data) {
+    state = state.copyWith(
+      recordingSamples: state.recordingSamples..add(data),
+    );
   }
 
   Future<void> onMicDragLeft(double dx, double deviceWidth) async {
     if (dx > deviceWidth * 0.6) return;
 
-    await state.soundRecorder.stop();
+    await state.soundRecorder.stopRecorder();
     setRecordingState(RecordingState.notRecording);
   }
 
@@ -151,8 +194,16 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> onRecordingDone() async {
-    final path = await state.soundRecorder.stop();
-    setRecordingState(RecordingState.notRecording);
+    final path = await state.soundRecorder.stopRecorder();
+    recordingStream?.cancel();
+    recordingStream = null;
+
+    final samples = state.recordingSamples.map((e) => e.decibels ?? 0).toList();
+
+    state = state.copyWith(
+      recordingSamples: [],
+      recordingState: RecordingState.notRecording,
+    );
 
     final recordedFile = File(path!);
     final messageId = const Uuid().v4();
@@ -183,6 +234,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
               fileExtension: ext,
               uploadStatus: UploadStatus.uploading,
               file: recordedFile,
+              samples: samples,
             ),
           ),
         );

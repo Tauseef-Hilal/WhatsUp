@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -22,6 +21,7 @@ import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
+import 'widgets/recording_visualiser.dart';
 import 'widgets/unread_banner.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -188,7 +188,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
 
   @override
   void initState() {
-    ref.read(chatControllerProvider.notifier).initSoundRecorder();
+    ref.read(chatControllerProvider.notifier).initRecorder();
     ref
         .read(emojiPickerControllerProvider.notifier)
         .init(keyboardVisibility: false);
@@ -335,7 +335,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                             stream: ref
                                                 .read(chatControllerProvider)
                                                 .soundRecorder
-                                                .onCurrentDuration,
+                                                .onProgress,
                                             builder: (context, snapshot) {
                                               if (!snapshot.hasData) {
                                                 return Row(
@@ -363,7 +363,8 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                                 );
                                               }
 
-                                              final duration = snapshot.data!;
+                                              final data = snapshot.data!;
+                                              final duration = data.duration;
                                               final showMic =
                                                   duration.inMilliseconds %
                                                           1000 >
@@ -372,8 +373,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                                 children: [
                                                   Padding(
                                                     padding: const EdgeInsets
-                                                            .symmetric(
-                                                        vertical: 12),
+                                                        .symmetric(
+                                                      vertical: 12,
+                                                    ),
                                                     child: Icon(
                                                       Icons.mic,
                                                       color: showMic
@@ -508,52 +510,10 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                   padding: const EdgeInsets.all(16),
                   color: colorTheme.appBarColor,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          StreamBuilder(
-                            stream: ref
-                                .read(chatControllerProvider)
-                                .soundRecorder
-                                .onCurrentDuration,
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return const Text(
-                                  "0:00",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
-                                );
-                              }
-
-                              final duration = snapshot.data!;
-
-                              return Text(
-                                timeFromSeconds(
-                                  duration.inSeconds,
-                                  true,
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: AudioWaveforms(
-                              size: const Size(1, 30.0),
-                              waveStyle: const WaveStyle(
-                                extendWaveform: true,
-                                showMiddleLine: false,
-                              ),
-                              recorderController: ref
-                                  .read(chatControllerProvider)
-                                  .soundRecorder,
-                            ),
-                          )
-                        ],
-                      ),
+                      const RecordingVisualiser(),
                       const SizedBox(
                         height: 30,
                       ),

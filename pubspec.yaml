@@ -35,9 +35,7 @@ dependencies:
   video_player: ^2.7.0
   mime: ^1.0.4
   open_file_plus: ^3.4.1
-  audioplayers: ^5.0.0
-  audio_waveforms: ^1.0.4
-  logger: ^2.0.1
+  logger: ^1.1.0
   flutter_webrtc: ^0.9.35
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
@@ -45,7 +43,9 @@ dependencies:
   http: ^0.13.6
   visibility_detector: ^0.4.0+2
   image: ^4.0.17
-  palette_generator: ^0.3.3+2
+  audioplayers: ^5.1.0
+  flutter_sound: ^9.2.13
+  audio_session: ^0.1.16
 
 dev_dependencies:
   flutter_test:
