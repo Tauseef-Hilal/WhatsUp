@@ -52,7 +52,11 @@ String timeFromSeconds(int seconds, [bool minWidth4 = false]) {
   );
 
   List resultParts = result.split(':');
-  resultParts.removeWhere((element) => element == '00');
+  for (int i = 0; i < resultParts.length; i++) {
+    if (resultParts[i] != "00") break;
+    resultParts[i] = "";
+  }
+  resultParts.removeWhere((element) => element == "");
 
   if (minWidth4 && resultParts.length == 1) {
     resultParts = ["0", ...resultParts];
