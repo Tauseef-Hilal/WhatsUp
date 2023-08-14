@@ -53,6 +53,8 @@ class _RecordingVisualiserState extends ConsumerState<RecordingVisualiser> {
               return CustomPaint(
                 painter: WaveformPainter(
                   maxHeight: maxHeight,
+                  waveColor: liveWaveColor,
+                  reverse: true,
                   samples: samples
                       .getRange(
                         samples.length > maxSampleCount
@@ -61,7 +63,6 @@ class _RecordingVisualiserState extends ConsumerState<RecordingVisualiser> {
                         samples.length,
                       )
                       .toList(),
-                  colorGetter: (_) => liveWaveColor,
                 ),
                 size: Size(constraints.maxWidth, maxHeight),
               );

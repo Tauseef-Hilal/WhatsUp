@@ -235,6 +235,8 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
   late final durationFuture = getDuration();
   late final StreamSubscription<Duration> progressListener;
   late final StreamSubscription<void> playerStateListener;
+  int remaininigDuration = 0;
+  int totalDuration = 0;
 
   @override
   void initState() {
@@ -247,9 +249,13 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
           event.inMilliseconds / totalDuration.inMilliseconds;
     });
 
-    playerStateListener = player.onPlayerStateChanged.listen((event) {
+    playerStateListener = player.onPlayerStateChanged.listen((event) async {
       if (Platform.isAndroid && event == PlayerState.completed) {
         progressNotifier.value = 0;
+      } else if (event == PlayerState.playing) {
+        remaininigDuration = ((1 - progressNotifier.value) *
+                ((await durationFuture).inMilliseconds))
+            .toInt();
       }
 
       setState(() {});
@@ -280,10 +286,15 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
     return await player.getDuration() ?? const Duration();
   }
 
-  void _updateProgress(BuildContext context, double tapPosition) async {
+  void _updateProgress(
+    BuildContext context,
+    double tapPosition, [
+    bool resume = true,
+  ]) async {
     RenderBox box = context.findRenderObject() as RenderBox;
     double width = box.size.width;
-    progressNotifier.value = tapPosition / width;
+    final relativePos = tapPosition / width;
+    progressNotifier.value = relativePos < 0 ? 0 : relativePos;
     player.seek(
       Duration(
         milliseconds:
@@ -291,6 +302,13 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                 .toInt(),
       ),
     );
+
+    player.pause();
+    if (!resume) return;
+
+    Future.delayed(const Duration(milliseconds: 100), () async {
+      await player.resume();
+    });
   }
 
   @override
@@ -420,80 +438,106 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ValueListenableBuilder(
-                        valueListenable: progressNotifier,
-                        builder: (context, val, _) => LayoutBuilder(
-                          builder: (context, constraints) {
-                            final maxSampleCount = constraints.maxWidth ~/ 5;
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final maxSampleCount = constraints.maxWidth ~/ 5;
+                          List<double> fixedSamples = samples;
 
-                            if (samples.length < maxSampleCount) {
-                              fixLowSampleCount(
-                                maxSampleCount,
-                                samples,
-                              );
-                            }
-
-                            final averagedSamples = getAveragedSamples(
+                          if (samples.length < maxSampleCount) {
+                            fixedSamples = fixLowSampleCount(
+                              maxSampleCount,
+                              samples,
+                            );
+                          } else if (samples.length > maxSampleCount) {
+                            fixedSamples = fixHighSampleCount(
                               samples,
                               maxSampleCount,
                             );
+                          }
 
-                            return GestureDetector(
-                              onHorizontalDragUpdate: (details) {
-                                player.pause();
-                                _updateProgress(
-                                  context,
-                                  details.localPosition.dx,
-                                );
-                              },
-                              onTapUp: (details) {
-                                _updateProgress(
-                                  context,
-                                  details.localPosition.dx,
-                                );
-                              },
-                              child: SizedBox(
+                          return GestureDetector(
+                            onHorizontalDragUpdate: (details) {
+                              _updateProgress(
+                                context,
+                                details.localPosition.dx,
+                                false,
+                              );
+                            },
+                            onTapUp: (details) {
+                              _updateProgress(
+                                context,
+                                details.localPosition.dx,
+                              );
+                            },
+                            child: ValueListenableBuilder(
+                              valueListenable: progressNotifier,
+                              child: CustomPaint(
+                                painter: WaveformPainter(
+                                  maxHeight: maxHeight,
+                                  samples: fixedSamples,
+                                  waveColor: liveWaveColor,
+                                ),
+                                size: Size(
+                                  constraints.maxWidth,
+                                  maxHeight,
+                                ),
+                              ),
+                              builder: (context, val, waveform) => SizedBox(
                                 height: maxHeight,
                                 child: Stack(
                                   alignment: Alignment.centerLeft,
                                   children: [
+                                    AnimatedContainer(
+                                      width: player.state == PlayerState.playing
+                                          ? constraints.maxWidth
+                                          : val * constraints.maxWidth,
+                                      duration: Duration(
+                                        milliseconds:
+                                            player.state == PlayerState.playing
+                                                ? remaininigDuration
+                                                : 0,
+                                      ),
+                                      child: ClipRect(child: waveform),
+                                    ),
                                     CustomPaint(
                                       painter: WaveformPainter(
                                         maxHeight: maxHeight,
-                                        samples: averagedSamples,
-                                        colorGetter: (i) => i / maxSampleCount <
-                                                progressNotifier.value
-                                            ? liveWaveColor
-                                            : fixedWaveColor,
+                                        samples: fixedSamples,
+                                        waveColor: fixedWaveColor,
                                       ),
                                       size: Size(
                                         constraints.maxWidth,
                                         maxHeight,
                                       ),
                                     ),
-                                    ValueListenableBuilder(
-                                      valueListenable: progressNotifier,
-                                      builder: (context, val, _) => Positioned(
-                                        left: fixedDotPosition(
-                                          constraints,
-                                          val,
-                                        ),
-                                        child: Container(
-                                          width: dotWidth,
-                                          height: dotWidth,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: iconColor,
-                                          ),
+                                    AnimatedPositioned(
+                                      duration: Duration(
+                                        milliseconds:
+                                            player.state == PlayerState.playing
+                                                ? remaininigDuration
+                                                : 0,
+                                      ),
+                                      left: fixedDotPosition(
+                                        constraints,
+                                        player.state == PlayerState.playing
+                                            ? 1
+                                            : val,
+                                      ),
+                                      child: Container(
+                                        width: dotWidth,
+                                        height: dotWidth,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: iconColor,
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -507,6 +551,8 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
                                     builder: (context, snap) {
                                       String text = "00:00";
                                       if (snap.hasData) {
+                                        totalDuration =
+                                            snap.data!.inMilliseconds;
                                         text = timeFromSeconds(
                                           player.state == PlayerState.playing ||
                                                   val > 0 && val < 1
@@ -555,44 +601,78 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
     );
   }
 
-  List<double> getAveragedSamples(List<double> samples, int maxSampleCount) {
-    final averagedSamples = <double>[];
+  List<double> fixHighSampleCount(List<double> samples, int maxSampleCount) {
+    final fixedSamples = <double>[];
     final sampleCount = samples.length;
-    final upperLimit = sampleCount - sampleCount % maxSampleCount;
+    final step = sampleCount ~/ maxSampleCount;
 
+    int rem = sampleCount % maxSampleCount;
     int counter = 0;
     double current = 0;
-    int step = sampleCount ~/ maxSampleCount;
+    int i = 0;
 
-    for (int i = 0; i < upperLimit; i++) {
+    while (i < sampleCount) {
       if (counter == step) {
-        averagedSamples.add(current / step);
+        int divider = step;
+
+        if (rem > 0) {
+          current += samples[i];
+          divider++;
+          rem--;
+          i++;
+        }
+
+        fixedSamples.add(current / divider);
         counter = 0;
         current = 0;
       }
       current += samples[i];
       counter++;
+      i++;
     }
 
-    return averagedSamples;
+    fixedSamples.add(samples.last);
+    smoothen(fixedSamples, smoothingFactor: 0.5);
+    return fixedSamples;
   }
 
-  void fixLowSampleCount(int maxSampleCount, List<double> samples) {
-    final diff = maxSampleCount - samples.length;
+  List<double> fixLowSampleCount(int maxSampleCount, List<double> samples) {
+    final fixedSamples = <double>[];
+    int diff = maxSampleCount - samples.length;
 
-    samples.insertAll(0, List.filled(diff ~/ 2, 0));
-    samples.addAll(List.filled(diff ~/ 2 + diff % 2, 0));
+    fixedSamples.addAll(List.filled(diff ~/ 3, 0));
+    fixedSamples.addAll(samples);
+    fixedSamples.addAll(List.filled(diff - diff ~/ 3, 0));
+
+    smoothen(fixedSamples);
+    return fixedSamples;
+  }
+
+  List<double> smoothen(
+    List<double> samples, {
+    double smoothingFactor = 0.1,
+    double scaleFactor = 1,
+  }) {
+    double ema = samples[0] * scaleFactor;
+
+    for (int i = 1; i < samples.length; i++) {
+      ema = (smoothingFactor * samples[i] * scaleFactor) +
+          (1 - smoothingFactor) * ema;
+      samples[i] = ema;
+    }
+
+    return samples;
   }
 
   double fixedDotPosition(BoxConstraints constraints, double val) {
     final pos = constraints.maxWidth * val;
 
-    if (pos < 0) {
+    if (pos <= 6) {
       return 0;
     } else if (pos > constraints.maxWidth - dotWidth) {
       return constraints.maxWidth - dotWidth;
     } else {
-      return constraints.maxWidth * val;
+      return (constraints.maxWidth * val) - dotWidth / 2;
     }
   }
 }
@@ -657,7 +737,8 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
   void _updateProgress(BuildContext context, double tapPosition) async {
     RenderBox box = context.findRenderObject() as RenderBox;
     double width = box.size.width;
-    progressNotifier.value = tapPosition / width;
+    final relativePos = tapPosition / width;
+    progressNotifier.value = relativePos < 0 ? 0 : relativePos;
     player.seek(
       Duration(
         milliseconds:
