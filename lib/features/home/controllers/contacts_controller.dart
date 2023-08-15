@@ -76,6 +76,7 @@ class ContactPickerController extends StateNotifier<List<Contact>> {
           other: receiver!,
           otherUserContactName: contact.displayName,
         ),
+        settings: const RouteSettings(name: 'chat'),
       ),
     );
   }

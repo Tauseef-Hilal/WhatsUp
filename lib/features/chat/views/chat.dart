@@ -626,7 +626,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
               children: [
                 LabelledButton(
                   onTap: () async {
-                    Navigator.of(context).pop();
                     ref
                         .read(chatControllerProvider.notifier)
                         .pickDocuments(context);
@@ -641,7 +640,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    Navigator.of(context).pop();
                     ref
                         .read(chatControllerProvider.notifier)
                         .navigateToCameraView(context);
@@ -656,7 +654,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    Navigator.of(context).pop();
                     ref
                         .read(chatControllerProvider.notifier)
                         .pickAttachmentsFromGallery(context);
@@ -672,7 +669,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 if (Platform.isAndroid) ...[
                   LabelledButton(
                     onTap: () async {
-                      Navigator.of(context).pop();
                       ref
                           .read(chatControllerProvider.notifier)
                           .pickAudioFiles(context);

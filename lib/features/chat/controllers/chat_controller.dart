@@ -332,7 +332,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return null;
     }
 
-    final attachments = await _prepareAttachments(files, shouldCompress: true);
+    final attachments = await prepareAttachments(files, shouldCompress: true);
     if (returnAttachments) {
       Navigator.pop(key.currentContext!);
       return attachments;
@@ -355,7 +355,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return;
     }
 
-    final attachments = await _prepareAttachments(files, areDocuments: false);
+    final attachments = await prepareAttachments(files, areDocuments: false);
 
     if (!mounted) return;
     Navigator.pop(key.currentContext!);
@@ -374,7 +374,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return null;
     }
 
-    final attachments = await _prepareAttachments(files, areDocuments: true);
+    final attachments = await prepareAttachments(files, areDocuments: true);
     if (returnAttachments) {
       Navigator.pop(key.currentContext!);
       return attachments;
@@ -413,25 +413,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     return dialogKey;
   }
 
-  void prepareAttachments(
-    BuildContext context,
-    List<File> files, {
-    bool shouldCompress = false,
-    bool areDocuments = false,
-  }) {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _prepareAttachments(
-        files,
-        shouldCompress: shouldCompress,
-        areDocuments: areDocuments,
-      ).then((attachments) {
-        if (!mounted) return;
-        navigateToAttachmentSender(context, attachments);
-      });
-    });
-  }
-
-  Future<List<Attachment>> _prepareAttachments(
+  Future<List<Attachment>> prepareAttachments(
     List<File> files, {
     bool shouldCompress = false,
     bool areDocuments = false,

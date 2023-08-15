@@ -8,6 +8,9 @@ import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
+import '../../features/chat/models/attachement.dart';
+import '../../features/chat/views/attachment_sender.dart';
+
 enum CameraType {
   video,
   photo,
@@ -62,13 +65,17 @@ class CameraViewState extends ConsumerState<CameraView>
   }
 
   @override
-  void dispose() {
+  void dispose() async {
+    super.dispose();
     if (timer.isActive) {
       timer.cancel();
     }
 
-    _controller.dispose();
-    super.dispose();
+    progressNotifier.dispose();
+    flashIdxNotifier.dispose();
+    btnSizeNotifier.dispose();
+    _animationController.dispose();
+    await _controller.dispose();
   }
 
   void handleCaptureBtnClick() async {
@@ -78,10 +85,11 @@ class CameraViewState extends ConsumerState<CameraView>
       file = await _controller.takePicture();
       if (!mounted) return;
 
-      ref
+      final result = await ref
           .read(chatControllerProvider.notifier)
-          .prepareAttachments(context, [File(file.path)], shouldCompress: true);
-      return;
+          .prepareAttachments([File(file.path)], shouldCompress: true);
+
+      return navigateToSender(result);
     }
 
     if (!isRecording) {
@@ -96,13 +104,25 @@ class CameraViewState extends ConsumerState<CameraView>
 
     file = await _controller.stopVideoRecording();
     timer.cancel();
+    progressNotifier.value = 0;
 
     if (!mounted) return;
-    ref
+    final result = await ref
         .read(chatControllerProvider.notifier)
-        .prepareAttachments(context, [File(file.path)], shouldCompress: true);
+        .prepareAttachments([File(file.path)], shouldCompress: true);
 
+    navigateToSender(result);
     setState(() => isRecording = false);
+  }
+
+  void navigateToSender(List<Attachment> attachments) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AttachmentMessageSender(
+          attachments: attachments,
+        ),
+      ),
+    );
   }
 
   @override

@@ -494,6 +494,7 @@ class RecentChatWidget extends StatelessWidget {
               other: chat.user,
               otherUserContactName: title,
             ),
+            settings: const RouteSettings(name: 'chat'),
           ),
         );
       },

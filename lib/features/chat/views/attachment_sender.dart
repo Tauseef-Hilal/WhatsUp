@@ -127,7 +127,7 @@ class _AttachmentMessageSenderState
     }
 
     if (!mounted) return;
-    Navigator.of(context).pop();
+    Navigator.of(context).popUntil((route) => route.settings.name == 'chat');
   }
 
   void removeSelectedAttachment() {
