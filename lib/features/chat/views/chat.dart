@@ -293,26 +293,13 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                                           ),
                                         ),
                                         InkWell(
-                                          onTap: () async {
-                                            // final images =
-                                            //     await ImageService
-                                            //         .compressFiles(
-                                            //   source: ImageSource.camera,
-                                            // );
-                                            // if (images == null) return;
-                                            // if (!mounted) return;
-                                            // Navigator.of(context).pop();
-                                            // Navigator.of(context).push(
-                                            //   MaterialPageRoute(
-                                            //     builder: (_) =>
-                                            //         AttachmentMessageSender(
-                                            //       attachments: images,
-                                            //       attachmentTypes: const [
-                                            //         AttachmentType.image
-                                            //       ],
-                                            //     ),
-                                            //   ),
-                                            // );
+                                          onTap: () {
+                                            ref
+                                                .read(
+                                                  chatControllerProvider
+                                                      .notifier,
+                                                )
+                                                .navigateToCameraView(context);
                                           },
                                           child: const Icon(
                                             Icons.camera_alt_rounded,
@@ -639,6 +626,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
               children: [
                 LabelledButton(
                   onTap: () async {
+                    Navigator.of(context).pop();
                     ref
                         .read(chatControllerProvider.notifier)
                         .pickDocuments(context);
@@ -653,20 +641,10 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
-                    // final images = await ImageService.compressFiles(
-                    //   source: ImageSource.camera,
-                    // );
-                    // if (images == null) return;
-                    // if (!mounted) return;
-                    // Navigator.of(context).pop();
-                    // Navigator.of(context).push(
-                    //   MaterialPageRoute(
-                    //     builder: (_) => AttachmentMessageSender(
-                    //       attachments: images,
-                    //       attachmentTypes: const [AttachmentType.image],
-                    //     ),
-                    //   ),
-                    // );
+                    Navigator.of(context).pop();
+                    ref
+                        .read(chatControllerProvider.notifier)
+                        .navigateToCameraView(context);
                   },
                   label: 'Camera',
                   backgroundColor: Colors.redAccent[400],
@@ -678,6 +656,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 ),
                 LabelledButton(
                   onTap: () async {
+                    Navigator.of(context).pop();
                     ref
                         .read(chatControllerProvider.notifier)
                         .pickAttachmentsFromGallery(context);
@@ -693,6 +672,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer> {
                 if (Platform.isAndroid) ...[
                   LabelledButton(
                     onTap: () async {
+                      Navigator.of(context).pop();
                       ref
                           .read(chatControllerProvider.notifier)
                           .pickAudioFiles(context);

@@ -46,6 +46,7 @@ dependencies:
   audioplayers: ^5.1.0
   flutter_sound: ^9.2.13
   audio_session: ^0.1.16
+  camera: ^0.10.5+3
 
 dev_dependencies:
   flutter_test:

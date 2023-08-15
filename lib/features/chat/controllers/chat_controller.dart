@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
+import 'package:whatsapp_clone/shared/widgets/camera.dart';
 
 import '../../../shared/repositories/compression_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
@@ -309,6 +311,15 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         );
   }
 
+  Future<void> navigateToCameraView(BuildContext context) async {
+    final cameras = await availableCameras();
+    if (!mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => CameraView(cameras: cameras)),
+    );
+  }
+
   Future<List<Attachment>?> pickAttachmentsFromGallery(
     BuildContext context, {
     bool returnAttachments = false,
@@ -408,8 +419,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     bool shouldCompress = false,
     bool areDocuments = false,
   }) {
-    final dialogKey = GlobalKey();
-
     Future.delayed(const Duration(milliseconds: 100), () {
       _prepareAttachments(
         files,
@@ -417,8 +426,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         areDocuments: areDocuments,
       ).then((attachments) {
         if (!mounted) return;
-        Navigator.pop(dialogKey.currentContext!);
-        Navigator.pop(context);
         navigateToAttachmentSender(context, attachments);
       });
     });
