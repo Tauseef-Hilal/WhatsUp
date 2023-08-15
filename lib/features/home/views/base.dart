@@ -158,7 +158,7 @@ class _HomePageState extends ConsumerState<HomePage>
         .getContactByPhone(author!.phone.number!);
 
     if (!mounted) return;
-    Navigator.of(context).push(
+    Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (context) => ChatPage(
           self: widget.user,
@@ -167,6 +167,7 @@ class _HomePageState extends ConsumerState<HomePage>
               contact?.displayName ?? author.phone.getFormattedNumber(),
         ),
       ),
+      (route) => route.settings.name == "/",
     );
   }
 
