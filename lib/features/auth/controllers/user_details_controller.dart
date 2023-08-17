@@ -11,6 +11,7 @@ import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
+import 'package:whatsapp_clone/shared/widgets/gallery.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../shared/repositories/compression_service.dart';
@@ -60,7 +61,20 @@ class UserDetailsController extends StateNotifier<File?> {
     state = await CompressionService.compressImage(image);
   }
 
-  void setImageFromGallery(BuildContext context) async {
+  Future<void> setImageFromGallery(BuildContext context) async {
+    if (Platform.isAndroid) {
+      final file = await Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => const Gallery(
+          title: 'Pick a photo',
+          returnFiles: true,
+        ),
+        settings: const RouteSettings(name: "/gallery"),
+      ));
+
+      state = file as File;
+      return;
+    }
+
     final image = await pickImageFromGallery();
     if (image == null) return;
     state = await CompressionService.compressImage(image);

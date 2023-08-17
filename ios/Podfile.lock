@@ -176,6 +176,9 @@ PODS:
     - Flutter
     - PhoneNumberKit/PhoneNumberKitCore (= 3.5.10)
   - PhoneNumberKit/PhoneNumberKitCore (3.5.10)
+  - photo_manager (2.0.0):
+    - Flutter
+    - FlutterMacOS
   - PromisesObjC (2.3.1)
   - SDWebImage (5.16.0):
     - SDWebImage/Core (= 5.16.0)
@@ -219,6 +222,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - phone_number (from `.symlinks/plugins/phone_number/ios`)
   - PhoneNumberKit/PhoneNumberKitCore (from `https://github.com/marmelroy/PhoneNumberKit`, tag `3.5.10`)
+  - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
@@ -299,6 +303,8 @@ EXTERNAL SOURCES:
   PhoneNumberKit:
     :git: https://github.com/marmelroy/PhoneNumberKit
     :tag: 3.5.10
+  photo_manager:
+    :path: ".symlinks/plugins/photo_manager/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
@@ -360,6 +366,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
   phone_number: 3f4cef3301f0df6a8cc76d66d48968d63a2cf8ea
   PhoneNumberKit: 0e34a6e8a50e4624e96a4710bc4a7211464a934e
+  photo_manager: 4f6810b7dfc4feb03b461ac1a70dacf91fba7604
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   SDWebImage: 2aea163b50bfcb569a2726b6a754c54a4506fcf6
   share_plus: 599aa54e4ea31d4b4c0e9c911bcc26c55e791028

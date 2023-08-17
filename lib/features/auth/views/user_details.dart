@@ -87,9 +87,6 @@ class _UserProfileCreationPageState
                         ref
                             .read(userDetailsControllerProvider.notifier)
                             .setImageFromCamera(context);
-
-                        if (!mounted) return;
-                        Navigator.of(context).pop();
                       },
                       child: Column(
                         children: [
@@ -122,13 +119,13 @@ class _UserProfileCreationPageState
                       width: 24.0,
                     ),
                     InkWell(
-                      onTap: () {
-                        ref
+                      onTap: () async {
+                        await ref
                             .read(userDetailsControllerProvider.notifier)
                             .setImageFromGallery(context);
 
                         if (!mounted) return;
-                        Navigator.of(context).pop();
+                        Navigator.pop(context);
                       },
                       child: Column(
                         children: [

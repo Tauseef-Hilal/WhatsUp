@@ -47,6 +47,7 @@ dependencies:
   flutter_sound: ^9.2.13
   audio_session: ^0.1.16
   camera: ^0.10.5+3
+  photo_manager: ^2.7.1
 
 dev_dependencies:
   flutter_test:

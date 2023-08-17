@@ -23,6 +23,7 @@ import 'package:whatsapp_clone/shared/widgets/camera.dart';
 import '../../../shared/repositories/compression_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
+import '../../../shared/widgets/gallery.dart';
 import '../models/attachement.dart';
 import '../views/attachment_sender.dart';
 
@@ -94,11 +95,13 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   final AutoDisposeStateNotifierProviderRef ref;
   late User self;
   late User other;
+  late String otherUserContactName;
   StreamSubscription<RecordingDisposition>? recordingStream;
 
-  void initUsers(User self, User other) {
+  void initUsers(User self, User other, String otherUserContactName) {
     this.self = self;
     this.other = other;
+    this.otherUserContactName = otherUserContactName;
   }
 
   Future<void> initRecorder() async {
@@ -324,6 +327,17 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     BuildContext context, {
     bool returnAttachments = false,
   }) async {
+    if (Platform.isAndroid) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>  Gallery(
+            title: 'Send to $otherUserContactName'
+          ),
+        ),
+      );
+      return null;
+    }
+
     final key = showLoading(context);
 
     List<File>? files = await pickMultimedia();

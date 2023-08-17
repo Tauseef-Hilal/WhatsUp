@@ -45,7 +45,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void initState() {
     ref
         .read(chatControllerProvider.notifier)
-        .initUsers(widget.self, widget.other);
+        .initUsers(widget.self, widget.other, widget.otherUserContactName);
     super.initState();
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,10 @@ class _AttachmentMessageSenderState
                 returnAttachments: true,
               );
     } else {
+      if (Platform.isAndroid) {
+        Navigator.pop(context, attachments);
+        return;
+      }
       newAttachments = await ref
           .read(chatControllerProvider.notifier)
           .pickAttachmentsFromGallery(
@@ -132,7 +137,7 @@ class _AttachmentMessageSenderState
 
   void removeSelectedAttachment() {
     if (attachments.length == 1) {
-      Navigator.pop(context);
+      Navigator.pop(context, []);
       return;
     }
     setState(() {
