@@ -36,7 +36,7 @@ class CameraViewState extends ConsumerState<CameraView>
 
   final progressNotifier = ValueNotifier<int>(0);
   final btnSizeNotifier = ValueNotifier<double>(30);
-  final flashIdxNotifier = ValueNotifier<int>(0);
+  final flashIdxNotifier = ValueNotifier<int>(1);
   final flashIcons = {
     FlashMode.off: Icons.flash_off_rounded,
     FlashMode.auto: Icons.flash_auto_rounded,
@@ -56,6 +56,7 @@ class CameraViewState extends ConsumerState<CameraView>
       enableAudio: true,
     )..prepareForVideoRecording();
 
+    _controller.setFlashMode(FlashMode.off);
     _initializeControllerFuture = _controller.initialize();
     _animationController = AnimationController(
       value: 1,
