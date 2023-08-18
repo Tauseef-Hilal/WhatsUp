@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/painters.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/progress_btn.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/repositories/push_notifications.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
@@ -1259,6 +1260,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
   @override
   void initState() {
     isDownloading = widget.autoDownload;
+    isDownloading = false;
     if (isDownloading) {
       downloadTaskFuture = download();
     }
@@ -1348,41 +1350,34 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
         }
 
         final (_, downloadTask) = snapshot.data!;
+        final noProgressIndicator = ProgressCancelBtn(
+          onTap: () {
+            downloadTask.cancel();
+            setState(() => isDownloading = false);
+          },
+          overlayColor: widget.showSize ? overlayColor : Colors.transparent,
+        );
 
         return StreamBuilder(
           stream: downloadTask.snapshotEvents,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const CircularProgressIndicator();
+              return noProgressIndicator;
             }
 
             final snapData = snapshot.data!;
 
             switch (snapData.state) {
               case TaskState.running:
-                return GestureDetector(
+                return ProgressCancelBtn(
                   onTap: () {
                     downloadTask.cancel();
                     setState(() => isDownloading = false);
                   },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: widget.showSize
-                              ? overlayColor
-                              : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: CircularProgressIndicator(
-                          value:
-                              snapData.bytesTransferred / snapData.totalBytes,
-                        ),
-                      ),
-                      const Icon(Icons.close),
-                    ],
-                  ),
+                  progressValue:
+                      snapData.bytesTransferred / snapData.totalBytes,
+                  overlayColor:
+                      widget.showSize ? overlayColor : Colors.transparent,
                 );
               case TaskState.success:
                 WidgetsBinding.instance
@@ -1395,7 +1390,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
                 });
                 return const CircularProgressIndicator();
               default:
-                return const CircularProgressIndicator();
+                return noProgressIndicator;
             }
           },
         );
@@ -1403,6 +1398,8 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
     );
   }
 }
+
+
 
 class UploadingAttachment extends ConsumerStatefulWidget {
   final Message message;
@@ -1578,41 +1575,36 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
         }
 
         final uploadTask = snapshot.data!;
+        final noProgressIndicator = ProgressCancelBtn(
+          onTap: () async {
+            await uploadTask.cancel();
+            await stopAutoUpload();
+            setState(() => isUploading = false);
+          },
+          overlayColor: widget.showSize ? overlayColor : Colors.transparent,
+        );
+
         return StreamBuilder(
           stream: uploadTask.snapshotEvents,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const CircularProgressIndicator();
+              return noProgressIndicator;
             }
 
             final snapData = snapshot.data!;
 
             switch (snapData.state) {
               case TaskState.running:
-                return GestureDetector(
+                return ProgressCancelBtn(
                   onTap: () async {
                     await uploadTask.cancel();
                     await stopAutoUpload();
                     setState(() => isUploading = false);
                   },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: widget.showSize
-                              ? overlayColor
-                              : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: CircularProgressIndicator(
-                          value:
-                              snapData.bytesTransferred / snapData.totalBytes,
-                        ),
-                      ),
-                      const Icon(Icons.close),
-                    ],
-                  ),
+                  overlayColor:
+                      widget.showSize ? overlayColor : Colors.transparent,
+                  progressValue:
+                      snapData.bytesTransferred / snapData.totalBytes,
                 );
               case TaskState.success:
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1627,7 +1619,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
                 });
                 return const CircularProgressIndicator();
               default:
-                return const CircularProgressIndicator();
+                return noProgressIndicator;
             }
           },
         );
