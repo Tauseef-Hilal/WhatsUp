@@ -189,19 +189,27 @@ class _GalleryState extends ConsumerState<Gallery>
 
     final Map<String, AssetWrapper> assets = {};
     final Map<String, List<String>> albums = {'Recents': []};
-    final List<Future> futures = [];
 
-    for (final asset in allAssets) {
-      final thumbnail = await asset.thumbnailDataWithSize(
-        const ThumbnailSize.square(300),
-        quality: 100,
+    final thumbnails = allAssets
+        .map(
+          (e) => e.thumbnailDataWithSize(
+            const ThumbnailSize.square(300),
+            quality: 100,
+          ),
+        )
+        .toList();
+
+    for (var i = 0; i < allAssets.length; i++) {
+      final asset = allAssets[i];
+      final thumbnail = await thumbnails[i];
+
+      assets[asset.id] = AssetWrapper(
+        asset: asset,
+        thumbnail: thumbnail!,
       );
-      assets[asset.id] = AssetWrapper(asset: asset, thumbnail: thumbnail!);
 
-      final key = asset.relativePath!
-          .substring(0, asset.relativePath!.length - 1)
-          .split("/")
-          .last;
+      final pathPoints = asset.relativePath!.split("/");
+      final key = pathPoints[pathPoints.length - 2];
 
       if (albums[key] == null) {
         albums[key] = [];
@@ -211,8 +219,6 @@ class _GalleryState extends ConsumerState<Gallery>
       albums[key]!.add(asset.id);
       albums['Recents']!.add(asset.id);
     }
-
-    await Future.wait(futures);
   }
 
   void _tabListener() {
