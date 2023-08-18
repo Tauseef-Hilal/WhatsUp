@@ -38,9 +38,6 @@ In WhatsUp, messages within a chat are stored exclusively on the phones of the c
 
 ## Known Issues
 
-- Voice not playing after download
-- Voice/Music not seeking properly
-- Android recorded files not working on iOS (issue with the package [audio_waveforms](https://github.com/SimformSolutionsPvtLtd/audio_waveforms/issues/237))
 - Unread banner not rendering properly when unread message count is high
 - Keyboard height issues on some devices (specifically Android devices)
 
