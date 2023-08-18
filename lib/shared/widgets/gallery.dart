@@ -121,33 +121,37 @@ class GalleryStateController extends StateNotifier<GalleryState> {
     if (!mounted) return;
     Navigator.pop(context);
 
-    if (!shouldReturnFiles) {
-      final returnedAttachments = await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) =>
-              AttachmentMessageSender(attachments: List.from(attachments)),
-        ),
+    if (shouldReturnFiles) {
+      Navigator.popUntil(
+        context,
+        (route) => route.settings.name == "/gallery",
       );
-
-      if (returnedAttachments == null) return;
-      final newSelectedAssets = <AssetWrapper>[];
-
-      for (var i = 0; i < attachments.length; i++) {
-        if (returnedAttachments.contains(attachments[i])) {
-          newSelectedAssets.add(selectedAssets[i]);
-        }
-      }
-
-      state = state.copyWith(
-        selectedAssets: newSelectedAssets,
-        showSelectBtn: newSelectedAssets.isEmpty ? state.showSelectBtn : false,
-        canSelect: newSelectedAssets.isEmpty ? state.canSelect : true,
-      );
+      Navigator.pop(context, files.first);
       return;
     }
 
-    Navigator.popUntil(context, (route) => route.settings.name == "/gallery");
-    Navigator.pop(context, files.first);
+    final returnedAttachments = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AttachmentMessageSender(
+          attachments: List.from(attachments),
+        ),
+      ),
+    );
+
+    if (returnedAttachments == null) return;
+    final newSelectedAssets = <AssetWrapper>[];
+
+    for (var i = 0; i < attachments.length; i++) {
+      if (returnedAttachments.contains(attachments[i])) {
+        newSelectedAssets.add(selectedAssets[i]);
+      }
+    }
+
+    state = state.copyWith(
+      selectedAssets: newSelectedAssets,
+      showSelectBtn: newSelectedAssets.isEmpty ? state.showSelectBtn : false,
+      canSelect: newSelectedAssets.isEmpty ? state.canSelect : true,
+    );
   }
 }
 
