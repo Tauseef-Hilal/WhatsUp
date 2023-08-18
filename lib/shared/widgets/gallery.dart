@@ -109,6 +109,7 @@ class GalleryStateController extends StateNotifier<GalleryState> {
       MaterialPageRoute(
         builder: (context) => AttachmentMessageSender(
           attachments: List.from(attachments),
+          tags: selectedAssets.map((e) => e.asset.id).toList(),
         ),
       ),
     );
@@ -605,7 +606,10 @@ class AlbumItem extends ConsumerWidget {
       },
       child: Stack(
         children: [
-          FadeInThumbnail(thumbnail: assetWrapper.thumbnail),
+          FadeInThumbnail(
+            thumbnail: assetWrapper.thumbnail,
+            heroTag: assetWrapper.asset.id,
+          ),
           if (isSelected) ...[
             Container(
               width: double.infinity,
@@ -625,8 +629,14 @@ class AlbumItem extends ConsumerWidget {
 }
 
 class FadeInThumbnail extends StatefulWidget {
-  const FadeInThumbnail({super.key, required this.thumbnail});
+  const FadeInThumbnail({
+    super.key,
+    required this.thumbnail,
+    this.heroTag,
+  });
+
   final Uint8List thumbnail;
+  final String? heroTag;
 
   @override
   State<FadeInThumbnail> createState() => _FadeInThumbnailState();
@@ -654,6 +664,12 @@ class _FadeInThumbnailState extends State<FadeInThumbnail>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final image = Image.memory(
+      widget.thumbnail,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+    );
 
     return Container(
       color: Theme.of(context).custom.colorTheme.appBarColor,
@@ -662,12 +678,12 @@ class _FadeInThumbnailState extends State<FadeInThumbnail>
       child: AnimatedOpacity(
         opacity: opacity,
         duration: const Duration(milliseconds: 300),
-        child: Image.memory(
-          widget.thumbnail,
-          width: double.infinity,
-          height: double.infinity,
-          fit: BoxFit.cover,
-        ),
+        child: widget.heroTag != null
+            ? Hero(
+                tag: widget.heroTag!,
+                child: image,
+              )
+            : image,
       ),
     );
   }

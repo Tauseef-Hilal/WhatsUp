@@ -21,9 +21,11 @@ class AttachmentMessageSender extends ConsumerStatefulWidget {
   const AttachmentMessageSender({
     super.key,
     required this.attachments,
+    this.tags,
   });
 
   final List<Attachment> attachments;
+  final List<String>? tags;
 
   @override
   ConsumerState<AttachmentMessageSender> createState() =>
@@ -178,6 +180,11 @@ class _AttachmentMessageSenderState
       attachments.removeAt(idx);
       controllers[idx].dispose();
       controllers.removeAt(idx);
+
+      if (widget.tags != null) {
+        widget.tags!.removeAt(idx);
+      }
+
       current = attachments.first;
     });
   }
@@ -192,6 +199,12 @@ class _AttachmentMessageSenderState
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final currentType = current.type;
+    final currentImageRenderer = AttachmentRenderer(
+      attachment: current.file!,
+      attachmentType: currentType,
+      fit: BoxFit.contain,
+      controllable: true,
+    );
 
     return WillPopScope(
       onWillPop: () async {
@@ -207,12 +220,12 @@ class _AttachmentMessageSenderState
           children: [
             Center(
               child: KeyboardDismissOnTap(
-                child: AttachmentRenderer(
-                  attachment: current.file!,
-                  attachmentType: currentType,
-                  fit: BoxFit.contain,
-                  controllable: true,
-                ),
+                child: widget.tags != null
+                    ? Hero(
+                        tag: widget.tags![attachments.indexOf(current)],
+                        child: currentImageRenderer,
+                      )
+                    : currentImageRenderer,
               ),
             ),
             Container(
