@@ -25,6 +25,7 @@ enum AttachmentType {
 
 enum UploadStatus {
   notUploading("NOT_UPLOADING"),
+  preparing("PREPARING"),
   uploading("UPLOADING"),
   uploaded("UPLOADED");
 
@@ -45,12 +46,12 @@ enum UploadStatus {
 
 class Attachment {
   final String fileName;
-  final String fileExtension;
-  final int fileSize;
   final AttachmentType type;
   final double? width;
   final double? height;
   UploadStatus uploadStatus;
+  String fileExtension;
+  int fileSize;
   String url;
   File? file;
   List<double>? samples;

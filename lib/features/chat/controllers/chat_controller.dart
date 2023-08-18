@@ -14,13 +14,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
+import 'package:whatsapp_clone/shared/repositories/compression_service.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/shared/widgets/camera.dart';
 
-import '../../../shared/repositories/compression_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
 import '../../../shared/widgets/gallery.dart';
@@ -298,7 +298,35 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   void sendMessageWithAttachments(Message message) async {
+    if ({
+      AttachmentType.document,
+      AttachmentType.audio,
+      AttachmentType.voice,
+      AttachmentType.video
+    }.contains(message.attachment!.type)) {
+      await IsarDb.addMessage(message);
+      return;
+    }
+
+    message.attachment!.uploadStatus = UploadStatus.preparing;
     await IsarDb.addMessage(message);
+
+    final compressedFile = await CompressionService.compressImage(
+      message.attachment!.file!,
+    );
+
+    await compressedFile.copy(
+      DeviceStorage.getMediaFilePath(
+        message.attachment!.fileName,
+      ),
+    );
+
+    message.attachment!.file = compressedFile;
+    message.attachment!.fileSize = await compressedFile.length();
+    message.attachment!.fileExtension = compressedFile.path.split('.').last;
+    message.attachment!.uploadStatus = UploadStatus.uploading;
+
+    await IsarDb.updateMessage(message.id, attachment: message.attachment);
   }
 
   Future<void> markMessageAsSeen(Message message) async {
@@ -330,9 +358,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     if (Platform.isAndroid) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) =>  Gallery(
-            title: 'Send to $otherUserContactName'
-          ),
+          builder: (context) => Gallery(title: 'Send to $otherUserContactName'),
         ),
       );
       return null;
@@ -346,7 +372,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return null;
     }
 
-    final attachments = await prepareAttachments(files, shouldCompress: true);
+    final attachments = await createAttachmentsFromFiles(files);
     if (returnAttachments) {
       Navigator.pop(key.currentContext!);
       return attachments;
@@ -369,7 +395,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return;
     }
 
-    final attachments = await prepareAttachments(files, areDocuments: false);
+    final attachments = await createAttachmentsFromFiles(files);
 
     if (!mounted) return;
     Navigator.pop(key.currentContext!);
@@ -388,7 +414,11 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return null;
     }
 
-    final attachments = await prepareAttachments(files, areDocuments: true);
+    final attachments = await createAttachmentsFromFiles(
+      files,
+      areDocuments: true,
+    );
+
     if (returnAttachments) {
       Navigator.pop(key.currentContext!);
       return attachments;
@@ -427,17 +457,17 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     return dialogKey;
   }
 
-  Future<List<Attachment>> prepareAttachments(
-    List<File> files, {
-    bool shouldCompress = false,
-    bool areDocuments = false,
-  }) async {
-    if (shouldCompress) {
-      files = await CompressionService.compressFiles(files);
-    }
+  // Future<List<Attachment>> createAttachmentsFromFiles(
+  //   List<File> files, {
+  //   bool shouldCompress = false,
+  //   bool areDocuments = false,
+  // }) async {
+  //   if (shouldCompress) {
+  //     files = await CompressionService.compressFiles(files);
+  //   }
 
-    return await createAttachmentsFromFiles(files, areDocuments: areDocuments);
-  }
+  //   return await createAttachmentsFromFiles(files, areDocuments: areDocuments);
+  // }
 
   Future<List<Attachment>> createAttachmentsFromFiles(
     List<File> files, {

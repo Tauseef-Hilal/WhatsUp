@@ -1746,11 +1746,13 @@ const _EmbeddedAttachmenttypeValueEnumMap = {
 };
 const _EmbeddedAttachmentuploadStatusEnumValueMap = {
   r'notUploading': r'NOT_UPLOADING',
+  r'preparing': r'PREPARING',
   r'uploading': r'UPLOADING',
   r'uploaded': r'UPLOADED',
 };
 const _EmbeddedAttachmentuploadStatusValueEnumMap = {
   r'NOT_UPLOADING': UploadStatus.notUploading,
+  r'PREPARING': UploadStatus.preparing,
   r'UPLOADING': UploadStatus.uploading,
   r'UPLOADED': UploadStatus.uploaded,
 };

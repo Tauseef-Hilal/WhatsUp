@@ -103,6 +103,38 @@ class _AttachmentMessageSenderState
   }
 
   Future<void> sendAttachments() async {
+    // showDialog(
+    //   context: context,
+    //   // barrierDismissible: false,
+    //   builder: (ctx) {
+    //     return const AlertDialog(
+    //       content: Row(
+    //         children: [
+    //           CircularProgressIndicator(),
+    //           SizedBox(width: 24),
+    //           Text(
+    //             'Preparing media',
+    //             style: TextStyle(
+    //               fontSize: 16,
+    //             ),
+    //           ),
+    //         ],
+    //       ),
+    //     );
+    //   },
+    // );
+    // var files = <File>[];
+    // for (final attachment in attachments) {
+    //   if (attachment.type == AttachmentType.document) continue;
+    //   files.add(attachment.file!);
+    // }
+
+    // files = await CompressionService.compressFiles(files);
+    // for (final attachment in attachments.reversed) {
+    //   if (attachment.type == AttachmentType.document) continue;
+    //   attachment.file = files.removeLast();
+    // }
+
     for (var i = 0; i < controllers.length; i++) {
       final attachment = attachments[i];
 
@@ -132,6 +164,7 @@ class _AttachmentMessageSenderState
     }
 
     if (!mounted) return;
+    // Navigator.pop(context);
     Navigator.of(context).popUntil((route) => route.settings.name == 'chat');
   }
 

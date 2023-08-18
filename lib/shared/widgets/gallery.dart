@@ -85,29 +85,6 @@ class GalleryStateController extends StateNotifier<GalleryState> {
     WidgetRef ref,
     List<AssetWrapper> selectedAssets,
   ) async {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: SizedBox(
-          height: 50,
-          child: Center(
-            child: Row(
-              children: [
-                const SizedBox(width: 12),
-                const CircularProgressIndicator(),
-                const SizedBox(width: 12),
-                Text(
-                  shouldReturnFiles
-                      ? 'Compressing photo'
-                      : 'Preparing attachments',
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
     final files = await Future.wait(
       selectedAssets.map(
         (e) => e.asset.file.then((value) => value!),
@@ -116,11 +93,9 @@ class GalleryStateController extends StateNotifier<GalleryState> {
 
     final attachments = await ref
         .read(chatControllerProvider.notifier)
-        .prepareAttachments(files, shouldCompress: true);
+        .createAttachmentsFromFiles(files);
 
     if (!mounted) return;
-    Navigator.pop(context);
-
     if (shouldReturnFiles) {
       Navigator.popUntil(
         context,

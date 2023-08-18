@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show compute;
+import 'package:flutter/services.dart';
 import 'package:image/image.dart';
 import 'package:mime/mime.dart';
-import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
+import 'package:path_provider/path_provider.dart';
 
 typedef ImageDecodingFunction = Future<Image?> Function(String);
 typedef CompressorFunction = Future<File> Function(File);
@@ -42,43 +44,53 @@ class CompressionService {
   }
 
   static Future<File> compressImage(File file) async {
-    var image = await instance
-        ._getImgDecodingFuncByExt(file.path.split('.').last)
-        ?.call(file.path);
-
-    if (image == null) {
-      return file;
-    }
-
-    final aspectRatio = image.width / image.height;
-    double width, height;
-
-    if (image.height > image.width) {
-      height = min(1280, image.height * 1.0);
-      width = aspectRatio * height;
-    } else {
-      width = min(1280, image.width * 1.0);
-      height = width / aspectRatio;
-    }
-
-    image = copyResize(
-      image,
-      width: width.round(),
-      height: height.round(),
-      interpolation: Interpolation.linear,
+    final decodingFunc = instance._getImgDecodingFuncByExt(
+      file.path.split('.').last,
     );
-
-    final newPath = DeviceStorage.getTempFilePath(file.path.split("/").last);
-    final didConvert = await encodeJpgFile(
-      newPath,
-      image,
-      quality: 50,
-    );
-
-    if (!didConvert) {
-      return file;
-    }
-
-    return File(newPath);
+    if (decodingFunc == null) return file;
+    return await compute(_compressImageInBackground,
+        [file, decodingFunc, RootIsolateToken.instance!]);
   }
+}
+
+Future<File> _compressImageInBackground(List<dynamic> data) async {
+  final file = data[0] as File;
+  final decodingFunc = data[1] as ImageDecodingFunction;
+  final rootIsolateToken = data[2] as RootIsolateToken;
+
+  BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+  var image = await decodingFunc(file.path);
+  if (image == null) return file;
+
+  final aspectRatio = image.width / image.height;
+  double width, height;
+
+  if (image.height > image.width) {
+    height = min(1280, image.height * 1.0);
+    width = aspectRatio * height;
+  } else {
+    width = min(1280, image.width * 1.0);
+    height = width / aspectRatio;
+  }
+
+  image = copyResize(
+    image,
+    width: width.round(),
+    height: height.round(),
+    interpolation: Interpolation.linear,
+  );
+
+  final newPath =
+      '${(await getTemporaryDirectory()).path}/${file.path.split("/").last}';
+  final didConvert = await encodeJpgFile(
+    newPath,
+    image,
+    quality: 50,
+  );
+
+  if (!didConvert) {
+    return file;
+  }
+
+  return File(newPath);
 }

@@ -87,7 +87,7 @@ class CameraViewState extends ConsumerState<CameraView>
 
       final result = await ref
           .read(chatControllerProvider.notifier)
-          .prepareAttachments([File(file.path)], shouldCompress: true);
+          .createAttachmentsFromFiles([File(file.path)]);
 
       return navigateToSender(result);
     }
@@ -109,7 +109,7 @@ class CameraViewState extends ConsumerState<CameraView>
     if (!mounted) return;
     final result = await ref
         .read(chatControllerProvider.notifier)
-        .prepareAttachments([File(file.path)], shouldCompress: true);
+        .createAttachmentsFromFiles([File(file.path)]);
 
     navigateToSender(result);
     setState(() => isRecording = false);

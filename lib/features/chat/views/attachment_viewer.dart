@@ -1485,7 +1485,25 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
   }
 
   @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (isUploading) return;
+
+    isUploading =
+        widget.message.attachment!.uploadStatus == UploadStatus.uploading;
+
+    if (isUploading) {
+      uploadTaskFuture = upload();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (widget.message.attachment!.uploadStatus == UploadStatus.preparing) {
+      return const SizedBox(width: 10, height: 10);
+    }
+
     final overlayColor = Theme.of(context).brightness == Brightness.dark
         ? const Color.fromARGB(150, 0, 0, 0)
         : const Color.fromARGB(225, 255, 255, 255);
