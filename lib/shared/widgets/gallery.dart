@@ -125,7 +125,7 @@ class GalleryStateController extends StateNotifier<GalleryState> {
       final returnedAttachments = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) =>
-              AttachmentMessageSender(attachments: attachments),
+              AttachmentMessageSender(attachments: List.from(attachments)),
         ),
       );
 
