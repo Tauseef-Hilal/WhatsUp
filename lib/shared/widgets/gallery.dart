@@ -131,17 +131,22 @@ class GalleryStateController extends StateNotifier<GalleryState> {
   }
 }
 
-class AssetData {
-  const AssetData({required this.assets, required this.albums});
-
-  final Map<String, AssetWrapper> assets;
-  final Map<String, List<String>> albums;
-}
-
 class AssetWrapper {
   const AssetWrapper({required this.asset, required this.thumbnail});
 
   final AssetEntity asset;
+  final Uint8List thumbnail;
+}
+
+class AlbumWrapper {
+  const AlbumWrapper({
+    required this.album,
+    required this.assetCount,
+    required this.thumbnail,
+  });
+
+  final AssetPathEntity album;
+  final int assetCount;
   final Uint8List thumbnail;
 }
 
@@ -158,11 +163,11 @@ class Gallery extends ConsumerStatefulWidget {
 class _GalleryState extends ConsumerState<Gallery>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  late final Stream<AssetData> _albumsFuture;
+  late final Stream<List<AlbumWrapper>> _albumsFuture;
 
   @override
   void initState() {
-    _albumsFuture = loadAssets();
+    _albumsFuture = loadAlbums();
     ref
         .read(galleryStateProvider.notifier)
         .init(returnFiles: widget.returnFiles);
@@ -177,47 +182,30 @@ class _GalleryState extends ConsumerState<Gallery>
     super.initState();
   }
 
-  Stream<AssetData> loadAssets() async* {
-    final albumList = await PhotoManager.getAssetPathList(
-      onlyAll: true,
+  Stream<List<AlbumWrapper>> loadAlbums() async* {
+    final albums = await PhotoManager.getAssetPathList(
+      hasAll: true,
       type: widget.returnFiles ? RequestType.image : RequestType.common,
     );
-    final allAssets = await albumList.first.getAssetListRange(
-      start: 0,
-      end: 999999,
-    );
 
-    final Map<String, AssetWrapper> assets = {};
-    final Map<String, List<String>> albums = {'Recents': []};
+    final albumWrappers = <AlbumWrapper>[];
 
-    final thumbnails = allAssets
-        .map(
-          (e) => e.thumbnailDataWithSize(
-            const ThumbnailSize.square(300),
-            quality: 100,
-          ),
-        )
-        .toList();
+    for (final album in albums) {
+      final assets = await album.getAssetListRange(start: 0, end: 1);
+      final assetCount = await album.assetCountAsync;
+      final thumbnail = await assets.first.thumbnailDataWithSize(
+        const ThumbnailSize.square(200),
+        quality: 100,
+      );
 
-    for (var i = 0; i < allAssets.length; i++) {
-      final asset = allAssets[i];
-      final thumbnail = await thumbnails[i];
-
-      assets[asset.id] = AssetWrapper(
-        asset: asset,
+      final albumWrapper = AlbumWrapper(
+        album: album,
+        assetCount: assetCount,
         thumbnail: thumbnail!,
       );
 
-      final pathPoints = asset.relativePath!.split("/");
-      final key = pathPoints[pathPoints.length - 2];
-
-      if (albums[key] == null) {
-        albums[key] = [];
-        yield AssetData(assets: assets, albums: albums);
-      }
-
-      albums[key]!.add(asset.id);
-      albums['Recents']!.add(asset.id);
+      albumWrappers.add(albumWrapper);
+      yield albumWrappers;
     }
   }
 
@@ -309,6 +297,15 @@ class _GalleryState extends ConsumerState<Gallery>
               return Container();
             }
 
+            AlbumWrapper? recentAlbum;
+            try {
+              recentAlbum = snap.data!.firstWhere(
+                (element) => element.album.isAll,
+              );
+            } on StateError {
+              recentAlbum = null;
+            }
+
             return TabBarView(
               controller: _tabController,
               children: [
@@ -316,12 +313,13 @@ class _GalleryState extends ConsumerState<Gallery>
                   padding: const EdgeInsets.only(top: 2.0),
                   child: AlbumView(
                     showAlbumName: false,
-                    assets: snap.data!.assets.values.toList(),
+                    album: recentAlbum?.album,
+                    albumTitle: 'Recents',
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 2.0),
-                  child: AlbumsTab(assetData: snap.data!),
+                  child: AlbumsTab(albums: snap.data!),
                 ),
               ],
             );
@@ -333,13 +331,11 @@ class _GalleryState extends ConsumerState<Gallery>
 }
 
 class AlbumsTab extends StatelessWidget {
-  const AlbumsTab({super.key, required this.assetData});
-  final AssetData assetData;
+  const AlbumsTab({super.key, required this.albums});
+  final List<AlbumWrapper> albums;
 
   @override
   Widget build(BuildContext context) {
-    final albumTitles = assetData.albums.keys.toList();
-
     return GridView.builder(
       physics: const BouncingScrollPhysics(),
       shrinkWrap: true,
@@ -348,14 +344,13 @@ class AlbumsTab extends StatelessWidget {
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
       ),
-      itemCount: albumTitles.length,
+      itemCount: albums.length,
       itemBuilder: (context, index) {
-        final albumTitle = albumTitles[index];
-        final assets = assetData.albums[albumTitle]!
-            .map((assetId) => assetData.assets[assetId]!)
-            .toList();
-
-        return AlbumCard(albumTitle: albumTitle, assets: assets);
+        return AlbumCard(
+          album: albums[index].album,
+          thumbnail: albums[index].thumbnail,
+          assetCount: albums[index].assetCount,
+        );
       },
     );
   }
@@ -364,12 +359,14 @@ class AlbumsTab extends StatelessWidget {
 class AlbumCard extends StatelessWidget {
   const AlbumCard({
     super.key,
-    required this.albumTitle,
-    required this.assets,
+    required this.album,
+    required this.assetCount,
+    required this.thumbnail,
   });
 
-  final String albumTitle;
-  final List<AssetWrapper> assets;
+  final AssetPathEntity album;
+  final int assetCount;
+  final Uint8List thumbnail;
 
   @override
   Widget build(BuildContext context) {
@@ -379,15 +376,15 @@ class AlbumCard extends StatelessWidget {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => AlbumView(
-              albumTitle: albumTitle,
-              assets: assets,
+              albumTitle: album.name,
+              album: album,
             ),
           ),
         );
       },
       child: Stack(
         children: [
-          FadeInThumbnail(thumbnail: assets.first.thumbnail),
+          FadeInThumbnail(thumbnail: thumbnail),
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -413,11 +410,11 @@ class AlbumCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      albumTitle,
+                      album.name,
                       style: const TextStyle(fontSize: 12),
                     ),
                     const Spacer(),
-                    Text(assets.length.toString())
+                    Text(assetCount.toString())
                   ],
                 ),
               ),
@@ -432,20 +429,67 @@ class AlbumCard extends StatelessWidget {
 class AlbumView extends ConsumerStatefulWidget {
   const AlbumView({
     super.key,
-    this.albumTitle,
+    required this.album,
     this.showAlbumName = true,
-    required this.assets,
+    this.albumTitle,
   });
 
-  final String? albumTitle;
   final bool showAlbumName;
-  final List<AssetWrapper> assets;
+  final AssetPathEntity? album;
+  final String? albumTitle;
 
   @override
   ConsumerState<AlbumView> createState() => _AlbumViewState();
 }
 
 class _AlbumViewState extends ConsumerState<AlbumView> {
+  late final Stream<List<AssetWrapper>> _assetsFuture;
+
+  @override
+  void initState() {
+    if (widget.album != null) {
+      _assetsFuture = loadAssets(widget.album!);
+    }
+
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant AlbumView oldWidget) {
+    if (oldWidget.album == null && widget.album != null) {
+      _assetsFuture = loadAssets(widget.album!);
+    }
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Stream<List<AssetWrapper>> loadAssets(AssetPathEntity album) async* {
+    final allAssets = await album.getAssetListRange(
+      start: 0,
+      end: 999999,
+    );
+
+    final thumbnails = allAssets
+        .map(
+          (e) => e.thumbnailDataWithSize(
+            const ThumbnailSize.square(300),
+            quality: 100,
+          ),
+        )
+        .toList();
+
+    final assets = <AssetWrapper>[];
+    for (var i = 0; i < allAssets.length; i++) {
+      final asset = allAssets[i];
+
+      assets.add(
+        AssetWrapper(asset: asset, thumbnail: (await thumbnails[i])!),
+      );
+
+      yield assets;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedAssets = ref.watch(galleryStateProvider).selectedAssets;
@@ -499,21 +543,34 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
         child: SafeArea(
           child: Stack(
             children: [
-              GridView.builder(
-                physics: const BouncingScrollPhysics(),
-                shrinkWrap: true,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 2,
-                  crossAxisSpacing: 2,
-                ),
-                itemCount: widget.assets.length,
-                itemBuilder: (context, index) {
-                  return AlbumItem(
-                    assetWrapper: widget.assets[index],
-                  );
-                },
-              ),
+              widget.album != null
+                  ? StreamBuilder(
+                      stream: _assetsFuture,
+                      builder: (context, snap) {
+                        if (!snap.hasData) {
+                          return Container();
+                        }
+
+                        final assets = snap.data!;
+                        return GridView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          shrinkWrap: true,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 2,
+                            crossAxisSpacing: 2,
+                          ),
+                          itemCount: assets.length,
+                          itemBuilder: (context, index) {
+                            return AlbumItem(
+                              assetWrapper: assets[index],
+                            );
+                          },
+                        );
+                      },
+                    )
+                  : Container(),
               if (showSelectedAssets)
                 Align(
                   alignment: Alignment.bottomCenter,
