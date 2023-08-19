@@ -5,6 +5,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -17,10 +18,12 @@ import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/repositories/compression_service.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
+import 'package:whatsapp_clone/shared/repositories/upload_service.dart';
 import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/shared/widgets/camera.dart';
 
+import '../../../shared/repositories/download_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
 import '../../../shared/utils/abc.dart';
 import '../../../shared/widgets/gallery.dart';
@@ -304,13 +307,94 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       AttachmentType.voice,
       AttachmentType.video
     }.contains(message.attachment!.type)) {
+      message.attachment!.uploadStatus = UploadStatus.preparing;
       await IsarDb.addMessage(message);
+
+      message.attachment!.uploadStatus = UploadStatus.uploading;
+      await uploadAttachment(message);
+      await IsarDb.updateMessage(message.id, attachment: message.attachment);
       return;
     }
 
     message.attachment!.uploadStatus = UploadStatus.preparing;
     await IsarDb.addMessage(message);
 
+    await compressAttachment(message);
+    await uploadAttachment(message);
+  }
+
+  Future<void> uploadAttachment(Message message) async {
+    await UploadService.upload(
+      taskId: message.id,
+      file: message.attachment!.file!,
+      path: 'attachments/${message.attachment!.fileName}',
+      onUploadDone: (snapshot) async =>
+          await uploadCompleteHandler(snapshot, message),
+      onUploadError: () async => await stopUpload(message),
+    );
+
+    message.attachment!.uploadStatus = UploadStatus.uploading;
+    await IsarDb.updateMessage(message.id, attachment: message.attachment);
+  }
+
+  Future<void> uploadCompleteHandler(
+    TaskSnapshot snapshot,
+    Message message,
+  ) async {
+    final url = await snapshot.ref.getDownloadURL();
+
+    ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .sendMessage(
+          message
+            ..status = MessageStatus.sent
+            ..attachment!.url = url
+            ..attachment!.uploadStatus = UploadStatus.uploaded,
+        )
+        .then((_) async {
+      await IsarDb.updateMessage(
+        message.id,
+        status: message.status,
+        attachment: message.attachment!
+          ..url = url
+          ..uploadStatus = UploadStatus.uploaded,
+      );
+
+      ref.read(pushNotificationsRepoProvider).sendPushNotification(message);
+    });
+  }
+
+  Future<void> stopUpload(Message message) async {
+    if (message.attachment!.uploadStatus == UploadStatus.notUploading) {
+      return;
+    }
+
+    await UploadService.cancelUpload(message.id);
+    await IsarDb.updateMessage(
+      message.id,
+      attachment: message.attachment!..uploadStatus = UploadStatus.notUploading,
+    );
+  }
+
+  Future<void> downloadAttachment(
+    Message message,
+    void Function(TaskSnapshot) onComplete,
+    void Function() onError,
+  ) async {
+    await DownloadService.download(
+      taskId: message.id,
+      url: message.attachment!.url,
+      path: DeviceStorage.getMediaFilePath(message.attachment!.fileName),
+      onDownloadComplete: onComplete,
+      onDownloadError: onError,
+    );
+  }
+
+  Future<void> cancelDownload(Message message) async {
+    await DownloadService.cancelDownload(message.id);
+  }
+
+  Future<void> compressAttachment(Message message) async {
     final compressedFile = await CompressionService.compressImage(
       message.attachment!.file!,
     );
@@ -324,9 +408,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     message.attachment!.file = compressedFile;
     message.attachment!.fileSize = await compressedFile.length();
     message.attachment!.fileExtension = compressedFile.path.split('.').last;
-    message.attachment!.uploadStatus = UploadStatus.uploading;
-
-    await IsarDb.updateMessage(message.id, attachment: message.attachment);
   }
 
   Future<void> markMessageAsSeen(Message message) async {
@@ -457,18 +538,6 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     return dialogKey;
   }
 
-  // Future<List<Attachment>> createAttachmentsFromFiles(
-  //   List<File> files, {
-  //   bool shouldCompress = false,
-  //   bool areDocuments = false,
-  // }) async {
-  //   if (shouldCompress) {
-  //     files = await CompressionService.compressFiles(files);
-  //   }
-
-  //   return await createAttachmentsFromFiles(files, areDocuments: areDocuments);
-  // }
-
   Future<List<Attachment>> createAttachmentsFromFiles(
     List<File> files, {
     bool areDocuments = false,
@@ -494,6 +563,8 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
         return Attachment(
           type: type,
           url: "",
+          autoDownload:
+              {AttachmentType.image, AttachmentType.voice}.contains(type),
           fileName: fileName,
           fileSize: file.lengthSync(),
           fileExtension: fileName.split(".").last,

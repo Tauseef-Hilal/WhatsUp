@@ -11,15 +11,13 @@ import 'package:open_file_plus/open_file_plus.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/attachment_renderers.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/painters.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/progress_btn.dart';
-import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
-import 'package:whatsapp_clone/shared/repositories/push_notifications.dart';
+import 'package:whatsapp_clone/shared/repositories/download_service.dart';
+import 'package:whatsapp_clone/shared/repositories/upload_service.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../shared/models/user.dart';
-import '../../../shared/repositories/firebase_firestore.dart';
-import '../../../shared/repositories/firebase_storage.dart';
 import '../../../shared/utils/abc.dart';
 import '../controllers/chat_controller.dart';
 import '../models/attachement.dart';
@@ -182,8 +180,6 @@ class _AttachedImageVideoViewerState
           DownloadingAttachment(
             message: widget.message,
             onDone: widget.onDownloadComplete,
-            autoDownload:
-                widget.message.attachment!.type == AttachmentType.image,
           )
         ] else if (!isAttachmentUploaded) ...[
           UploadingAttachment(
@@ -333,7 +329,6 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
         message: widget.message,
         onDone: widget.onDownloadComplete,
         showSize: false,
-        autoDownload: true,
       );
     } else if (!isAttachmentUploaded) {
       showDuration = false;
@@ -772,7 +767,6 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       trailing = DownloadingAttachment(
         message: widget.message,
         onDone: widget.onDownloadComplete,
-        showSize: false,
       );
     } else if (!isAttachmentUploaded) {
       showDuration = false;
@@ -1239,13 +1233,11 @@ class DownloadingAttachment extends ConsumerStatefulWidget {
     super.key,
     required this.message,
     required this.onDone,
-    this.autoDownload = false,
     this.showSize = true,
   });
   final Message message;
   final VoidCallback onDone;
   final bool showSize;
-  final bool autoDownload;
 
   @override
   ConsumerState<DownloadingAttachment> createState() =>
@@ -1255,13 +1247,17 @@ class DownloadingAttachment extends ConsumerStatefulWidget {
 class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
   late bool isDownloading;
   late bool clientIsSender;
-  late Future<(File, DownloadTask)> downloadTaskFuture;
+  Stream<TaskSnapshot>? downloadStream;
 
   @override
   void initState() {
-    isDownloading = widget.autoDownload;
+    isDownloading = widget.message.attachment!.autoDownload;
     if (isDownloading) {
-      downloadTaskFuture = download();
+      final downloadStream =
+          DownloadService.getDownloadStream(widget.message.id);
+      if (downloadStream == null) {
+        download();
+      }
     }
 
     clientIsSender = ref.read(chatControllerProvider.notifier).self.id ==
@@ -1270,15 +1266,35 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
     super.initState();
   }
 
-  Future<(File, DownloadTask)> download() {
-    return ref.read(firebaseStorageRepoProvider).downloadFileFromFirebase(
-          widget.message.attachment!.url,
-          widget.message.attachment!.fileName,
-        );
+  Future<void> download() async {
+    await ref.read(chatControllerProvider.notifier).downloadAttachment(
+      widget.message,
+      (_) {
+        widget.onDone();
+      },
+      () {
+        if (!mounted) return;
+        setState(() => isDownloading = false);
+      },
+    );
+
+    downloadStream = DownloadService.getDownloadStream(widget.message.id)!;
+    setState(() => isDownloading = true);
+  }
+
+  Future<void> cancel() async {
+    await ref
+        .read(chatControllerProvider.notifier)
+        .cancelDownload(widget.message);
+    setState(() => isDownloading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (downloadStream == null && isDownloading) {
+      return const SizedBox(width: 10, height: 10);
+    }
+
     final overlayColor = Theme.of(context).brightness == Brightness.dark
         ? const Color.fromARGB(150, 0, 0, 0)
         : const Color.fromARGB(225, 255, 255, 255);
@@ -1289,10 +1305,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           InkWell(
-            onTap: () {
-              downloadTaskFuture = download();
-              setState(() => isDownloading = true);
-            },
+            onTap: download,
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -1333,66 +1346,38 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
       );
     }
 
-    return FutureBuilder(
-      future: downloadTaskFuture,
+    final noProgressIndicator = ProgressCancelBtn(
+      onTap: cancel,
+      overlayColor: widget.showSize ? overlayColor : Colors.transparent,
+    );
+
+    return StreamBuilder(
+      stream: downloadStream,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() => isDownloading = false);
-          });
-          return const CircularProgressIndicator();
-        }
-
         if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
+          return noProgressIndicator;
         }
 
-        final (_, downloadTask) = snapshot.data!;
-        final noProgressIndicator = ProgressCancelBtn(
-          onTap: () {
-            downloadTask.cancel();
-            setState(() => isDownloading = false);
-          },
-          overlayColor: widget.showSize ? overlayColor : Colors.transparent,
-        );
+        final snapData = snapshot.data!;
 
-        return StreamBuilder(
-          stream: downloadTask.snapshotEvents,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return noProgressIndicator;
-            }
-
-            final snapData = snapshot.data!;
-
-            switch (snapData.state) {
-              case TaskState.running:
-                return ProgressCancelBtn(
-                  onTap: () {
-                    downloadTask.cancel();
-                    setState(() => isDownloading = false);
-                  },
-                  progressValue:
-                      snapData.bytesTransferred / snapData.totalBytes,
-                  overlayColor:
-                      widget.showSize ? overlayColor : Colors.transparent,
-                );
-              case TaskState.success:
-                WidgetsBinding.instance
-                    .addPostFrameCallback((_) => widget.onDone());
-                return const CircularProgressIndicator();
-              case TaskState.error:
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted) return;
-                  setState(() => isDownloading = false);
-                });
-                return const CircularProgressIndicator();
-              default:
-                return noProgressIndicator;
-            }
-          },
-        );
+        switch (snapData.state) {
+          case TaskState.running:
+            return ProgressCancelBtn(
+              onTap: cancel,
+              progressValue: snapData.bytesTransferred / snapData.totalBytes,
+              overlayColor: widget.showSize ? overlayColor : Colors.transparent,
+            );
+          case TaskState.success:
+            return const CircularProgressIndicator();
+          case TaskState.error:
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              setState(() => isDownloading = false);
+            });
+            return const CircularProgressIndicator();
+          default:
+            return noProgressIndicator;
+        }
       },
     );
   }
@@ -1415,7 +1400,7 @@ class UploadingAttachment extends ConsumerStatefulWidget {
 
 class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
   late bool isUploading;
-  late Future<UploadTask> uploadTaskFuture;
+  late Stream<TaskSnapshot> uploadStream;
   late bool clientIsSender;
 
   @override
@@ -1423,7 +1408,10 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
     isUploading =
         widget.message.attachment!.uploadStatus == UploadStatus.uploading;
     if (isUploading) {
-      uploadTaskFuture = upload();
+      final stream = UploadService.getUploadStream(widget.message.id);
+      if (stream != null) {
+        uploadStream = stream;
+      }
     }
 
     clientIsSender = ref.read(chatControllerProvider.notifier).self.id ==
@@ -1432,64 +1420,30 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
     super.initState();
   }
 
-  Future<UploadTask> upload() {
-    final fileName = widget.message.attachment!.fileName;
-    return ref.read(firebaseStorageRepoProvider).uploadFileToFirebase(
-          widget.message.attachment!.file!,
-          "attachments/$fileName",
-        );
-  }
-
-  void onUploadDone(TaskSnapshot snapshot) async {
-    final url = await snapshot.ref.getDownloadURL();
-
-    ref
-        .read(firebaseFirestoreRepositoryProvider)
-        .sendMessage(
-          widget.message
-            ..status = MessageStatus.sent
-            ..attachment!.url = url
-            ..attachment!.uploadStatus = UploadStatus.uploaded,
-        )
-        .then((_) async {
-      await IsarDb.updateMessage(
-        widget.message.id,
-        status: widget.message.status,
-        attachment: widget.message.attachment!
-          ..url = url
-          ..uploadStatus = UploadStatus.uploaded,
-      );
-
-      ref
-          .read(pushNotificationsRepoProvider)
-          .sendPushNotification(widget.message);
-    });
-  }
-
-  Future<void> stopAutoUpload() async {
-    if (widget.message.attachment!.uploadStatus == UploadStatus.notUploading) {
-      return;
-    }
-
-    await IsarDb.updateMessage(
-      widget.message.id,
-      attachment: widget.message.attachment!
-        ..uploadStatus = UploadStatus.notUploading,
-    );
-  }
-
   @override
-  void didUpdateWidget(oldWidget) {
+  void didUpdateWidget(covariant UploadingAttachment oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (isUploading) return;
 
     isUploading =
         widget.message.attachment!.uploadStatus == UploadStatus.uploading;
 
     if (isUploading) {
-      uploadTaskFuture = upload();
+      uploadStream = UploadService.getUploadStream(widget.message.id)!;
     }
+  }
+
+  Future<void> upload() async {
+    await ref
+        .read(chatControllerProvider.notifier)
+        .uploadAttachment(widget.message);
+
+    uploadStream = UploadService.getUploadStream(widget.message.id)!;
+    setState(() => isUploading = true);
+  }
+
+  Future<void> stopUpload() async {
+    await ref.read(chatControllerProvider.notifier).stopUpload(widget.message);
+    setState(() => isUploading = false);
   }
 
   @override
@@ -1508,10 +1462,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           InkWell(
-            onTap: () {
-              uploadTaskFuture = upload();
-              setState(() => isUploading = true);
-            },
+            onTap: upload,
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -1552,74 +1503,38 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
       );
     }
 
-    return FutureBuilder(
-      future: uploadTaskFuture,
+    final noProgressIndicator = ProgressCancelBtn(
+      onTap: stopUpload,
+      overlayColor: widget.showSize ? overlayColor : Colors.transparent,
+    );
+
+    return StreamBuilder(
+      stream: uploadStream,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            stopAutoUpload();
-            if (!mounted) return;
-            setState(() {
-              isUploading = false;
-              uploadTaskFuture = upload();
-            });
-          });
-          return const CircularProgressIndicator();
-        }
-
         if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
+          return noProgressIndicator;
         }
 
-        final uploadTask = snapshot.data!;
-        final noProgressIndicator = ProgressCancelBtn(
-          onTap: () async {
-            await uploadTask.cancel();
-            await stopAutoUpload();
-            setState(() => isUploading = false);
-          },
-          overlayColor: widget.showSize ? overlayColor : Colors.transparent,
-        );
+        final snapData = snapshot.data!;
 
-        return StreamBuilder(
-          stream: uploadTask.snapshotEvents,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return noProgressIndicator;
-            }
-
-            final snapData = snapshot.data!;
-
-            switch (snapData.state) {
-              case TaskState.running:
-                return ProgressCancelBtn(
-                  onTap: () async {
-                    await uploadTask.cancel();
-                    await stopAutoUpload();
-                    setState(() => isUploading = false);
-                  },
-                  overlayColor:
-                      widget.showSize ? overlayColor : Colors.transparent,
-                  progressValue:
-                      snapData.bytesTransferred / snapData.totalBytes,
-                );
-              case TaskState.success:
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  onUploadDone(snapData);
-                });
-                return const CircularProgressIndicator();
-              case TaskState.error:
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  await stopAutoUpload();
-                  if (!mounted) return;
-                  setState(() => isUploading = false);
-                });
-                return const CircularProgressIndicator();
-              default:
-                return noProgressIndicator;
-            }
-          },
-        );
+        switch (snapData.state) {
+          case TaskState.running:
+            return ProgressCancelBtn(
+              onTap: stopUpload,
+              overlayColor: widget.showSize ? overlayColor : Colors.transparent,
+              progressValue: snapData.bytesTransferred / snapData.totalBytes,
+            );
+          case TaskState.success:
+            return const CircularProgressIndicator();
+          case TaskState.error:
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              if (!mounted) return;
+              setState(() => isUploading = false);
+            });
+            return const CircularProgressIndicator();
+          default:
+            return noProgressIndicator;
+        }
       },
     );
   }

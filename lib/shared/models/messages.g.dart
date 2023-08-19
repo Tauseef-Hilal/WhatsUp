@@ -1560,50 +1560,55 @@ const EmbeddedAttachmentSchema = Schema(
   name: r'EmbeddedAttachment',
   id: 6454603531589151701,
   properties: {
-    r'fileExtension': PropertySchema(
+    r'autoDownload': PropertySchema(
       id: 0,
+      name: r'autoDownload',
+      type: IsarType.bool,
+    ),
+    r'fileExtension': PropertySchema(
+      id: 1,
       name: r'fileExtension',
       type: IsarType.string,
     ),
     r'fileName': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'fileName',
       type: IsarType.string,
     ),
     r'fileSize': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'fileSize',
       type: IsarType.long,
     ),
     r'height': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'height',
       type: IsarType.double,
     ),
     r'samples': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'samples',
       type: IsarType.doubleList,
     ),
     r'type': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'type',
       type: IsarType.string,
       enumMap: _EmbeddedAttachmenttypeEnumValueMap,
     ),
     r'uploadStatus': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'uploadStatus',
       type: IsarType.string,
       enumMap: _EmbeddedAttachmentuploadStatusEnumValueMap,
     ),
     r'url': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'url',
       type: IsarType.string,
     ),
     r'width': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'width',
       type: IsarType.double,
     )
@@ -1665,15 +1670,16 @@ void _embeddedAttachmentSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.fileExtension);
-  writer.writeString(offsets[1], object.fileName);
-  writer.writeLong(offsets[2], object.fileSize);
-  writer.writeDouble(offsets[3], object.height);
-  writer.writeDoubleList(offsets[4], object.samples);
-  writer.writeString(offsets[5], object.type?.value);
-  writer.writeString(offsets[6], object.uploadStatus?.value);
-  writer.writeString(offsets[7], object.url);
-  writer.writeDouble(offsets[8], object.width);
+  writer.writeBool(offsets[0], object.autoDownload);
+  writer.writeString(offsets[1], object.fileExtension);
+  writer.writeString(offsets[2], object.fileName);
+  writer.writeLong(offsets[3], object.fileSize);
+  writer.writeDouble(offsets[4], object.height);
+  writer.writeDoubleList(offsets[5], object.samples);
+  writer.writeString(offsets[6], object.type?.value);
+  writer.writeString(offsets[7], object.uploadStatus?.value);
+  writer.writeString(offsets[8], object.url);
+  writer.writeDouble(offsets[9], object.width);
 }
 
 EmbeddedAttachment _embeddedAttachmentDeserialize(
@@ -1683,17 +1689,18 @@ EmbeddedAttachment _embeddedAttachmentDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = EmbeddedAttachment(
-    fileExtension: reader.readStringOrNull(offsets[0]),
-    fileName: reader.readStringOrNull(offsets[1]),
-    fileSize: reader.readLongOrNull(offsets[2]),
-    height: reader.readDoubleOrNull(offsets[3]),
-    samples: reader.readDoubleList(offsets[4]),
+    autoDownload: reader.readBoolOrNull(offsets[0]),
+    fileExtension: reader.readStringOrNull(offsets[1]),
+    fileName: reader.readStringOrNull(offsets[2]),
+    fileSize: reader.readLongOrNull(offsets[3]),
+    height: reader.readDoubleOrNull(offsets[4]),
+    samples: reader.readDoubleList(offsets[5]),
     type: _EmbeddedAttachmenttypeValueEnumMap[
-        reader.readStringOrNull(offsets[5])],
-    uploadStatus: _EmbeddedAttachmentuploadStatusValueEnumMap[
         reader.readStringOrNull(offsets[6])],
-    url: reader.readStringOrNull(offsets[7]),
-    width: reader.readDoubleOrNull(offsets[8]),
+    uploadStatus: _EmbeddedAttachmentuploadStatusValueEnumMap[
+        reader.readStringOrNull(offsets[7])],
+    url: reader.readStringOrNull(offsets[8]),
+    width: reader.readDoubleOrNull(offsets[9]),
   );
   return object;
 }
@@ -1706,24 +1713,26 @@ P _embeddedAttachmentDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
-      return (reader.readDoubleList(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 5:
+      return (reader.readDoubleList(offset)) as P;
+    case 6:
       return (_EmbeddedAttachmenttypeValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
-    case 6:
+    case 7:
       return (_EmbeddedAttachmentuploadStatusValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
-    case 7:
-      return (reader.readStringOrNull(offset)) as P;
     case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1759,6 +1768,34 @@ const _EmbeddedAttachmentuploadStatusValueEnumMap = {
 
 extension EmbeddedAttachmentQueryFilter
     on QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QFilterCondition> {
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      autoDownloadIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'autoDownload',
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      autoDownloadIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'autoDownload',
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
+      autoDownloadEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'autoDownload',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<EmbeddedAttachment, EmbeddedAttachment, QAfterFilterCondition>
       fileExtensionIsNull() {
     return QueryBuilder.apply(this, (query) {

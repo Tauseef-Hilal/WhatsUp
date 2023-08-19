@@ -40,6 +40,7 @@ class EmbeddedAttachment {
   double? height;
   String? url;
   List<double>? samples;
+  bool? autoDownload;
 
   @Enumerated(EnumType.value, 'value')
   UploadStatus? uploadStatus;
@@ -55,6 +56,7 @@ class EmbeddedAttachment {
     this.height,
     this.url,
     this.uploadStatus,
+    this.autoDownload,
     this.type,
     this.samples,
   });

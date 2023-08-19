@@ -50,6 +50,7 @@ class Attachment {
   final double? width;
   final double? height;
   UploadStatus uploadStatus;
+  bool autoDownload;
   String fileExtension;
   int fileSize;
   String url;
@@ -63,6 +64,7 @@ class Attachment {
     required this.fileSize,
     required this.fileExtension,
     this.uploadStatus = UploadStatus.notUploading,
+    this.autoDownload = false,
     this.width,
     this.height,
     this.file,
@@ -79,6 +81,7 @@ class Attachment {
       height: data["height"],
       type: AttachmentType.fromValue(data["type"]),
       uploadStatus: UploadStatus.fromValue(data["uploadStatus"]),
+      autoDownload: data["autoDownload"] ?? false,
       samples: data["samples"] != null
           ? List.castFrom<dynamic, double>(data["samples"])
           : null,
@@ -98,6 +101,7 @@ class Attachment {
       "fileExtension": fileExtension,
       "type": type.value,
       "uploadStatus": uploadStatus.value,
+      "autoDownload": autoDownload,
       "width": width,
       "height": height,
       "samples": samples,

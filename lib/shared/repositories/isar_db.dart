@@ -45,6 +45,7 @@ class IsarDb {
               fileSize: message.attachment!.fileSize,
               width: message.attachment!.width,
               height: message.attachment!.height,
+              autoDownload: message.attachment!.autoDownload,
               uploadStatus: message.attachment!.uploadStatus,
               url: message.attachment!.url,
               type: message.attachment!.type,
@@ -77,6 +78,7 @@ class IsarDb {
                     width: message.attachment!.width,
                     height: message.attachment!.height,
                     uploadStatus: message.attachment!.uploadStatus,
+                    autoDownload: message.attachment!.autoDownload,
                     url: message.attachment!.url,
                     type: message.attachment!.type,
                     samples: message.attachment!.samples,
@@ -117,6 +119,7 @@ class IsarDb {
           width: attachment.width,
           height: attachment.height,
           uploadStatus: attachment.uploadStatus,
+          autoDownload: attachment.autoDownload,
           url: attachment.url,
           type: attachment.type,
           samples: attachment.samples,
@@ -135,27 +138,30 @@ class IsarDb {
         .build()
         .watch(fireImmediately: true)
         .map((event) => event
-            .map((msg) => Message(
-                  id: msg.messageId,
-                  content: msg.content,
-                  senderId: msg.senderId,
-                  receiverId: msg.receiverId,
-                  timestamp: Timestamp.fromDate(msg.timestamp),
-                  status: msg.status,
-                  attachment: msg.attachment != null
-                      ? Attachment(
-                          fileName: msg.attachment!.fileName!,
-                          fileExtension: msg.attachment!.fileExtension!,
-                          fileSize: msg.attachment!.fileSize!,
-                          width: msg.attachment!.width,
-                          height: msg.attachment!.height,
-                          uploadStatus: msg.attachment!.uploadStatus!,
-                          url: msg.attachment!.url!,
-                          type: msg.attachment!.type!,
-                          samples: msg.attachment!.samples,
-                        )
-                      : null,
-                ))
+            .map(
+              (msg) => Message(
+                id: msg.messageId,
+                content: msg.content,
+                senderId: msg.senderId,
+                receiverId: msg.receiverId,
+                timestamp: Timestamp.fromDate(msg.timestamp),
+                status: msg.status,
+                attachment: msg.attachment != null
+                    ? Attachment(
+                        fileName: msg.attachment!.fileName!,
+                        fileExtension: msg.attachment!.fileExtension!,
+                        fileSize: msg.attachment!.fileSize!,
+                        width: msg.attachment!.width,
+                        height: msg.attachment!.height,
+                        uploadStatus: msg.attachment!.uploadStatus!,
+                        autoDownload: msg.attachment!.autoDownload!,
+                        url: msg.attachment!.url!,
+                        type: msg.attachment!.type!,
+                        samples: msg.attachment!.samples,
+                      )
+                    : null,
+              ),
+            )
             .toList());
   }
 
@@ -219,6 +225,7 @@ class IsarDb {
                       width: msg.attachment!.width,
                       height: msg.attachment!.height,
                       uploadStatus: msg.attachment!.uploadStatus!,
+                      autoDownload: msg.attachment!.autoDownload!,
                       url: msg.attachment!.url!,
                       type: msg.attachment!.type!,
                     )
