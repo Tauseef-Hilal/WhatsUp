@@ -10,6 +10,7 @@ import 'package:whatsapp_clone/features/chat/models/message.dart';
 import 'package:whatsapp_clone/features/chat/models/recent_chat.dart';
 import 'package:whatsapp_clone/features/chat/views/chat.dart';
 import 'package:whatsapp_clone/features/home/data/repositories/contact_repository.dart';
+import 'package:whatsapp_clone/shared/repositories/download_service.dart';
 import 'package:whatsapp_clone/shared/repositories/firebase_firestore.dart';
 import 'package:whatsapp_clone/features/home/views/contacts.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
@@ -17,6 +18,7 @@ import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/repositories/push_notifications.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
+import '../../../shared/utils/storage_paths.dart';
 import '../../../theme/color_theme.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -70,6 +72,18 @@ class _HomePageState extends ConsumerState<HomePage>
             ),
             receiverId: message.senderId,
           );
+          
+          if (message.attachment != null && message.attachment!.autoDownload) {
+            DownloadService.download(
+              taskId: message.id,
+              url: message.attachment!.url,
+              path: DeviceStorage.getMediaFilePath(
+                message.attachment!.fileName,
+              ),
+              onDownloadComplete: (_) {},
+              onDownloadError: () {},
+            );
+          }
         }
 
         IsarDb.addMessages(messages);
