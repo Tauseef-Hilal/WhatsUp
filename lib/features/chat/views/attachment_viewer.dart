@@ -1260,7 +1260,6 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
   @override
   void initState() {
     isDownloading = widget.autoDownload;
-    isDownloading = false;
     if (isDownloading) {
       downloadTaskFuture = download();
     }
@@ -1398,8 +1397,6 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
     );
   }
 }
-
-
 
 class UploadingAttachment extends ConsumerStatefulWidget {
   final Message message;
