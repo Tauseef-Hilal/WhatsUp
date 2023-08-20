@@ -35,6 +35,7 @@ class _UserProfileCreationPageState
   bool showEmojiPicker = false;
   bool isKeyboardVisible = false;
   late final StreamSubscription<bool> _keyboardSubscription;
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -54,6 +55,7 @@ class _UserProfileCreationPageState
     if (!showEmojiPicker && !isKeyboardVisible) {
       setState(() => showEmojiPicker = true);
     } else if (showEmojiPicker) {
+      _focusNode.requestFocus();
       SystemChannels.textInput.invokeMethod('TextInput.show');
       Future.delayed(const Duration(milliseconds: 500), () {
         setState(() => showEmojiPicker = false);
@@ -194,6 +196,7 @@ class _UserProfileCreationPageState
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _keyboardSubscription.cancel();
     super.dispose();
   }
@@ -221,7 +224,6 @@ class _UserProfileCreationPageState
           offstage: Offstage(
             offstage: !showEmojiPicker,
             child: CustomEmojiPicker(
-              height: keyboardHeight,
               textController: ref
                   .read(userDetailsControllerProvider.notifier)
                   .usernameController,
@@ -260,6 +262,7 @@ class _UserProfileCreationPageState
                       Expanded(
                         child: TextField(
                           onChanged: (value) {},
+                          focusNode: _focusNode,
                           controller: ref
                               .read(userDetailsControllerProvider.notifier)
                               .usernameController,

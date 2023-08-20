@@ -52,6 +52,7 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
         final height = MediaQuery.of(context).viewInsets.bottom;
         if (keyboardHeight != height) {
           setState(() {
+            if (!mounted || !isKeyboardVisible) return;
             keyboardHeight = height;
           });
         }
@@ -90,7 +91,12 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
                   SizedBox(
                     height: keyboardHeight,
                   ),
-                  if (widget.offstage != null) ...[widget.offstage!]
+                  if (widget.offstage != null) ...[
+                    SizedBox(
+                      height: keyboardHeight,
+                      child: widget.offstage!,
+                    )
+                  ]
                 ],
               ),
             ],

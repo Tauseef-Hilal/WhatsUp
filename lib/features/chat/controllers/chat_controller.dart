@@ -241,6 +241,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
               fileSize: recordedFile.lengthSync(),
               fileExtension: ext,
               uploadStatus: UploadStatus.uploading,
+              autoDownload: true,
               file: recordedFile,
               samples: samples,
             ),

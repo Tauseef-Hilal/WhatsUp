@@ -187,6 +187,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
   bool showEmojiPicker = false;
   bool isKeyboardVisible = false;
   late final StreamSubscription<bool> _keyboardSubscription;
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -206,6 +207,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
   @override
   void dispose() async {
     super.dispose();
+    _focusNode.dispose();
     _keyboardSubscription.cancel();
   }
 
@@ -213,6 +215,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
     if (!showEmojiPicker && !isKeyboardVisible) {
       setState(() => showEmojiPicker = true);
     } else if (showEmojiPicker) {
+      _focusNode.requestFocus();
       SystemChannels.textInput.invokeMethod('TextInput.show');
       Future.delayed(const Duration(milliseconds: 500), () {
         setState(() => showEmojiPicker = false);
@@ -241,7 +244,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
         offstage: Offstage(
           offstage: !showEmojiPicker,
           child: CustomEmojiPicker(
-            height: keyboardHeight,
             afterEmojiPlaced: (emoji) => ref
                 .read(chatControllerProvider.notifier)
                 .onTextChanged(emoji.emoji),
@@ -255,7 +257,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Container(
@@ -277,6 +278,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                         size: 24.0,
                                       ),
                                     ),
+                                    focusNode: _focusNode,
                                     onTextChanged: (value) => ref
                                         .read(chatControllerProvider.notifier)
                                         .onTextChanged(value),
