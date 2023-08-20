@@ -180,10 +180,12 @@ class _AttachedImageVideoViewerState
           DownloadingAttachment(
             message: widget.message,
             onDone: widget.onDownloadComplete,
+            showSize: true,
           )
         ] else if (!isAttachmentUploaded) ...[
           UploadingAttachment(
             message: widget.message,
+            showSize: true,
           )
         ] else if (widget.message.attachment!.type == AttachmentType.video) ...[
           CircleAvatar(
@@ -300,11 +302,16 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
       ),
     );
 
-    player.pause();
-    if (!resume) return;
+    bool isPlaying = false;
+    if (player.state == PlayerState.playing) {
+      isPlaying = true;
+    }
 
+    player.pause();
     Future.delayed(const Duration(milliseconds: 100), () async {
-      await player.resume();
+      if (isPlaying && resume) {
+        await player.resume();
+      }
     });
   }
 
@@ -328,13 +335,11 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
       trailing = DownloadingAttachment(
         message: widget.message,
         onDone: widget.onDownloadComplete,
-        showSize: false,
       );
     } else if (!isAttachmentUploaded) {
       showDuration = false;
       trailing = UploadingAttachment(
         message: widget.message,
-        showSize: false,
       );
     } else {
       if (player.state == PlayerState.playing) {
@@ -772,7 +777,6 @@ class _AttachedAudioViewerState extends ConsumerState<AttachedAudioViewer> {
       showDuration = false;
       trailing = UploadingAttachment(
         message: widget.message,
-        showSize: false,
       );
     } else {
       if (player.state == PlayerState.playing) {
@@ -1011,12 +1015,10 @@ class _AttachedDocumentViewerState
       trailing = DownloadingAttachment(
         message: widget.message,
         onDone: widget.onDownloadComplete,
-        showSize: false,
       );
     } else if (!isAttachmentUploaded) {
       trailing = UploadingAttachment(
         message: widget.message,
-        showSize: false,
       );
     }
 
@@ -1233,7 +1235,7 @@ class DownloadingAttachment extends ConsumerStatefulWidget {
     super.key,
     required this.message,
     required this.onDone,
-    this.showSize = true,
+    this.showSize = false,
   });
   final Message message;
   final VoidCallback onDone;
@@ -1390,7 +1392,7 @@ class UploadingAttachment extends ConsumerStatefulWidget {
   const UploadingAttachment({
     super.key,
     required this.message,
-    this.showSize = true,
+    this.showSize = false,
   });
 
   @override
