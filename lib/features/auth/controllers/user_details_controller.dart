@@ -10,7 +10,7 @@ import 'package:whatsapp_clone/features/auth/views/auth_complete.dart';
 import 'package:whatsapp_clone/shared/models/user.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
-import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
+// import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
 import 'package:whatsapp_clone/shared/widgets/gallery.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
@@ -30,9 +30,9 @@ class UserDetailsController extends StateNotifier<File?> {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     _usernameController = TextEditingController();
-    ref
-        .read(emojiPickerControllerProvider.notifier)
-        .init(keyboardVisibility: true);
+    // ref
+    //     .read(emojiPickerControllerProvider.notifier)
+    //     .init(keyboardVisibility: true);
   }
 
   @override

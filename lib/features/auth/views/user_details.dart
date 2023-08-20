@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controllers/user_details_controller.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
+import 'package:whatsapp_clone/shared/widgets/bottom_inset.dart';
 
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/shared/widgets/emoji_picker.dart';
@@ -27,13 +31,37 @@ class UserProfileCreationPage extends ConsumerStatefulWidget {
 class _UserProfileCreationPageState
     extends ConsumerState<UserProfileCreationPage> {
   File? userImg;
-  final double keyboardHeight =
-      SharedPref.instance.getDouble('keyboardHeight')!;
+  double keyboardHeight = SharedPref.instance.getDouble('keyboardHeight')!;
+  bool showEmojiPicker = false;
+  bool isKeyboardVisible = false;
+  late final StreamSubscription<bool> _keyboardSubscription;
 
   @override
   void initState() {
+    _keyboardSubscription =
+        KeyboardVisibilityController().onChange.listen((isVisible) async {
+      isKeyboardVisible = isVisible;
+      if (isVisible) {
+        showEmojiPicker = false;
+      }
+      setState(() {});
+    });
     ref.read(userDetailsControllerProvider.notifier).init();
     super.initState();
+  }
+
+  void switchKeyboards() async {
+    if (!showEmojiPicker && !isKeyboardVisible) {
+      setState(() => showEmojiPicker = true);
+    } else if (showEmojiPicker) {
+      SystemChannels.textInput.invokeMethod('TextInput.show');
+      Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() => showEmojiPicker = false);
+      });
+    } else if (isKeyboardVisible) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      setState(() => showEmojiPicker = true);
+    }
   }
 
   void showImageSources(BuildContext context) {
@@ -165,8 +193,13 @@ class _UserProfileCreationPageState
   }
 
   @override
+  void dispose() {
+    _keyboardSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final showEmojiPicker = ref.watch(emojiPickerControllerProvider);
     userImg = ref.watch(userDetailsControllerProvider);
     final colorTheme = Theme.of(context).custom.colorTheme;
 
@@ -183,114 +216,107 @@ class _UserProfileCreationPageState
                   ? colorTheme.greyColor
                   : colorTheme.iconColor),
         ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12.0),
-            Text(
-              'Please provide your name and an optional profile photo',
-              style: Theme.of(context).custom.textTheme.caption,
+        child: AvoidBottomInset(
+          conditions: [showEmojiPicker],
+          offstage: Offstage(
+            offstage: !showEmojiPicker,
+            child: CustomEmojiPicker(
+              height: keyboardHeight,
+              textController: ref
+                  .read(userDetailsControllerProvider.notifier)
+                  .usernameController,
             ),
-            const SizedBox(
-              height: 24.0,
-            ),
-            GestureDetector(
-              onTap: () => showImageSources(context),
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: userImg != null ? FileImage(userImg!) : null,
-                backgroundColor: colorTheme.appBarColor,
-                child: userImg == null ? const Icon(Icons.add_a_photo) : null,
-              ),
-            ),
-            const SizedBox(
-              height: 4.0,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      onChanged: (value) {},
-                      controller: ref
-                          .read(userDetailsControllerProvider.notifier)
-                          .usernameController,
-                      focusNode: ref
-                          .read(emojiPickerControllerProvider.notifier)
-                          .fieldFocusNode,
-                      autofocus: true,
-                      style: TextStyle(
-                        color: colorTheme.textColor1,
-                      ),
-                      cursorColor: colorTheme.greenColor,
-                      decoration: InputDecoration(
-                        hintText: 'Type your name here',
-                        hintStyle: Theme.of(context)
-                            .textTheme
-                            .bodyLarge!
-                            .copyWith(color: colorTheme.greyColor),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: colorTheme.greenColor,
-                            width: 1,
+          ),
+          child: Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12.0),
+                Text(
+                  'Please provide your name and an optional profile photo',
+                  style: Theme.of(context).custom.textTheme.caption,
+                ),
+                const SizedBox(
+                  height: 24.0,
+                ),
+                GestureDetector(
+                  onTap: () => showImageSources(context),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundImage:
+                        userImg != null ? FileImage(userImg!) : null,
+                    backgroundColor: colorTheme.appBarColor,
+                    child:
+                        userImg == null ? const Icon(Icons.add_a_photo) : null,
+                  ),
+                ),
+                const SizedBox(
+                  height: 4.0,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          onChanged: (value) {},
+                          controller: ref
+                              .read(userDetailsControllerProvider.notifier)
+                              .usernameController,
+                          autofocus: true,
+                          style: TextStyle(
+                            color: colorTheme.textColor1,
+                          ),
+                          cursorColor: colorTheme.greenColor,
+                          decoration: InputDecoration(
+                            hintText: 'Type your name here',
+                            hintStyle: Theme.of(context)
+                                .textTheme
+                                .bodyLarge!
+                                .copyWith(color: colorTheme.greyColor),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: colorTheme.greenColor,
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: colorTheme.greenColor,
+                                width: 2,
+                              ),
+                            ),
                           ),
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: colorTheme.greenColor,
-                            width: 2,
-                          ),
+                      ),
+                      GestureDetector(
+                        onTap: switchKeyboards,
+                        child: Icon(
+                          !showEmojiPicker
+                              ? Icons.emoji_emotions
+                              : Icons.keyboard,
+                          size: 24.0,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  GestureDetector(
-                    onTap: () => ref
-                        .read(emojiPickerControllerProvider.notifier)
-                        .toggleEmojiPicker(),
-                    child: Icon(
-                      showEmojiPicker == 1
-                          ? Icons.keyboard
-                          : Icons.emoji_emotions,
-                    ),
+                ),
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 130,
+                    vertical: 20,
                   ),
-                ],
-              ),
+                  child: GreenElevatedButton(
+                    onPressed: () => ref
+                        .read(userDetailsControllerProvider.notifier)
+                        .onNextBtnPressed(context, ref, widget.phone),
+                    text: 'NEXT',
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 130,
-                vertical: 20,
-              ),
-              child: GreenElevatedButton(
-                onPressed: () => ref
-                    .read(userDetailsControllerProvider.notifier)
-                    .onNextBtnPressed(context, ref, widget.phone),
-                text: 'NEXT',
-              ),
-            ),
-            if (ref
-                    .read(emojiPickerControllerProvider.notifier)
-                    .keyboardVisible ||
-                showEmojiPicker == 1) ...[
-              Stack(
-                children: [
-                  SizedBox(
-                    height: keyboardHeight,
-                  ),
-                  Offstage(
-                    offstage: showEmojiPicker != 1,
-                    child: CustomEmojiPicker(
-                      textController: ref
-                          .read(userDetailsControllerProvider.notifier)
-                          .usernameController,
-                    ),
-                  )
-                ],
-              )
-            ],
-          ],
+          ),
         ),
       ),
     );
