@@ -258,6 +258,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Container(
@@ -342,7 +343,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                       ])
                                 : Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0, vertical: 1),
+                                      horizontal: 8.0,
+                                      vertical: 1,
+                                    ),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -445,7 +448,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                           ref, widget.self, widget.other);
                                 },
                                 child: CircleAvatar(
-                                  radius: 24,
+                                  radius: 25,
                                   backgroundColor: colorTheme.greenColor,
                                   child: const Icon(
                                     Icons.send,
@@ -484,7 +487,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                 child: recordingState ==
                                         RecordingState.notRecording
                                     ? CircleAvatar(
-                                        radius: 24,
+                                        radius: 25,
                                         backgroundColor: colorTheme.greenColor,
                                         child: const Icon(
                                           Icons.mic,
@@ -511,7 +514,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                             ),
                                             const SizedBox(height: 24),
                                             CircleAvatar(
-                                              radius: 24,
+                                              radius: 25,
                                               backgroundColor:
                                                   colorTheme.greenColor,
                                               child: const Icon(
