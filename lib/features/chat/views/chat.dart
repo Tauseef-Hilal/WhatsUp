@@ -217,7 +217,8 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
     } else if (showEmojiPicker) {
       _focusNode.requestFocus();
       SystemChannels.textInput.invokeMethod('TextInput.show');
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!mounted || showEmojiPicker) return;
         setState(() => showEmojiPicker = false);
       });
     } else if (isKeyboardVisible) {
