@@ -38,8 +38,7 @@ In WhatsUp, messages within a chat are stored exclusively on the phones of the c
 
 ## Known Issues
 
-- Unread banner not rendering properly when unread message count is high
-- Keyboard height issues on some devices (specifically Android devices)
+- Attachments not playable when downloaded sometimes
 
 ## Contribute and Elevate 🤝
 
