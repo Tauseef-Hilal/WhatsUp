@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/theme/theme.dart';
 
 class ProgressCancelBtn extends StatelessWidget {
   const ProgressCancelBtn({
@@ -31,9 +30,9 @@ class ProgressCancelBtn extends StatelessWidget {
               strokeWidth: 3.0,
             ),
           ),
-          Icon(
-            Icons.stop_rounded,
-            color: Theme.of(context).custom.colorTheme.greenColor,
+          const Icon(
+            Icons.close_rounded,
+            color: Colors.blueGrey,
           ),
         ],
       ),

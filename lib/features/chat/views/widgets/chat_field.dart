@@ -21,7 +21,7 @@ class ChatField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24.0),
         color: Theme.of(context).brightness == Brightness.dark

@@ -448,7 +448,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                           ref, widget.self, widget.other);
                                 },
                                 child: CircleAvatar(
-                                  radius: 25,
+                                  radius: 24,
                                   backgroundColor: colorTheme.greenColor,
                                   child: const Icon(
                                     Icons.send,
@@ -487,7 +487,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                 child: recordingState ==
                                         RecordingState.notRecording
                                     ? CircleAvatar(
-                                        radius: 25,
+                                        radius: 24,
                                         backgroundColor: colorTheme.greenColor,
                                         child: const Icon(
                                           Icons.mic,
@@ -514,7 +514,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                             ),
                                             const SizedBox(height: 24),
                                             CircleAvatar(
-                                              radius: 25,
+                                              radius: 24,
                                               backgroundColor:
                                                   colorTheme.greenColor,
                                               child: const Icon(
@@ -780,15 +780,6 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
     scrollController = ScrollController();
 
     super.initState();
-  }
-
-  @override
-  void deactivate() async {
-    await SharedPref.instance.setDouble(
-      chatId,
-      scrollController.position.pixels,
-    );
-    super.deactivate();
   }
 
   @override

@@ -154,7 +154,7 @@ class IsarDb {
                         width: msg.attachment!.width,
                         height: msg.attachment!.height,
                         uploadStatus: msg.attachment!.uploadStatus!,
-                        autoDownload: msg.attachment!.autoDownload!,
+                        autoDownload: msg.attachment!.autoDownload ?? false,
                         url: msg.attachment!.url!,
                         type: msg.attachment!.type!,
                         samples: msg.attachment!.samples,
@@ -225,7 +225,7 @@ class IsarDb {
                       width: msg.attachment!.width,
                       height: msg.attachment!.height,
                       uploadStatus: msg.attachment!.uploadStatus!,
-                      autoDownload: msg.attachment!.autoDownload!,
+                      autoDownload: msg.attachment!.autoDownload ?? false,
                       url: msg.attachment!.url!,
                       type: msg.attachment!.type!,
                     )
