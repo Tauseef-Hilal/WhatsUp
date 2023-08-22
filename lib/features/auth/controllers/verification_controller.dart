@@ -25,6 +25,8 @@ class ResendTimerController extends StateNotifier<int> {
 
   late Timer _resendTimer;
 
+  int get resendCount => _resendCount;
+
   void init() {
     updateTimer();
   }

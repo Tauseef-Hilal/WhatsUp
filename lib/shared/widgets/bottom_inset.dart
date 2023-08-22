@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -13,11 +12,13 @@ class AvoidBottomInset extends StatefulWidget {
     required this.child,
     required this.conditions,
     this.offstage,
+    this.padding,
   });
 
   final Widget child;
   final List<bool> conditions;
   final Widget? offstage;
+  final EdgeInsetsGeometry? padding;
 
   @override
   State<AvoidBottomInset> createState() => _AvoidBottomInsetState();
@@ -75,38 +76,40 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        widget.child,
-        if (isKeyboardVisible ||
-            widget.conditions.every((element) => element)) ...[
-          Column(
-            children: [
-              const SizedBox(
-                height: 4.0,
-              ),
-              Stack(
-                children: [
-                  SizedBox(
-                    height: keyboardHeight,
-                  ),
-                  if (widget.offstage != null) ...[
+    final shouldAvoid =
+        isKeyboardVisible || widget.conditions.every((element) => element);
+
+    return Padding(
+      padding:
+          !shouldAvoid ? widget.padding ?? EdgeInsets.zero : EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          widget.child,
+          if (shouldAvoid) ...[
+            Column(
+              children: [
+                const SizedBox(
+                  height: 4.0,
+                ),
+                Stack(
+                  children: [
                     SizedBox(
                       height: keyboardHeight,
-                      child: widget.offstage!,
-                    )
-                  ]
-                ],
-              ),
-            ],
-          ),
-        ] else ...[
-          SizedBox(
-            height: Platform.isAndroid ? 16.0 : 24.0,
-          ),
+                    ),
+                    if (widget.offstage != null) ...[
+                      SizedBox(
+                        height: keyboardHeight,
+                        child: widget.offstage!,
+                      )
+                    ]
+                  ],
+                ),
+              ],
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

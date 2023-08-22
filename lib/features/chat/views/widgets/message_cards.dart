@@ -274,7 +274,17 @@ class _MessageCardState extends State<MessageCard>
                                               Brightness.dark
                                           ? 255
                                           : 150)
-                                  : Colors.white
+                                  : Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : colorTheme.textColor1
+                                          .withOpacity(0.7)
+                                          .withBlue(
+                                            Theme.of(context).brightness ==
+                                                    Brightness.dark
+                                                ? 255
+                                                : 100,
+                                          )
                               : null,
                           width: 16.0,
                         ),

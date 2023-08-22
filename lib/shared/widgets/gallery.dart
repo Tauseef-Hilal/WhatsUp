@@ -1,10 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/views/attachment_sender.dart';
+import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 final galleryStateProvider =
@@ -178,7 +178,6 @@ class _GalleryState extends ConsumerState<Gallery>
       vsync: this,
       initialIndex: 1,
     )..addListener(_tabListener);
-
     super.initState();
   }
 
@@ -228,69 +227,94 @@ class _GalleryState extends ConsumerState<Gallery>
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
+    final backgroundColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColorsDark.backgroundColor
+        : const Color.fromARGB(221, 255, 255, 255);
+    final brightness = Theme.of(context).brightness;
+    final systemOverlayStyle = brightness == Brightness.light
+        ? const SystemUiOverlayStyle(
+            statusBarColor: Color.fromARGB(172, 231, 231, 231),
+            statusBarIconBrightness: Brightness.dark,
+          )
+        : const SystemUiOverlayStyle(
+            statusBarColor: AppColorsDark.backgroundColor,
+            statusBarIconBrightness: Brightness.light,
+          );
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
-          child: StatefulBuilder(
-            builder: (context, _) {
-              final canSelect = ref.watch(galleryStateProvider).canSelect;
-              final selectedCount =
-                  ref.read(galleryStateProvider).selectedAssets.length;
-              final showSelectBtn =
-                  ref.watch(galleryStateProvider).showSelectBtn &&
-                      !widget.returnFiles;
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: StatefulBuilder(
+          builder: (context, _) {
+            final canSelect = ref.watch(galleryStateProvider).canSelect;
+            final selectedCount =
+                ref.read(galleryStateProvider).selectedAssets.length;
+            final showSelectBtn =
+                ref.watch(galleryStateProvider).showSelectBtn &&
+                    !widget.returnFiles;
 
-              return AppBar(
-                backgroundColor: colorTheme.backgroundColor,
-                leading: IconButton(
-                  onPressed: () {
-                    if (canSelect) {
-                      ref.read(galleryStateProvider.notifier).toggleCanSelect();
-                      return;
-                    }
+            return AppBar(
+              systemOverlayStyle: systemOverlayStyle,
+              elevation: 0,
+              backgroundColor: backgroundColor,
+              leading: IconButton(
+                onPressed: () {
+                  if (canSelect) {
+                    ref.read(galleryStateProvider.notifier).toggleCanSelect();
+                    return;
+                  }
 
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back),
+                  Navigator.pop(context);
+                },
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: AppColorsDark.iconColor,
                 ),
-                title: Text(
-                  canSelect
-                      ? selectedCount == 0
-                          ? 'Tap a photo to select'
-                          : '$selectedCount selected'
-                      : widget.title,
-                ),
-                actions: [
-                  if (!canSelect && showSelectBtn)
-                    IconButton(
-                      onPressed: ref
-                          .read(galleryStateProvider.notifier)
-                          .toggleCanSelect,
-                      icon: const Icon(Icons.check_box_outlined),
-                    )
-                ],
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(50),
-                  child: Container(
-                    color: colorTheme.appBarColor,
-                    child: TabBar(
-                      controller: _tabController,
-                      physics: const BouncingScrollPhysics(),
-                      tabs: const [
-                        Tab(text: 'Recents'),
-                        Tab(text: 'Albums'),
-                      ],
+              ),
+              title: Text(
+                canSelect
+                    ? selectedCount == 0
+                        ? 'Tap a photo to select'
+                        : '$selectedCount selected'
+                    : widget.title,
+                style: TextStyle(color: colorTheme.textColor1),
+              ),
+              actions: [
+                if (!canSelect && showSelectBtn)
+                  IconButton(
+                    onPressed:
+                        ref.read(galleryStateProvider.notifier).toggleCanSelect,
+                    icon: const Icon(
+                      Icons.check_box_outlined,
+                      color: AppColorsDark.iconColor,
                     ),
+                  )
+              ],
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(50),
+                child: Container(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? colorTheme.appBarColor
+                      : backgroundColor,
+                  child: TabBar(
+                    labelColor: colorTheme.textColor1,
+                    indicatorColor: AppColorsDark.indicatorColor,
+                    controller: _tabController,
+                    physics: const BouncingScrollPhysics(),
+                    tabs: const [
+                      Tab(text: 'Recents'),
+                      Tab(text: 'Albums'),
+                    ],
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-        body: StreamBuilder(
+      ),
+      body: DefaultTabController(
+        length: 2,
+        child: StreamBuilder(
           stream: _albumsFuture,
           builder: (context, snap) {
             if (!snap.hasData) {
@@ -306,22 +330,19 @@ class _GalleryState extends ConsumerState<Gallery>
               recentAlbum = null;
             }
 
-            return TabBarView(
-              controller: _tabController,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: AlbumView(
+            return Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  AlbumView(
                     showAlbumName: false,
                     album: recentAlbum?.album,
                     albumTitle: 'Recents',
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: AlbumsTab(albums: snap.data!),
-                ),
-              ],
+                  AlbumsTab(albums: snap.data!),
+                ],
+              ),
             );
           },
         ),
@@ -383,41 +404,55 @@ class AlbumCard extends StatelessWidget {
         );
       },
       child: Stack(
+        alignment: Alignment.bottomCenter,
         children: [
           FadeInThumbnail(thumbnail: thumbnail),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 8.0,
-              ),
-              child: Container(
-                decoration: const BoxDecoration(boxShadow: [
-                  BoxShadow(
-                    color: Colors.black,
-                    blurRadius: 50,
-                    spreadRadius: 5,
-                  )
-                ]),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(
-                      Icons.folder,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      album.name,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    const Spacer(),
-                    Text(assetCount.toString())
-                  ],
+          Container(
+            height: 50,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color.fromARGB(87, 0, 0, 0),
+                  blurRadius: 24,
                 ),
+              ],
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color.fromARGB(145, 0, 0, 0), Colors.transparent],
+                stops: [0.0, 1.0],
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 8.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Icon(
+                  Icons.folder,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                const SizedBox(width: 8.0),
+                Text(
+                  album.name,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  assetCount.toString(),
+                  style: const TextStyle(color: Colors.white),
+                )
+              ],
             ),
           ),
         ],
@@ -496,12 +531,27 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
     final showSelectedAssets = selectedAssets.isNotEmpty;
     final canSelect = ref.watch(galleryStateProvider).canSelect;
     final colorTheme = Theme.of(context).custom.colorTheme;
+    final backgroundColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColorsDark.backgroundColor
+        : const Color.fromARGB(221, 255, 255, 255);
+    final brightness = Theme.of(context).brightness;
+    final systemOverlayStyle = brightness == Brightness.light
+        ? const SystemUiOverlayStyle(
+            statusBarColor: Color.fromARGB(172, 231, 231, 231),
+            statusBarIconBrightness: Brightness.dark,
+          )
+        : const SystemUiOverlayStyle(
+            statusBarColor: AppColorsDark.backgroundColor,
+            statusBarIconBrightness: Brightness.light,
+          );
 
     return Scaffold(
       appBar: !widget.showAlbumName
           ? null
           : AppBar(
-              backgroundColor: colorTheme.backgroundColor,
+              systemOverlayStyle: systemOverlayStyle,
+              elevation: 0,
+              backgroundColor: backgroundColor,
               leading: IconButton(
                 onPressed: () {
                   if (canSelect) {
@@ -511,7 +561,10 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
 
                   Navigator.pop(context);
                 },
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: AppColorsDark.unselectedLabelColor,
+                ),
               ),
               title: Text(
                 canSelect
@@ -519,6 +572,7 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
                         ? 'Tap a photo to select'
                         : "${selectedAssets.length} selected"
                     : widget.albumTitle ?? '',
+                style: TextStyle(color: colorTheme.textColor1),
               ),
               actions: [
                 if (!canSelect &&
@@ -526,7 +580,10 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
                   IconButton(
                     onPressed:
                         ref.read(galleryStateProvider.notifier).toggleCanSelect,
-                    icon: const Icon(Icons.check_box_outlined),
+                    icon: const Icon(
+                      Icons.check_box_outlined,
+                      color: AppColorsDark.unselectedLabelColor,
+                    ),
                   )
               ],
             ),
@@ -735,9 +792,11 @@ class _FadeInThumbnailState extends State<FadeInThumbnail>
     );
 
     return Container(
-      color: Theme.of(context).custom.colorTheme.appBarColor,
-      width: 200,
-      height: 200,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? AppColorsDark.appBarColor
+          : const Color.fromARGB(221, 255, 255, 255),
+      width: double.infinity,
+      height: double.infinity,
       child: AnimatedOpacity(
         opacity: opacity,
         duration: const Duration(milliseconds: 300),

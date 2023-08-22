@@ -20,6 +20,7 @@ import 'package:whatsapp_clone/shared/repositories/isar_db.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 import 'package:whatsapp_clone/shared/widgets/bottom_inset.dart';
+import 'package:whatsapp_clone/theme/color_theme.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../shared/widgets/emoji_picker.dart';
@@ -241,6 +242,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                 : colorTheme.iconColor),
       ),
       child: AvoidBottomInset(
+        padding: EdgeInsets.only(bottom: Platform.isAndroid ? 4.0 : 24.0),
         conditions: [showEmojiPicker],
         offstage: Offstage(
           offstage: !showEmojiPicker,
@@ -296,7 +298,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                             );
                                           },
                                           child: Transform.rotate(
-                                            angle: -0.5,
+                                            angle: -0.8,
                                             child: const Icon(
                                               Icons.attach_file_rounded,
                                               size: 24.0,
@@ -344,7 +346,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                 : Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8.0,
-                                      vertical: 1,
+                                      vertical: 0,
                                     ),
                                     child: Row(
                                       mainAxisAlignment:
@@ -377,8 +379,14 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                                         "0:00",
                                                         style: TextStyle(
                                                           fontSize: 18,
-                                                          color: colorTheme
-                                                              .iconColor,
+                                                          color: Theme.of(context)
+                                                                      .brightness ==
+                                                                  Brightness
+                                                                      .dark
+                                                              ? colorTheme
+                                                                  .iconColor
+                                                              : colorTheme
+                                                                  .textColor2,
                                                         ),
                                                       ),
                                                     ],
@@ -402,10 +410,13 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                                         Icons.mic,
                                                         color: showMic
                                                             ? Colors.red
-                                                            : colorTheme
-                                                                .appBarColor,
+                                                            : Colors
+                                                                .transparent,
                                                         size: 24,
                                                       ),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 12.0,
                                                     ),
                                                     Text(
                                                       timeFromSeconds(
@@ -414,8 +425,13 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                                       ),
                                                       style: TextStyle(
                                                         fontSize: 18,
-                                                        color: colorTheme
-                                                            .iconColor,
+                                                        color: Theme.of(context)
+                                                                    .brightness ==
+                                                                Brightness.dark
+                                                            ? colorTheme
+                                                                .iconColor
+                                                            : colorTheme
+                                                                .textColor2,
                                                       ),
                                                     ),
                                                   ],
@@ -427,7 +443,11 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                         Text(
                                           "◀ Slide to cancel",
                                           style: TextStyle(
-                                            color: colorTheme.iconColor,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? colorTheme.iconColor
+                                                    : colorTheme.textColor2,
                                             fontSize: 16,
                                           ),
                                         ),
@@ -531,7 +551,9 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                   )
                 : Container(
                     padding: const EdgeInsets.all(16),
-                    color: colorTheme.appBarColor,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColorsDark.appBarColor
+                        : AppColorsLight.incomingMessageBubbleColor,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,

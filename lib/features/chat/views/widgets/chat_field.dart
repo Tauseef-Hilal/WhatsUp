@@ -26,12 +26,7 @@ class ChatField extends StatelessWidget {
         borderRadius: BorderRadius.circular(24.0),
         color: Theme.of(context).brightness == Brightness.dark
             ? colorTheme.appBarColor
-            : const Color.fromARGB(
-                255,
-                242,
-                251,
-                254,
-              ),
+            : colorTheme.backgroundColor,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,

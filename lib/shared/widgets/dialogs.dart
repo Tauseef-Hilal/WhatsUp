@@ -19,30 +19,21 @@ class ConfirmationDialog extends StatelessWidget {
     final actions = actionCallbacks.entries.toList();
     return AlertDialog(
       backgroundColor: backgroundColor,
-      content: SizedBox(
-        height: 90,
-        child: child,
-      ),
+      content: child,
       actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
         TextButton(
           onPressed: actions.first.value,
           child: Text(
             actions.first.key,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: actionButtonTextColor),
+            style: TextStyle(color: actionButtonTextColor),
           ),
         ),
         TextButton(
           onPressed: actions.last.value,
           child: Text(
             actions.last.key,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: actionButtonTextColor),
+            style: TextStyle(color: actionButtonTextColor),
           ),
         ),
       ],

@@ -178,19 +178,20 @@ class LoginController extends StateNotifier<Country> {
             backgroundColor: Theme.of(context).brightness == Brightness.dark
                 ? colorTheme.appBarColor
                 : colorTheme.backgroundColor,
-            content: Text(errorMsg,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: colorTheme.textColor1,
-                    )),
+            content: Text(
+              errorMsg,
+              style: TextStyle(
+                color: colorTheme.greyColor,
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
                   'OK',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall!
-                      .copyWith(color: colorTheme.greenColor),
+                  style: TextStyle(
+                    color: colorTheme.greenColor,
+                  ),
                 ),
               ),
             ],
@@ -222,29 +223,28 @@ class LoginController extends StateNotifier<Country> {
             },
           },
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'You entered the phone number:',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: colorTheme.textColor1,
-                    ),
+                style: TextStyle(color: colorTheme.greyColor, fontSize: 16),
               ),
               const SizedBox(height: 16.0),
               Text(
                 phoneNumberWithCode,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorTheme.textColor1,
-                    ),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colorTheme.greyColor,
+                ),
               ),
               const SizedBox(height: 16.0),
               Text(
                 'Is this OK, or would you like to edit '
                 'the number?',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: colorTheme.textColor1,
-                    ),
+                style: TextStyle(
+                  color: colorTheme.greyColor,
+                ),
               ),
             ],
           ),

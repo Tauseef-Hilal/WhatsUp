@@ -13,9 +13,10 @@ class GreenElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    return TextButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         backgroundColor: Theme.of(context).custom.colorTheme.greenColor,
         foregroundColor: Theme.of(context).custom.colorTheme.backgroundColor,
         minimumSize: const Size(double.infinity, 40),

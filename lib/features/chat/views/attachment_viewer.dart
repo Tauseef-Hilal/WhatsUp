@@ -633,7 +633,6 @@ class _AttachedVoiceViewerState extends ConsumerState<AttachedVoiceViewer> {
     }
 
     fixedSamples.add(samples.last);
-    smoothen(fixedSamples, smoothingFactor: 0.5);
     return fixedSamples;
   }
 
@@ -1117,7 +1116,9 @@ class AttachmentViewer extends StatefulWidget {
 class _AttachmentViewerState extends State<AttachmentViewer> {
   bool showControls = true;
   SystemUiOverlayStyle currentStyle = const SystemUiOverlayStyle(
-    statusBarColor: Color.fromARGB(186, 0, 0, 0),
+    statusBarColor: Color.fromARGB(206, 0, 0, 0),
+    systemNavigationBarColor: Colors.black,
+    systemNavigationBarDividerColor: Colors.black,
   );
 
   @override
@@ -1138,19 +1139,6 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
           body: GestureDetector(
             onTap: () => setState(() {
               showControls = !showControls;
-              if (showControls) {
-                setState(() {
-                  currentStyle = const SystemUiOverlayStyle(
-                    statusBarColor: Color.fromARGB(206, 0, 0, 0),
-                  );
-                });
-                return;
-              }
-              setState(() {
-                currentStyle = const SystemUiOverlayStyle(
-                  statusBarColor: AppColorsDark.appBarColor,
-                );
-              });
             }),
             child: Stack(
               children: [

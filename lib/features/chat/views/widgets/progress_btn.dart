@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class ProgressCancelBtn extends StatelessWidget {
@@ -30,8 +32,8 @@ class ProgressCancelBtn extends StatelessWidget {
               strokeWidth: 3.0,
             ),
           ),
-          const Icon(
-            Icons.close_rounded,
+          Icon(
+            Platform.isAndroid ? Icons.close_rounded : Icons.stop_rounded,
             color: Colors.blueGrey,
           ),
         ],

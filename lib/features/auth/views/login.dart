@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
@@ -76,8 +77,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Enter your phone number'),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: colorTheme.statusBarColor,
+          statusBarIconBrightness:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
+          systemNavigationBarColor: colorTheme.navigationBarColor,
+          systemNavigationBarDividerColor: colorTheme.navigationBarColor,
+        ),
+        backgroundColor: colorTheme.backgroundColor,
+        title: Text(
+          'Enter your phone number',
+          style: TextStyle(color: colorTheme.textColor1),
+        ),
         centerTitle: true,
+        actions: [
+          Icon(
+            Icons.more_vert_rounded,
+            color: colorTheme.greyColor,
+          ),
+          const SizedBox(width: 16)
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,10 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall!
-                    .copyWith(color: colorTheme.textColor1),
+                style: TextStyle(color: colorTheme.textColor1),
                 children: [
                   const TextSpan(
                     text: 'WhatsApp will need to verify your phone number. ',
@@ -153,7 +171,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           .read(loginControllerProvider.notifier)
                           .onPhoneCodeChanged(value);
                     },
-                    style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
                     textAlign: TextAlign.center,
                     cursorColor: colorTheme.greenColor,
@@ -184,7 +201,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   width: 0.70 * (screenWidth * 0.60),
                   child: TextField(
                     autofocus: true,
-                    style: Theme.of(context).textTheme.bodyMedium,
                     keyboardType: TextInputType.phone,
                     cursorColor: colorTheme.greenColor,
                     controller: ref
@@ -192,7 +208,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         .phoneNumberController,
                     decoration: InputDecoration(
                       hintText: 'Phone number',
-                      hintStyle: Theme.of(context).textTheme.bodySmall,
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: colorTheme.greenColor,
@@ -215,7 +230,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             padding: const EdgeInsets.only(top: 16.0),
             child: Text(
               'Carrier charges may apply.',
-              style: Theme.of(context).textTheme.bodySmall,
+              style: TextStyle(color: colorTheme.textColor2),
             ),
           ),
           const Expanded(
@@ -224,12 +239,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 130, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 140, vertical: 12),
             child: GreenElevatedButton(
               onPressed: () => ref
                   .read(loginControllerProvider.notifier)
                   .onNextBtnPressed(context),
-              text: 'NEXT',
+              text: 'Next',
             ),
           ),
         ],

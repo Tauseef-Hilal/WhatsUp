@@ -49,14 +49,14 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
               Text(
                 'Initialising',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 20,
                   color: colorTheme.textColor2,
                 ),
               ),
               const SizedBox(height: 6.0),
               Text(
                 'Please wait a moment',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: TextStyle(color: colorTheme.greyColor),
               ),
               Expanded(
                 child: Image.asset(
@@ -69,7 +69,7 @@ class _AuthCompletePageState extends ConsumerState<AuthCompletePage> {
               CircularProgressIndicator(
                 color: colorTheme.greenColor,
               ),
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 32.0),
             ],
           ),
         ),

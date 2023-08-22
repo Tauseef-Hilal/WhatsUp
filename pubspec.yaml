@@ -72,3 +72,8 @@ flutter:
     - assets/images/chat_bg.png
     - assets/images/logo.png
     - assets/images/avatar.png
+
+  fonts:
+    - family: AzeretMono
+      fonts:
+        - asset: assets/fonts/AzeretMono-Regular.ttf

@@ -15,6 +15,8 @@ class AppColorsDark {
   static const selectedLabelColor = Color.fromRGBO(5, 165, 133, 1);
   static const unselectedLabelColor = Color.fromRGBO(131, 151, 161, 1);
   static const indicatorColor = Color.fromRGBO(5, 165, 133, 1);
+  static const statusBarColor = appBarColor;
+  static const navigationBarColor = Color.fromRGBO(23, 36, 45, 1);
 
   static const blueColor = Color.fromRGBO(83, 189, 236, 1);
   static const greenColor = Color.fromRGBO(5, 165, 133, 1);
@@ -37,6 +39,8 @@ class AppColorsLight {
   static const selectedLabelColor = Color.fromRGBO(220, 255, 254, 1);
   static const unselectedLabelColor = Color.fromRGBO(168, 230, 219, 1);
   static const indicatorColor = Color.fromRGBO(220, 255, 254, 1);
+  static const statusBarColor = Color.fromARGB(255, 243, 243, 243);
+  static const navigationBarColor = Color.fromARGB(255, 244, 244, 244);
 
   static const blueColor = Color.fromRGBO(83, 189, 236, 1);
   static const greenColor = Color.fromRGBO(26, 181, 148, 1);
@@ -59,6 +63,8 @@ class ColorTheme {
   final Color selectedLabelColor;
   final Color unselectedLabelColor;
   final Color indicatorColor;
+  final Color statusBarColor;
+  final Color navigationBarColor;
 
   final Color blueColor;
   final Color greenColor;
@@ -80,6 +86,8 @@ class ColorTheme {
     required this.selectedLabelColor,
     required this.unselectedLabelColor,
     required this.indicatorColor,
+    required this.statusBarColor,
+    required this.navigationBarColor,
     required this.blueColor,
     required this.greenColor,
     required this.yellowColor,

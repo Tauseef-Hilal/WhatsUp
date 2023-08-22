@@ -30,7 +30,10 @@ class CustomThemeData {
             blueColor: AppColorsDark.blueColor,
             greenColor: AppColorsDark.greenColor,
             yellowColor: AppColorsDark.yellowColor,
-            greyColor: AppColorsDark.greyColor)
+            greyColor: AppColorsDark.greyColor,
+            statusBarColor: AppColorsDark.statusBarColor,
+            navigationBarColor: AppColorsDark.navigationBarColor,
+          )
         : ColorTheme(
             iconColor: AppColorsLight.iconColor,
             textColor1: AppColorsLight.textColor1,
@@ -51,7 +54,10 @@ class CustomThemeData {
             blueColor: AppColorsLight.blueColor,
             greenColor: AppColorsLight.greenColor,
             yellowColor: AppColorsLight.yellowColor,
-            greyColor: AppColorsLight.greyColor);
+            greyColor: AppColorsLight.greyColor,
+            statusBarColor: AppColorsLight.statusBarColor,
+            navigationBarColor: AppColorsLight.navigationBarColor,
+          );
   }
 }
 
@@ -66,17 +72,20 @@ final _theme = ThemeData(
   brightness: Brightness.light,
   dialogTheme: const DialogTheme(
     backgroundColor: AppColorsLight.backgroundColor,
-    titleTextStyle: TextStyle(color: AppColorsLight.textColor1),
-    contentTextStyle: TextStyle(color: AppColorsLight.textColor1),
+    titleTextStyle: TextStyle(color: AppColorsLight.textColor1, fontSize: 16),
+    contentTextStyle: TextStyle(
+      color: AppColorsLight.textColor1,
+      fontSize: 16,
+    ),
   ),
   appBarTheme: const AppBarTheme(
-    elevation: 2.0,
+    elevation: 0.0,
     actionsIconTheme: IconThemeData(
       color: AppColorsLight.iconColor,
     ),
     backgroundColor: AppColorsLight.appBarColor,
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
       statusBarColor: AppColorsLight.appBarColor,
       systemNavigationBarColor: AppColorsLight.backgroundColor,
       systemNavigationBarDividerColor: AppColorsLight.backgroundColor,
@@ -102,8 +111,11 @@ final _darkTheme = ThemeData(
   brightness: Brightness.dark,
   dialogTheme: const DialogTheme(
     backgroundColor: AppColorsDark.appBarColor,
-    titleTextStyle: TextStyle(color: AppColorsDark.textColor1),
-    contentTextStyle: TextStyle(color: AppColorsDark.textColor1),
+    titleTextStyle: TextStyle(color: AppColorsLight.textColor1, fontSize: 16),
+    contentTextStyle: TextStyle(
+      color: AppColorsLight.textColor1,
+      fontSize: 16,
+    ),
   ),
   appBarTheme: const AppBarTheme(
     elevation: 0.0,
@@ -112,7 +124,7 @@ final _darkTheme = ThemeData(
     ),
     backgroundColor: AppColorsDark.appBarColor,
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.light,
       statusBarColor: AppColorsDark.appBarColor,
       systemNavigationBarColor: AppColorsDark.backgroundColor,
       systemNavigationBarDividerColor: AppColorsDark.backgroundColor,

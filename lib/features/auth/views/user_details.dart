@@ -209,8 +209,28 @@ class _UserProfileCreationPageState
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Profile info'),
+        backgroundColor: Colors.transparent,
+        title: Text(
+          'Profile info',
+          style: TextStyle(color: colorTheme.textColor1),
+        ),
         centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: colorTheme.statusBarColor,
+          statusBarIconBrightness:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
+          systemNavigationBarColor: colorTheme.navigationBarColor,
+          systemNavigationBarDividerColor: colorTheme.navigationBarColor,
+        ),
+        actions: [
+          Icon(
+            Icons.more_vert_rounded,
+            color: colorTheme.greyColor,
+          ),
+          const SizedBox(width: 16)
+        ],
       ),
       body: Theme(
         data: Theme.of(context).copyWith(
@@ -236,7 +256,7 @@ class _UserProfileCreationPageState
                 const SizedBox(height: 12.0),
                 Text(
                   'Please provide your name and an optional profile photo',
-                  style: Theme.of(context).custom.textTheme.caption,
+                  style: TextStyle(color: colorTheme.greyColor),
                 ),
                 const SizedBox(
                   height: 24.0,
@@ -307,14 +327,14 @@ class _UserProfileCreationPageState
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 130,
+                    horizontal: 160,
                     vertical: 20,
                   ),
                   child: GreenElevatedButton(
                     onPressed: () => ref
                         .read(userDetailsControllerProvider.notifier)
                         .onNextBtnPressed(context, ref, widget.phone),
-                    text: 'NEXT',
+                    text: 'Next',
                   ),
                 ),
               ],
