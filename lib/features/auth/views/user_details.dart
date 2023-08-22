@@ -327,7 +327,7 @@ class _UserProfileCreationPageState
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 160,
+                    horizontal: 130,
                     vertical: 20,
                   ),
                   child: GreenElevatedButton(

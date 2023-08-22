@@ -138,6 +138,9 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                     .onFilled(context, value, widget.phone);
               },
             ),
+            const SizedBox(
+              height: 12,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12.0),
               child: Text(
@@ -151,7 +154,7 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
                   : () =>
                       ref.read(verificationControllerProvider).onResendPressed(
                             context,
-                            widget.phone.toString(),
+                            widget.phone.rawNumber,
                           ),
               child: Text(
                 'Didn\'t receive code?',
@@ -203,7 +206,7 @@ class _OTPFieldState extends ConsumerState<OTPField> {
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.5,
-      height: 40,
+      height: 50,
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -215,74 +218,74 @@ class _OTPFieldState extends ConsumerState<OTPField> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.4,
-            child: Text(
-              '--- ---',
-              style: TextStyle(
-                fontFamily: 'AzeretMono',
-                fontSize: 28,
-                letterSpacing: 4,
-                color: colorTheme.greyColor,
-              ),
+          Text(
+            '--- ---',
+            style: TextStyle(
+              overflow: TextOverflow.fade,
+              fontFamily: 'AzeretMono',
+              fontSize: 20,
+              letterSpacing: 4,
+              color: colorTheme.greyColor,
             ),
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.4,
-            child: TextField(
-              maxLength: 7,
-              autofocus: true,
-              onChanged: (value) {
-                if (value.length == 7) {
-                  widget.onFilled(value.replaceAll(' ', ''));
-                  return;
-                }
+          LayoutBuilder(builder: (context, constrains) {
+            return SizedBox(
+              width: constrains.maxWidth * 0.7,
+              child: TextField(
+                maxLength: 7,
+                autofocus: true,
+                onChanged: (value) {
+                  if (value.length == 7) {
+                    widget.onFilled(value.replaceAll(' ', ''));
+                    return;
+                  }
 
-                String newValue = value;
-                TextSelection selection = _textController.selection;
-                int cursorPosition = selection.baseOffset;
+                  String newValue = value;
+                  TextSelection selection = _textController.selection;
+                  int cursorPosition = selection.baseOffset;
 
-                if (value.length > 3 && !value.contains(' ')) {
-                  newValue =
-                      '${value.substring(0, 3)} ${value.substring(3, value.length)}';
-                  cursorPosition++;
-                } else if (value.length == 4 && value.contains(' ')) {
-                  newValue = value.substring(0, 3);
-                  cursorPosition--;
-                }
+                  if (value.length > 3 && !value.contains(' ')) {
+                    newValue =
+                        '${value.substring(0, 3)} ${value.substring(3, value.length)}';
+                    cursorPosition++;
+                  } else if (value.length == 4 && value.contains(' ')) {
+                    newValue = value.substring(0, 3);
+                    cursorPosition--;
+                  }
 
-                _textController.value = TextEditingValue(
-                  text: newValue,
-                  selection: TextSelection.collapsed(offset: cursorPosition),
-                );
-              },
-              controller: _textController,
-              style: TextStyle(
-                backgroundColor: colorTheme.backgroundColor,
-                fontFamily: "AzeretMono",
-                fontSize: 24,
-                letterSpacing: 6,
-                color: colorTheme.textColor1,
-              ),
-              keyboardType: TextInputType.phone,
-              cursorColor: colorTheme.greenColor,
-              decoration: InputDecoration(
-                counterText: '',
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: colorTheme.backgroundColor,
-                    width: 0,
+                  _textController.value = TextEditingValue(
+                    text: newValue,
+                    selection: TextSelection.collapsed(offset: cursorPosition),
+                  );
+                },
+                controller: _textController,
+                style: TextStyle(
+                  backgroundColor: colorTheme.backgroundColor,
+                  fontFamily: "AzeretMono",
+                  fontSize: 20,
+                  letterSpacing: 4,
+                  color: colorTheme.textColor1,
+                ),
+                keyboardType: TextInputType.phone,
+                cursorColor: colorTheme.greenColor,
+                decoration: InputDecoration(
+                  counterText: '',
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: colorTheme.backgroundColor,
+                      width: 0,
+                    ),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 0,
+                      color: colorTheme.backgroundColor,
+                    ),
                   ),
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    width: 0,
-                    color: colorTheme.backgroundColor,
-                  ),
-                ),
               ),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
