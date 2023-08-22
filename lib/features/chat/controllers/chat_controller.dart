@@ -412,16 +412,19 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> markMessageAsSeen(Message message) async {
-    await IsarDb.updateMessage(message.id, status: MessageStatus.seen);
-
-    await ref.read(firebaseFirestoreRepositoryProvider).sendSystemMessage(
+    ref
+        .read(firebaseFirestoreRepositoryProvider)
+        .sendSystemMessage(
           message: SystemMessage(
             targetId: message.id,
             action: MessageAction.statusUpdate,
             update: MessageStatus.seen.value,
           ),
           receiverId: message.senderId,
-        );
+        )
+        .then((value) {
+      IsarDb.updateMessage(message.id, status: MessageStatus.seen);
+    });
   }
 
   Future<void> navigateToCameraView(BuildContext context) async {
