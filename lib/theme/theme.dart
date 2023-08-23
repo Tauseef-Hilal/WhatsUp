@@ -100,7 +100,6 @@ final _theme = ThemeData(
     color: AppColorsLight.iconColor,
   ),
   progressIndicatorTheme: const ProgressIndicatorThemeData(
-    circularTrackColor: Color.fromARGB(149, 255, 255, 255),
     color: AppColorsLight.greenColor,
   ),
 );

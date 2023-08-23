@@ -1285,9 +1285,7 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
       return const SizedBox(width: 10, height: 10);
     }
 
-    final overlayColor = Theme.of(context).brightness == Brightness.dark
-        ? const Color.fromARGB(150, 0, 0, 0)
-        : const Color.fromARGB(225, 255, 255, 255);
+    const overlayColor = Color.fromARGB(150, 0, 0, 0);
 
     if (!isDownloading) {
       return Column(
@@ -1358,13 +1356,17 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
               overlayColor: widget.showSize ? overlayColor : Colors.transparent,
             );
           case TaskState.success:
-            return const CircularProgressIndicator();
+            return const CircularProgressIndicator(
+              strokeWidth: 3.0,
+            );
           case TaskState.error:
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               setState(() => isDownloading = false);
             });
-            return const CircularProgressIndicator();
+            return const CircularProgressIndicator(
+              strokeWidth: 3.0,
+            );
           default:
             return noProgressIndicator;
         }
@@ -1442,9 +1444,7 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
       return const SizedBox(width: 10, height: 10);
     }
 
-    final overlayColor = Theme.of(context).brightness == Brightness.dark
-        ? const Color.fromARGB(150, 0, 0, 0)
-        : const Color.fromARGB(225, 255, 255, 255);
+    const overlayColor = Color.fromARGB(150, 0, 0, 0);
 
     if (!isUploading) {
       return Column(
@@ -1515,13 +1515,17 @@ class _UploadingAttachmentState extends ConsumerState<UploadingAttachment> {
               progressValue: snapData.bytesTransferred / snapData.totalBytes,
             );
           case TaskState.success:
-            return const CircularProgressIndicator();
+            return const CircularProgressIndicator(
+              strokeWidth: 3.0,
+            );
           case TaskState.error:
             WidgetsBinding.instance.addPostFrameCallback((_) async {
               if (!mounted) return;
               setState(() => isUploading = false);
             });
-            return const CircularProgressIndicator();
+            return const CircularProgressIndicator(
+              strokeWidth: 3.0,
+            );
           default:
             return noProgressIndicator;
         }

@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
+
+import 'custom_progress.dart';
 
 class ProgressCancelBtn extends StatelessWidget {
   const ProgressCancelBtn({
@@ -26,11 +29,19 @@ class ProgressCancelBtn extends StatelessWidget {
               color: overlayColor,
               shape: BoxShape.circle,
             ),
-            child: CircularProgressIndicator(
-              backgroundColor: Colors.transparent,
-              value: progressValue,
-              strokeWidth: 3.0,
-            ),
+            child: progressValue != null
+                ? CustomProgressIndicator(
+                    value: progressValue!,
+                    trackColor: const Color.fromARGB(18, 0, 0, 0),
+                    progressColor:
+                        Theme.of(context).custom.colorTheme.greenColor,
+                    strokeWidth: 3.0,
+                  )
+                : CircularProgressIndicator(
+                    backgroundColor: const Color.fromARGB(18, 0, 0, 0),
+                    color: Theme.of(context).custom.colorTheme.greenColor,
+                    strokeWidth: 3.0,
+                  ),
           ),
           Icon(
             Platform.isAndroid ? Icons.close_rounded : Icons.stop_rounded,

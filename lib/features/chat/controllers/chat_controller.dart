@@ -22,6 +22,7 @@ import 'package:whatsapp_clone/shared/repositories/upload_service.dart';
 import 'package:whatsapp_clone/shared/utils/attachment_utils.dart';
 import 'package:whatsapp_clone/shared/utils/storage_paths.dart';
 import 'package:whatsapp_clone/shared/widgets/camera.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../shared/repositories/download_service.dart';
 import '../../../shared/repositories/push_notifications.dart';
@@ -523,14 +524,15 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       builder: (ctx) {
         return AlertDialog(
           key: dialogKey,
-          content: const Row(
+          content: Row(
             children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 24),
+              const CircularProgressIndicator(),
+              const SizedBox(width: 24),
               Text(
                 'Preparing media',
                 style: TextStyle(
                   fontSize: 16,
+                  color: Theme.of(context).custom.colorTheme.textColor2,
                 ),
               ),
             ],
