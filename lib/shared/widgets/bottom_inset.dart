@@ -29,6 +29,7 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
   double keyboardHeight = SharedPref.instance.getDouble('keyboardHeight')!;
   bool showEmojiPicker = false;
   bool isKeyboardVisible = false;
+  bool isKeyboardFullyVisible = false;
   late final StreamSubscription<bool> _keyboardSubscription;
 
   @override
@@ -37,9 +38,13 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
     _keyboardSubscription =
         KeyboardVisibilityController().onChange.listen((isVisible) async {
       isKeyboardVisible = isVisible;
+
       if (isVisible) {
         showEmojiPicker = false;
+      } else {
+        isKeyboardFullyVisible = false;
       }
+
       setState(() {});
     });
 
@@ -48,18 +53,24 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
 
   @override
   void didChangeMetrics() {
-    if (isKeyboardVisible) {
-      Future.delayed(const Duration(milliseconds: 500), () {
+    super.didChangeMetrics();
+    if (!isKeyboardVisible) return;
+
+    Future.delayed(
+      Duration(milliseconds: isKeyboardFullyVisible ? 0 : 500),
+      () {
         final height = MediaQuery.of(context).viewInsets.bottom;
         if (keyboardHeight != height) {
-          setState(() {
-            if (!mounted || !isKeyboardVisible) return;
-            keyboardHeight = height;
-          });
+          setState(
+            () {
+              if (!mounted || !isKeyboardVisible) return;
+              isKeyboardFullyVisible = true;
+              keyboardHeight = height;
+            },
+          );
         }
-      });
-    }
-    super.didChangeMetrics();
+      },
+    );
   }
 
   @override
