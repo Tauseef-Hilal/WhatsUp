@@ -57,18 +57,19 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
     if (!isKeyboardVisible) return;
 
     Future.delayed(
-      Duration(milliseconds: isKeyboardFullyVisible ? 0 : 500),
+      Duration(milliseconds: isKeyboardFullyVisible ? 30 : 500),
       () {
+        if (!mounted || !isKeyboardVisible) return;
+
         final height = MediaQuery.of(context).viewInsets.bottom;
-        if (keyboardHeight != height) {
-          setState(
-            () {
-              if (!mounted || !isKeyboardVisible) return;
-              isKeyboardFullyVisible = true;
-              keyboardHeight = height;
-            },
-          );
-        }
+        if (keyboardHeight == height) return;
+
+        setState(
+          () {
+            isKeyboardFullyVisible = true;
+            keyboardHeight = height;
+          },
+        );
       },
     );
   }

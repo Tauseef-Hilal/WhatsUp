@@ -140,28 +140,33 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ],
       ),
-      body: KeyboardDismissOnTap(
-        child: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: Theme.of(context).themedImage('chat_bg.png'),
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Theme.of(context).themedImage('chat_bg.png'),
+            fit: BoxFit.cover,
           ),
-          child: Column(
-            children: [
-              const Expanded(
-                child: ChatStream(),
-              ),
-              const SizedBox(
-                height: 4.0,
-              ),
-              ChatInputContainer(
+        ),
+        child: Column(
+          children: [
+            const Expanded(
+              child: ChatStream(),
+            ),
+            const SizedBox(
+              height: 4.0,
+            ),
+            GestureDetector(
+              onVerticalDragUpdate: (details) {
+                if (details.primaryDelta! >= 10) {
+                  SystemChannels.textInput.invokeMethod('TextInput.hide');
+                }
+              },
+              child: ChatInputContainer(
                 self: self,
                 other: other,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
