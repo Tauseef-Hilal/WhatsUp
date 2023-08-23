@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -195,6 +193,7 @@ class OTPField extends ConsumerStatefulWidget {
 
 class _OTPFieldState extends ConsumerState<OTPField> {
   final _textController = TextEditingController();
+  final hintText = '––– –––';
 
   @override
   void dispose() {
@@ -202,13 +201,40 @@ class _OTPFieldState extends ConsumerState<OTPField> {
     super.dispose();
   }
 
+  double calculateHintWidth() {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+        text: hintText,
+        style: const TextStyle(
+          overflow: TextOverflow.fade,
+          fontFamily: 'AzeretMono',
+          fontSize: 20,
+          letterSpacing: 4,
+        ),
+      ),
+      textScaleFactor: MediaQuery.of(context).textScaleFactor,
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    return textPainter.width;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
-    final screenWidth = min(MediaQuery.of(context).size.width, 410);
+    final hintWidth = calculateHintWidth() + 4;
+    final totalWidth = hintWidth + 50;
+    final textStyle = TextStyle(
+      backgroundColor: colorTheme.backgroundColor,
+      fontFamily: "AzeretMono",
+      fontSize: 20,
+      letterSpacing: 4,
+      color: colorTheme.textColor1,
+    );
 
     return Container(
-      width: screenWidth * 0.5,
+      width: totalWidth,
       height: 50,
       decoration: BoxDecoration(
         border: Border(
@@ -222,23 +248,16 @@ class _OTPFieldState extends ConsumerState<OTPField> {
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: (screenWidth * 0.5) * 0.8,
+            width: hintWidth,
             child: Text(
-              '––– –––',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                overflow: TextOverflow.fade,
-                fontFamily: 'AzeretMono',
-                fontSize: 20,
-                letterSpacing: 4,
-                color: colorTheme.greyColor,
-              ),
+              hintText,
+              maxLines: 1,
+              style: textStyle.copyWith(color: colorTheme.greyColor),
             ),
           ),
           SizedBox(
-            width: (screenWidth * 0.5) * 0.6,
+            width: hintWidth,
             child: TextField(
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               maxLength: 7,
               autofocus: true,
               onChanged: (value) {
@@ -266,13 +285,7 @@ class _OTPFieldState extends ConsumerState<OTPField> {
                 );
               },
               controller: _textController,
-              style: TextStyle(
-                backgroundColor: colorTheme.backgroundColor,
-                fontFamily: "AzeretMono",
-                fontSize: 20,
-                letterSpacing: 4,
-                color: colorTheme.textColor1,
-              ),
+              style: textStyle,
               keyboardType: TextInputType.phone,
               cursorColor: colorTheme.greenColor,
               decoration: InputDecoration(
