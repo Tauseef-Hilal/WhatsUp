@@ -149,8 +149,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
         child: Column(
           children: [
-            const Expanded(
-              child: ChatStream(),
+            Expanded(
+              child: Platform.isIOS
+                  ? const KeyboardDismissOnTap(child: ChatStream())
+                  : const ChatStream(),
             ),
             const SizedBox(
               height: 4.0,
@@ -239,202 +241,142 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                 ? colorTheme.greyColor
                 : colorTheme.iconColor),
       ),
-      child: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          if (details.primaryDelta! >= 10) {
-            SystemChannels.textInput.invokeMethod('TextInput.hide');
-            setState(() => showEmojiPicker = false);
-          }
-        },
-        child: AvoidBottomInset(
-          padding: EdgeInsets.only(bottom: Platform.isAndroid ? 4.0 : 24.0),
-          conditions: [showEmojiPicker],
-          offstage: Offstage(
-            offstage: !showEmojiPicker,
-            child: CustomEmojiPicker(
-              afterEmojiPlaced: (emoji) => ref
-                  .read(chatControllerProvider.notifier)
-                  .onTextChanged(emoji.emoji),
-              textController:
-                  ref.read(chatControllerProvider).messageController,
-            ),
+      child: AvoidBottomInset(
+        padding: EdgeInsets.only(bottom: Platform.isAndroid ? 4.0 : 24.0),
+        conditions: [showEmojiPicker],
+        offstage: Offstage(
+          offstage: !showEmojiPicker,
+          child: CustomEmojiPicker(
+            afterEmojiPlaced: (emoji) => ref
+                .read(chatControllerProvider.notifier)
+                .onTextChanged(emoji.emoji),
+            textController: ref.read(chatControllerProvider).messageController,
           ),
-          child: Column(
-            children: [
-              recordingState != RecordingState.recordingLocked &&
-                      recordingState != RecordingState.paused
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24.0),
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? colorTheme.appBarColor
-                                    : colorTheme.backgroundColor,
-                              ),
-                              child: recordingState ==
-                                      RecordingState.notRecording
-                                  ? ChatField(
-                                      leading: GestureDetector(
-                                        onTap: switchKeyboards,
-                                        child: Icon(
-                                          !showEmojiPicker
-                                              ? Icons.emoji_emotions
-                                              : Icons.keyboard,
-                                          size: 24.0,
-                                        ),
+        ),
+        child: Column(
+          children: [
+            recordingState != RecordingState.recordingLocked &&
+                    recordingState != RecordingState.paused
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24.0),
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? colorTheme.appBarColor
+                                  : colorTheme.backgroundColor,
+                            ),
+                            child: recordingState == RecordingState.notRecording
+                                ? ChatField(
+                                    leading: GestureDetector(
+                                      onTap: switchKeyboards,
+                                      child: Icon(
+                                        !showEmojiPicker
+                                            ? Icons.emoji_emotions
+                                            : Icons.keyboard,
+                                        size: 24.0,
                                       ),
-                                      focusNode: _focusNode,
-                                      onTextChanged: (value) => ref
-                                          .read(chatControllerProvider.notifier)
-                                          .onTextChanged(value),
-                                      textController: ref
-                                          .read(chatControllerProvider)
-                                          .messageController,
-                                      // focusNode: ,
-                                      actions: [
+                                    ),
+                                    focusNode: _focusNode,
+                                    onTextChanged: (value) => ref
+                                        .read(chatControllerProvider.notifier)
+                                        .onTextChanged(value),
+                                    textController: ref
+                                        .read(chatControllerProvider)
+                                        .messageController,
+                                    // focusNode: ,
+                                    actions: [
+                                        InkWell(
+                                          onTap: () {
+                                            onAttachmentsIconPressed(
+                                              context,
+                                            );
+                                          },
+                                          child: Transform.rotate(
+                                            angle: -0.8,
+                                            child: const Icon(
+                                              Icons.attach_file_rounded,
+                                              size: 24.0,
+                                            ),
+                                          ),
+                                        ),
+                                        if (!hideElements) ...[
                                           InkWell(
-                                            onTap: () {
-                                              onAttachmentsIconPressed(
-                                                context,
-                                              );
-                                            },
-                                            child: Transform.rotate(
-                                              angle: -0.8,
-                                              child: const Icon(
-                                                Icons.attach_file_rounded,
-                                                size: 24.0,
+                                            onTap: () {},
+                                            child: CircleAvatar(
+                                              radius: 11,
+                                              backgroundColor: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.light
+                                                  ? colorTheme.greyColor
+                                                  : colorTheme.iconColor,
+                                              child: Icon(
+                                                Icons.currency_rupee_sharp,
+                                                size: 14,
+                                                color: Theme.of(context)
+                                                            .brightness ==
+                                                        Brightness.light
+                                                    ? colorTheme.backgroundColor
+                                                    : colorTheme.appBarColor,
                                               ),
                                             ),
                                           ),
-                                          if (!hideElements) ...[
-                                            InkWell(
-                                              onTap: () {},
-                                              child: CircleAvatar(
-                                                radius: 11,
-                                                backgroundColor:
-                                                    Theme.of(context)
-                                                                .brightness ==
-                                                            Brightness.light
-                                                        ? colorTheme.greyColor
-                                                        : colorTheme.iconColor,
-                                                child: Icon(
-                                                  Icons.currency_rupee_sharp,
-                                                  size: 14,
-                                                  color: Theme.of(context)
-                                                              .brightness ==
-                                                          Brightness.light
-                                                      ? colorTheme
-                                                          .backgroundColor
-                                                      : colorTheme.appBarColor,
-                                                ),
-                                              ),
+                                          InkWell(
+                                            onTap: () {
+                                              ref
+                                                  .read(
+                                                    chatControllerProvider
+                                                        .notifier,
+                                                  )
+                                                  .navigateToCameraView(
+                                                      context);
+                                            },
+                                            child: const Icon(
+                                              Icons.camera_alt_rounded,
+                                              size: 24.0,
                                             ),
-                                            InkWell(
-                                              onTap: () {
-                                                ref
-                                                    .read(
-                                                      chatControllerProvider
-                                                          .notifier,
-                                                    )
-                                                    .navigateToCameraView(
-                                                        context);
-                                              },
-                                              child: const Icon(
-                                                Icons.camera_alt_rounded,
-                                                size: 24.0,
-                                              ),
-                                            ),
-                                          ],
-                                        ])
-                                  : Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                        vertical: 0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              StreamBuilder(
-                                                stream: ref
-                                                    .read(
-                                                        chatControllerProvider)
-                                                    .soundRecorder
-                                                    .onProgress,
-                                                builder: (context, snapshot) {
-                                                  if (!snapshot.hasData) {
-                                                    return Row(
-                                                      children: [
-                                                        const Padding(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                            vertical: 12,
-                                                          ),
-                                                          child: Icon(
-                                                            Icons.mic,
-                                                            color: Colors.red,
-                                                            size: 24,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          "0:00",
-                                                          style: TextStyle(
-                                                            fontSize: 18,
-                                                            color: Theme.of(context)
-                                                                        .brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? colorTheme
-                                                                    .iconColor
-                                                                : colorTheme
-                                                                    .textColor2,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  }
-
-                                                  final data = snapshot.data!;
-                                                  final duration =
-                                                      data.duration;
-                                                  final showMic =
-                                                      duration.inMilliseconds %
-                                                              1000 >
-                                                          500;
+                                          ),
+                                        ],
+                                      ])
+                                : Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                      vertical: 0,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            StreamBuilder(
+                                              stream: ref
+                                                  .read(chatControllerProvider)
+                                                  .soundRecorder
+                                                  .onProgress,
+                                              builder: (context, snapshot) {
+                                                if (!snapshot.hasData) {
                                                   return Row(
                                                     children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
+                                                      const Padding(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
                                                           vertical: 12,
                                                         ),
                                                         child: Icon(
                                                           Icons.mic,
-                                                          color: showMic
-                                                              ? Colors.red
-                                                              : Colors
-                                                                  .transparent,
+                                                          color: Colors.red,
                                                           size: 24,
                                                         ),
                                                       ),
-                                                      const SizedBox(
-                                                        width: 12.0,
-                                                      ),
                                                       Text(
-                                                        timeFromSeconds(
-                                                          duration.inSeconds,
-                                                          true,
-                                                        ),
+                                                        "0:00",
                                                         style: TextStyle(
                                                           fontSize: 18,
                                                           color: Theme.of(context)
@@ -449,188 +391,84 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                                       ),
                                                     ],
                                                   );
-                                                },
-                                              )
-                                            ],
+                                                }
+
+                                                final data = snapshot.data!;
+                                                final duration = data.duration;
+                                                final showMic =
+                                                    duration.inMilliseconds %
+                                                            1000 >
+                                                        500;
+                                                return Row(
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        vertical: 12,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.mic,
+                                                        color: showMic
+                                                            ? Colors.red
+                                                            : Colors
+                                                                .transparent,
+                                                        size: 24,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 12.0,
+                                                    ),
+                                                    Text(
+                                                      timeFromSeconds(
+                                                        duration.inSeconds,
+                                                        true,
+                                                      ),
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        color: Theme.of(context)
+                                                                    .brightness ==
+                                                                Brightness.dark
+                                                            ? colorTheme
+                                                                .iconColor
+                                                            : colorTheme
+                                                                .textColor2,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            )
+                                          ],
+                                        ),
+                                        Text(
+                                          "◀ Slide to cancel",
+                                          style: TextStyle(
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? colorTheme.iconColor
+                                                    : colorTheme.textColor2,
+                                            fontSize: 16,
                                           ),
-                                          Text(
-                                            "◀ Slide to cancel",
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                          .brightness ==
-                                                      Brightness.dark
-                                                  ? colorTheme.iconColor
-                                                  : colorTheme.textColor2,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 4.0,
-                          ),
-                          hideElements
-                              ? InkWell(
-                                  onTap: () async {
-                                    ref
-                                        .read(chatControllerProvider.notifier)
-                                        .onSendBtnPressed(
-                                            ref, widget.self, widget.other);
-                                  },
-                                  child: CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: colorTheme.greenColor,
-                                    child: const Icon(
-                                      Icons.send,
-                                      color: Colors.white,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                )
-                              : GestureDetector(
-                                  onLongPress: ref
-                                      .read(chatControllerProvider.notifier)
-                                      .startRecording,
-                                  onLongPressUp: () {
-                                    if (recordingState ==
-                                        RecordingState.notRecording) {
-                                      return;
-                                    }
-                                    ref
-                                        .read(chatControllerProvider.notifier)
-                                        .onRecordingDone();
-                                  },
-                                  onLongPressMoveUpdate: (details) async {
-                                    ref
-                                        .read(chatControllerProvider.notifier)
-                                        .onMicDragLeft(
-                                          details.globalPosition.dx,
-                                          MediaQuery.of(context).size.width,
-                                        );
-
-                                    ref
-                                        .read(chatControllerProvider.notifier)
-                                        .onMicDragUp(
-                                          details.globalPosition.dy,
-                                          MediaQuery.of(context).size.height,
-                                        );
-                                  },
-                                  child: recordingState ==
-                                          RecordingState.notRecording
-                                      ? CircleAvatar(
-                                          radius: 24,
-                                          backgroundColor:
-                                              colorTheme.greenColor,
-                                          child: const Icon(
-                                            Icons.mic,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : Container(
-                                          decoration: BoxDecoration(
-                                            color: colorTheme.appBarColor,
-                                            borderRadius:
-                                                BorderRadius.circular(24),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              CircleAvatar(
-                                                radius: 24,
-                                                backgroundColor:
-                                                    colorTheme.appBarColor,
-                                                child: const Icon(
-                                                  Icons.lock_outline_rounded,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 24),
-                                              CircleAvatar(
-                                                radius: 24,
-                                                backgroundColor:
-                                                    colorTheme.greenColor,
-                                                child: const Icon(
-                                                  Icons.mic,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                ),
-                        ],
-                      ),
-                    )
-                  : Container(
-                      padding: const EdgeInsets.all(16),
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColorsDark.appBarColor
-                          : AppColorsLight.incomingMessageBubbleColor,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const RecordingVisualiser(),
-                          const SizedBox(
-                            height: 30,
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  ref
-                                      .read(chatControllerProvider.notifier)
-                                      .cancelRecording();
-                                },
-                                child: const Icon(
-                                  Icons.delete,
-                                  size: 36,
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  if (recordingState ==
-                                      RecordingState.recordingLocked) {
-                                    ref
-                                        .read(chatControllerProvider.notifier)
-                                        .pauseRecording();
-                                  } else {
-                                    ref
-                                        .read(chatControllerProvider.notifier)
-                                        .resumeRecording();
-                                  }
-                                },
-                                child: recordingState ==
-                                        RecordingState.recordingLocked
-                                    ? Container(
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              width: 2, color: Colors.red),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.pause_rounded,
-                                          color: Colors.red,
-                                          size: 30,
-                                        ),
-                                      )
-                                    : const Icon(
-                                        Icons.mic,
-                                        color: Colors.red,
-                                        size: 30,
-                                      ),
-                              ),
-                              InkWell(
+                        ),
+                        const SizedBox(
+                          width: 4.0,
+                        ),
+                        hideElements
+                            ? InkWell(
                                 onTap: () async {
                                   ref
                                       .read(chatControllerProvider.notifier)
-                                      .onRecordingDone();
+                                      .onSendBtnPressed(
+                                          ref, widget.self, widget.other);
                                 },
                                 child: CircleAvatar(
-                                  radius: 21,
+                                  radius: 24,
                                   backgroundColor: colorTheme.greenColor,
                                   child: const Icon(
                                     Icons.send,
@@ -638,13 +476,160 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
                                   ),
                                 ),
                               )
-                            ],
-                          )
-                        ],
-                      ),
+                            : GestureDetector(
+                                onLongPress: ref
+                                    .read(chatControllerProvider.notifier)
+                                    .startRecording,
+                                onLongPressUp: () {
+                                  if (recordingState ==
+                                      RecordingState.notRecording) {
+                                    return;
+                                  }
+                                  ref
+                                      .read(chatControllerProvider.notifier)
+                                      .onRecordingDone();
+                                },
+                                onLongPressMoveUpdate: (details) async {
+                                  ref
+                                      .read(chatControllerProvider.notifier)
+                                      .onMicDragLeft(
+                                        details.globalPosition.dx,
+                                        MediaQuery.of(context).size.width,
+                                      );
+
+                                  ref
+                                      .read(chatControllerProvider.notifier)
+                                      .onMicDragUp(
+                                        details.globalPosition.dy,
+                                        MediaQuery.of(context).size.height,
+                                      );
+                                },
+                                child: recordingState ==
+                                        RecordingState.notRecording
+                                    ? CircleAvatar(
+                                        radius: 24,
+                                        backgroundColor: colorTheme.greenColor,
+                                        child: const Icon(
+                                          Icons.mic,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : Container(
+                                        decoration: BoxDecoration(
+                                          color: colorTheme.appBarColor,
+                                          borderRadius:
+                                              BorderRadius.circular(24),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 24,
+                                              backgroundColor:
+                                                  colorTheme.appBarColor,
+                                              child: const Icon(
+                                                Icons.lock_outline_rounded,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 24),
+                                            CircleAvatar(
+                                              radius: 24,
+                                              backgroundColor:
+                                                  colorTheme.greenColor,
+                                              child: const Icon(
+                                                Icons.mic,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                              ),
+                      ],
                     ),
-            ],
-          ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(16),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColorsDark.appBarColor
+                        : AppColorsLight.incomingMessageBubbleColor,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const RecordingVisualiser(),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .cancelRecording();
+                              },
+                              child: const Icon(
+                                Icons.delete,
+                                size: 36,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                if (recordingState ==
+                                    RecordingState.recordingLocked) {
+                                  ref
+                                      .read(chatControllerProvider.notifier)
+                                      .pauseRecording();
+                                } else {
+                                  ref
+                                      .read(chatControllerProvider.notifier)
+                                      .resumeRecording();
+                                }
+                              },
+                              child: recordingState ==
+                                      RecordingState.recordingLocked
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            width: 2, color: Colors.red),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.pause_rounded,
+                                        color: Colors.red,
+                                        size: 30,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.mic,
+                                      color: Colors.red,
+                                      size: 30,
+                                    ),
+                            ),
+                            InkWell(
+                              onTap: () async {
+                                ref
+                                    .read(chatControllerProvider.notifier)
+                                    .onRecordingDone();
+                              },
+                              child: CircleAvatar(
+                                radius: 21,
+                                backgroundColor: colorTheme.greenColor,
+                                child: const Icon(
+                                  Icons.send,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+          ],
         ),
       ),
     );
