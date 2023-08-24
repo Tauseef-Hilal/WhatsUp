@@ -107,6 +107,25 @@ bool datesHaveSameDay(DateTime d1, DateTime d2) {
   return d1.day == d2.day && d1.month == d2.month && d1.year == d2.year;
 }
 
+String titleCased(String input) {
+  if (input.isEmpty) {
+    return input;
+  }
+
+  List<String> words = input.split(' ');
+  List<String> titleWords = [];
+
+  for (String word in words) {
+    if (word.isNotEmpty) {
+      String titleWord =
+          word[0].toUpperCase() + word.substring(1).toLowerCase();
+      titleWords.add(titleWord);
+    }
+  }
+
+  return titleWords.join(' ');
+}
+
 Future<bool> isConnected() async {
   try {
     final result = await InternetAddress.lookup('google.com');

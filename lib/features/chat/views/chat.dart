@@ -57,111 +57,123 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final self = widget.self;
     final other = widget.other;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        titleSpacing: 0.0,
-        title: Row(
-          children: [
-            CircleAvatar(
-              maxRadius: 18,
-              backgroundImage: CachedNetworkImageProvider(other.avatarUrl),
-            ),
-            const SizedBox(
-              width: 8.0,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.otherUserContactName,
-                  style: Theme.of(context).custom.textTheme.titleMedium,
-                ),
-                StreamBuilder<UserActivityStatus>(
-                  stream: ref
-                      .read(firebaseFirestoreRepositoryProvider)
-                      .userActivityStatusStream(userId: other.id),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return Container();
-                    }
+    return WillPopScope(
+      onWillPop: () async {
+        if (Platform.isIOS ||
+            !ref.read(chatControllerProvider).showEmojiPicker) {
+          return true;
+        }
 
-                    return snapshot.data!.value == 'Online'
-                        ? Text(
-                            'Online',
-                            style: Theme.of(context).custom.textTheme.caption,
-                          )
-                        : Container();
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        leadingWidth: 36.0,
-        leading: IconButton(
-          onPressed: () =>
-              ref.read(chatControllerProvider.notifier).navigateToHome(context),
-          icon: const Icon(
-            Icons.arrow_back,
-            size: 24,
+        ref.read(chatControllerProvider.notifier).setShowEmojiPicker(false);
+        return false;
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          titleSpacing: 0.0,
+          title: Row(
+            children: [
+              CircleAvatar(
+                maxRadius: 18,
+                backgroundImage: CachedNetworkImageProvider(other.avatarUrl),
+              ),
+              const SizedBox(
+                width: 8.0,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.otherUserContactName,
+                    style: Theme.of(context).custom.textTheme.titleMedium,
+                  ),
+                  StreamBuilder<UserActivityStatus>(
+                    stream: ref
+                        .read(firebaseFirestoreRepositoryProvider)
+                        .userActivityStatusStream(userId: other.id),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Container();
+                      }
+
+                      return snapshot.data!.value == 'Online'
+                          ? Text(
+                              'Online',
+                              style: Theme.of(context).custom.textTheme.caption,
+                            )
+                          : Container();
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: ref.watch(chatControllerProvider).recordingState ==
-                    RecordingState.notRecording
-                ? () {}
-                : null,
+          leadingWidth: 36.0,
+          leading: IconButton(
+            onPressed: () => ref
+                .read(chatControllerProvider.notifier)
+                .navigateToHome(context),
             icon: const Icon(
-              Icons.videocam_rounded,
-              size: 28,
-              color: Colors.white,
-            ),
-          ),
-          IconButton(
-            onPressed: ref.watch(chatControllerProvider).recordingState ==
-                    RecordingState.notRecording
-                ? () {}
-                : null,
-            icon: const Icon(
-              Icons.call,
-              color: Colors.white,
+              Icons.arrow_back,
               size: 24,
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: Colors.white,
-              size: 26,
+          actions: [
+            IconButton(
+              onPressed: ref.watch(chatControllerProvider).recordingState ==
+                      RecordingState.notRecording
+                  ? () {}
+                  : null,
+              icon: const Icon(
+                Icons.videocam_rounded,
+                size: 28,
+                color: Colors.white,
+              ),
             ),
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: Theme.of(context).themedImage('chat_bg.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: Platform.isIOS
-                  ? const KeyboardDismissOnTap(child: ChatStream())
-                  : const ChatStream(),
+            IconButton(
+              onPressed: ref.watch(chatControllerProvider).recordingState ==
+                      RecordingState.notRecording
+                  ? () {}
+                  : null,
+              icon: const Icon(
+                Icons.call,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
-            const SizedBox(
-              height: 4.0,
-            ),
-            ChatInputContainer(
-              self: self,
-              other: other,
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white,
+                size: 26,
+              ),
             ),
           ],
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: Theme.of(context).themedImage('chat_bg.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Platform.isIOS
+                    ? const KeyboardDismissOnTap(child: ChatStream())
+                    : const ChatStream(),
+              ),
+              const SizedBox(
+                height: 4.0,
+              ),
+              ChatInputContainer(
+                self: self,
+                other: other,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -185,7 +197,6 @@ class ChatInputContainer extends ConsumerStatefulWidget {
 class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
     with WidgetsBindingObserver {
   double keyboardHeight = SharedPref.instance.getDouble('keyboardHeight')!;
-  bool showEmojiPicker = false;
   bool isKeyboardVisible = false;
   late final StreamSubscription<bool> _keyboardSubscription;
   final _focusNode = FocusNode();
@@ -197,7 +208,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
         KeyboardVisibilityController().onChange.listen((isVisible) async {
       isKeyboardVisible = isVisible;
       if (isVisible) {
-        showEmojiPicker = false;
+        ref.read(chatControllerProvider.notifier).setShowEmojiPicker(false);
       }
       setState(() {});
     });
@@ -213,18 +224,20 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
   }
 
   void switchKeyboards() async {
+    final showEmojiPicker = ref.read(chatControllerProvider).showEmojiPicker;
+
     if (!showEmojiPicker && !isKeyboardVisible) {
-      setState(() => showEmojiPicker = true);
+      ref.read(chatControllerProvider.notifier).setShowEmojiPicker(true);
     } else if (showEmojiPicker) {
       _focusNode.requestFocus();
       SystemChannels.textInput.invokeMethod('TextInput.show');
       Future.delayed(const Duration(milliseconds: 300), () {
         if (!mounted || showEmojiPicker) return;
-        setState(() => showEmojiPicker = false);
+        ref.read(chatControllerProvider.notifier).setShowEmojiPicker(false);
       });
     } else if (isKeyboardVisible) {
       SystemChannels.textInput.invokeMethod('TextInput.hide');
-      setState(() => showEmojiPicker = true);
+      ref.read(chatControllerProvider.notifier).setShowEmojiPicker(true);
     }
   }
 
@@ -233,6 +246,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
     final colorTheme = Theme.of(context).custom.colorTheme;
     final hideElements = ref.watch(chatControllerProvider).hideElements;
     final recordingState = ref.watch(chatControllerProvider).recordingState;
+    final showEmojiPicker = ref.watch(chatControllerProvider).showEmojiPicker;
 
     return Theme(
       data: Theme.of(context).copyWith(

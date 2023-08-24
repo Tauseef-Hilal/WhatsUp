@@ -49,6 +49,7 @@ class ChatState {
     this.recordingState = RecordingState.notRecording,
     this.showScrollBtn = false,
     this.unreadCount = 0,
+    this.showEmojiPicker = false,
     required this.recordingSamples,
     required this.soundRecorder,
     required this.messageController,
@@ -61,6 +62,7 @@ class ChatState {
   final bool showScrollBtn;
   final int unreadCount;
   final List<RecordingDisposition> recordingSamples;
+  final bool showEmojiPicker;
 
   void dispose() {
     messageController.dispose();
@@ -72,6 +74,7 @@ class ChatState {
     RecordingState? recordingState,
     bool? showScrollBtn,
     int? unreadCount,
+    bool? showEmojiPicker,
     List<RecordingDisposition>? recordingSamples,
   }) {
     return ChatState(
@@ -79,6 +82,7 @@ class ChatState {
       recordingState: recordingState ?? this.recordingState,
       showScrollBtn: showScrollBtn ?? this.showScrollBtn,
       unreadCount: unreadCount ?? this.unreadCount,
+      showEmojiPicker: showEmojiPicker ?? this.showEmojiPicker,
       messageController: messageController,
       soundRecorder: soundRecorder,
       recordingSamples: recordingSamples ?? this.recordingSamples,
@@ -267,6 +271,10 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
   void setUnreadCount(int count) {
     if (state.unreadCount == count) return;
     state = state.copyWith(unreadCount: count);
+  }
+
+  void setShowEmojiPicker(bool shouldShowEmojiPicker) {
+    state = state.copyWith(showEmojiPicker: shouldShowEmojiPicker);
   }
 
   void onSendBtnPressed(WidgetRef ref, User sender, User receiver) async {
