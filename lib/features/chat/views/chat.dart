@@ -931,6 +931,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         return Stack(
           alignment: Alignment.topCenter,
           children: [
+            Container(color: Colors.transparent),
             CustomScrollView(
               shrinkWrap: true,
               reverse: true,
