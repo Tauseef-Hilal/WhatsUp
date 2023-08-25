@@ -32,14 +32,17 @@ class CustomEmojiPicker extends ConsumerStatefulWidget {
 }
 
 class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
-  List<List<EmojiWrapper>?> allEmojis = [null];
-  Category? selectedCategory;
   final _scrollController = ScrollController();
+  final Map<Category, List<int>> categoryIndices = {};
+  List<List<EmojiWrapper>?> allEmojiRows = [null];
+  Category? selectedCategory;
 
   @override
   void initState() {
     for (var categoryEmoji in defaultEmojiSet) {
       var row = <EmojiWrapper>[];
+      int rowCount = 0;
+
       for (var emoji in categoryEmoji.emoji) {
         row.add(
           EmojiWrapper(
@@ -49,17 +52,30 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
         );
 
         if (row.length == 8) {
-          allEmojis.add(row);
+          allEmojiRows.add(row);
           row = [];
+          rowCount++;
         }
       }
 
       if (row.isNotEmpty) {
-        allEmojis.add(row);
+        allEmojiRows.add(row);
+        rowCount++;
       }
 
-      if (categoryEmoji == defaultEmojiSet.last) break;
-      allEmojis.add(null);
+      if (categoryEmoji == defaultEmojiSet.last) {
+        categoryIndices[categoryEmoji.category] = [
+          allEmojiRows.length - rowCount - 1,
+          categoryIndices.keys.length
+        ];
+        break;
+      }
+
+      allEmojiRows.add(null);
+      categoryIndices[categoryEmoji.category] = [
+        allEmojiRows.length - rowCount - 2,
+        categoryIndices.keys.length
+      ];
     }
 
     super.initState();
@@ -157,7 +173,7 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                               ),
                               child: const Icon(
                                 Icons.emoji_emotions_outlined,
-                                size: 20,
+                                size: 21,
                               ),
                             ),
                           ),
@@ -207,10 +223,34 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                               height: 30,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
+                                vertical: 4,
                               ),
-                              child: const Icon(
-                                Icons.card_giftcard_rounded,
-                                size: 20,
+                              child: Stack(
+                                alignment: Alignment.bottomRight,
+                                children: [
+                                  Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        width: 1.2,
+                                        color: colorTheme.iconColor,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: colorTheme.iconColor,
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(8),
+                                        bottomRight: Radius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -230,16 +270,16 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.vertical,
                   padding: config.gridPadding,
-                  itemCount: allEmojis.length,
+                  itemCount: allEmojiRows.length,
                   itemBuilder: (context, index) {
-                    final emojiWrapperRow = allEmojis[index];
+                    final emojiWrapperRow = allEmojiRows[index];
                     if (emojiWrapperRow == null) {
                       return Container(
                         margin: const EdgeInsets.only(left: 12),
                         height: emojiSize,
                         child: Text(
                           titleCased(
-                            allEmojis[index + 1]!.first.category.name,
+                            allEmojiRows[index + 1]!.first.category.name,
                           ),
                           style: TextStyle(
                             color: colorTheme.greyColor,
@@ -334,20 +374,10 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
   }
 
   void handleCategoryIconClick(CategoryEmoji categoryEmoji, double emojiSize) {
-    var index = 0;
-    int seenCategoryCount = 0;
-    for (; index < allEmojis.length; index++) {
-      if (allEmojis[index] != null) {
-        continue;
-      }
-      if (allEmojis[index + 1]!.first.category == categoryEmoji.category) {
-        break;
-      }
-      seenCategoryCount++;
-    }
-
-    final offset =
-        (index * (emojiSize * 1.6)) - (seenCategoryCount * emojiSize / 1.6);
+    final [categoryIndex, seenCategoryCount] =
+        categoryIndices[categoryEmoji.category]!;
+    final offset = (categoryIndex * emojiSize * 1.6) -
+        (seenCategoryCount * emojiSize / 1.6);
 
     _scrollController.jumpTo(offset);
     setState(
