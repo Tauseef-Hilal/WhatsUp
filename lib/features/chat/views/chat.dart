@@ -57,123 +57,139 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final self = widget.self;
     final other = widget.other;
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (Platform.isIOS ||
-            !ref.read(chatControllerProvider).showEmojiPicker) {
-          return true;
-        }
+    return Platform.isAndroid
+        ? WillPopScope(
+            onWillPop: () async {
+              if (!ref.read(chatControllerProvider).showEmojiPicker) {
+                return true;
+              }
 
-        ref.read(chatControllerProvider.notifier).setShowEmojiPicker(false);
-        return false;
-      },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          titleSpacing: 0.0,
-          title: Row(
-            children: [
-              CircleAvatar(
-                maxRadius: 18,
-                backgroundImage: CachedNetworkImageProvider(other.avatarUrl),
-              ),
-              const SizedBox(
-                width: 8.0,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.otherUserContactName,
-                    style: Theme.of(context).custom.textTheme.titleMedium,
-                  ),
-                  StreamBuilder<UserActivityStatus>(
-                    stream: ref
-                        .read(firebaseFirestoreRepositoryProvider)
-                        .userActivityStatusStream(userId: other.id),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Container();
-                      }
+              ref
+                  .read(chatControllerProvider.notifier)
+                  .setShowEmojiPicker(false);
+              return false;
+            },
+            child: _build(self, other, context),
+          )
+        : _build(self, other, context);
+  }
 
-                      return snapshot.data!.value == 'Online'
-                          ? Text(
-                              'Online',
-                              style: Theme.of(context).custom.textTheme.caption,
-                            )
-                          : Container();
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          leadingWidth: 36.0,
-          leading: IconButton(
-            onPressed: () => ref
-                .read(chatControllerProvider.notifier)
-                .navigateToHome(context),
-            icon: const Icon(
-              Icons.arrow_back,
-              size: 24,
+  Widget _build(User self, User other, BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        titleSpacing: 0.0,
+        title: Row(
+          children: [
+            CircleAvatar(
+              maxRadius: 18,
+              backgroundImage: CachedNetworkImageProvider(other.avatarUrl),
             ),
-          ),
-          actions: [
-            IconButton(
-              onPressed: ref.watch(chatControllerProvider).recordingState ==
-                      RecordingState.notRecording
-                  ? () {}
-                  : null,
-              icon: const Icon(
-                Icons.videocam_rounded,
-                size: 28,
-                color: Colors.white,
-              ),
+            const SizedBox(
+              width: 8.0,
             ),
-            IconButton(
-              onPressed: ref.watch(chatControllerProvider).recordingState ==
-                      RecordingState.notRecording
-                  ? () {}
-                  : null,
-              icon: const Icon(
-                Icons.call,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.more_vert,
-                color: Colors.white,
-                size: 26,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.otherUserContactName,
+                  style: Theme.of(context).custom.textTheme.titleMedium,
+                ),
+                StreamBuilder<UserActivityStatus>(
+                  stream: ref
+                      .read(firebaseFirestoreRepositoryProvider)
+                      .userActivityStatusStream(userId: other.id),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Container();
+                    }
+
+                    return snapshot.data!.value == 'Online'
+                        ? Text(
+                            'Online',
+                            style: Theme.of(context).custom.textTheme.caption,
+                          )
+                        : Container();
+                  },
+                ),
+              ],
             ),
           ],
         ),
-        body: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: Theme.of(context).themedImage('chat_bg.png'),
-              fit: BoxFit.cover,
+        leadingWidth: 36.0,
+        leading: IconButton(
+          onPressed: () =>
+              ref.read(chatControllerProvider.notifier).navigateToHome(context),
+          icon: const Icon(
+            Icons.arrow_back,
+            size: 24,
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: ref.watch(chatControllerProvider).recordingState ==
+                    RecordingState.notRecording
+                ? () {}
+                : null,
+            icon: const Icon(
+              Icons.videocam_rounded,
+              size: 28,
+              color: Colors.white,
             ),
           ),
-          child: Column(
-            children: [
-              Expanded(
-                child: Platform.isIOS
-                    ? const KeyboardDismissOnTap(child: ChatStream())
-                    : const ChatStream(),
-              ),
-              const SizedBox(
-                height: 4.0,
-              ),
-              ChatInputContainer(
-                self: self,
-                other: other,
-              ),
-            ],
+          IconButton(
+            onPressed: ref.watch(chatControllerProvider).recordingState ==
+                    RecordingState.notRecording
+                ? () {}
+                : null,
+            icon: const Icon(
+              Icons.call,
+              color: Colors.white,
+              size: 24,
+            ),
           ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(
+              Icons.more_vert,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Theme.of(context).themedImage('chat_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: Platform.isIOS
+                  ? GestureDetector(
+                      onTap: () {
+                        SystemChannels.textInput.invokeMethod(
+                          "TextInput.hide",
+                        );
+                        ref
+                            .read(chatControllerProvider.notifier)
+                            .setShowEmojiPicker(false);
+                      },
+                      child: const ChatStream(),
+                    )
+                  : const ChatStream(),
+            ),
+            const SizedBox(
+              height: 4.0,
+            ),
+            ChatInputContainer(
+              self: self,
+              other: other,
+            ),
+          ],
         ),
       ),
     );

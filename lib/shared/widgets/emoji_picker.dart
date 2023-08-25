@@ -104,235 +104,231 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
     final colorTheme = Theme.of(context).custom.colorTheme;
     final emojiSize = MediaQuery.of(context).size.width / 14;
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: EmojiPicker(
-        textEditingController: widget.textController,
-        onEmojiSelected: (_, emoji) => widget.afterEmojiPlaced?.call(emoji),
-        customWidget: (config, state) {
-          return Container(
-            color: colorTheme.backgroundColor,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.drag_handle_rounded,
-                  size: 24,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Icon(Icons.search_rounded),
-                      Container(
-                        height: 28,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            width: 1,
-                            color: const Color.fromARGB(255, 40, 57, 68),
-                          ),
-                          borderRadius: BorderRadius.circular(100.0),
+    return EmojiPicker(
+      textEditingController: widget.textController,
+      onEmojiSelected: (_, emoji) => widget.afterEmojiPlaced?.call(emoji),
+      customWidget: (config, state) {
+        return Container(
+          color: colorTheme.backgroundColor,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Icon(
+                Icons.drag_handle_rounded,
+                size: 24,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Icon(Icons.search_rounded),
+                    Container(
+                      height: 28,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1,
+                          color: const Color.fromARGB(255, 40, 57, 68),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(100.0),
-                                bottomLeft: Radius.circular(100.0),
-                              ),
-                              child: Container(
-                                height: 30,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  // vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorTheme.appBarColor,
-                                  border: const Border(
-                                    right: BorderSide(
-                                      width: 1,
-                                      color: Color.fromARGB(255, 40, 57, 68),
-                                    ),
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.emoji_emotions_outlined,
-                                  size: 20,
-                                ),
-                              ),
+                        borderRadius: BorderRadius.circular(100.0),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(100.0),
+                              bottomLeft: Radius.circular(100.0),
                             ),
-                            Container(
+                            child: Container(
                               height: 30,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
+                                // vertical: 6,
                               ),
-                              decoration: const BoxDecoration(
-                                border: Border(
+                              decoration: BoxDecoration(
+                                color: colorTheme.appBarColor,
+                                border: const Border(
                                   right: BorderSide(
                                     width: 1,
                                     color: Color.fromARGB(255, 40, 57, 68),
                                   ),
                                 ),
                               ),
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      width: 1.2,
-                                      color: colorTheme.iconColor,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'GIF',
-                                    style: TextStyle(
-                                      color: colorTheme.iconColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                              child: const Icon(
+                                Icons.emoji_emotions_outlined,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 30,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                right: BorderSide(
+                                  width: 1,
+                                  color: Color.fromARGB(255, 40, 57, 68),
                                 ),
                               ),
                             ),
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(100.0),
-                                bottomRight: Radius.circular(100.0),
-                              ),
+                            child: Center(
                               child: Container(
-                                height: 30,
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
+                                  horizontal: 6,
+                                  vertical: 3,
                                 ),
-                                child: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  size: 20,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    width: 1.2,
+                                    color: colorTheme.iconColor,
+                                  ),
+                                ),
+                                child: Text(
+                                  'GIF',
+                                  style: TextStyle(
+                                    color: colorTheme.iconColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(100.0),
+                              bottomRight: Radius.circular(100.0),
+                            ),
+                            child: Container(
+                              height: 30,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: const Icon(
+                                Icons.card_giftcard_rounded,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      InkWell(
-                          onTap: _onBackspacePressed,
-                          child: const Icon(Icons.backspace_outlined)),
-                    ],
-                  ),
+                    ),
+                    InkWell(
+                        onTap: _onBackspacePressed,
+                        child: const Icon(Icons.backspace_outlined)),
+                  ],
                 ),
-                const SizedBox(height: 8.0),
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    scrollDirection: Axis.vertical,
-                    padding: config.gridPadding,
-                    itemCount: allEmojis.length,
-                    itemBuilder: (context, index) {
-                      final emojiWrapperRow = allEmojis[index];
-                      if (emojiWrapperRow == null) {
-                        return Container(
-                          margin: const EdgeInsets.only(left: 12),
-                          height: emojiSize,
-                          child: Text(
-                            titleCased(
-                              allEmojis[index + 1]!.first.category.name,
-                            ),
-                            style: TextStyle(
-                              color: colorTheme.greyColor,
-                              fontWeight: FontWeight.w500,
-                            ),
+              ),
+              const SizedBox(height: 8.0),
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  padding: config.gridPadding,
+                  itemCount: allEmojis.length,
+                  itemBuilder: (context, index) {
+                    final emojiWrapperRow = allEmojis[index];
+                    if (emojiWrapperRow == null) {
+                      return Container(
+                        margin: const EdgeInsets.only(left: 12),
+                        height: emojiSize,
+                        child: Text(
+                          titleCased(
+                            allEmojis[index + 1]!.first.category.name,
                           ),
-                        );
-                      }
-                      final emojiRow = <EmojiCell>[];
-                      for (final emojiWrapper in emojiWrapperRow) {
-                        emojiRow.add(
-                          EmojiCell.fromConfig(
-                            emoji: emojiWrapper.emoji,
-                            emojiSize: config.emojiSizeMax,
-                            index: index,
-                            config: config,
-                            onEmojiSelected: (category, emoji) {
-                              state.onEmojiSelected(category, emoji);
-                            },
-                          ),
-                        );
-                      }
-
-                      return SizedBox(
-                        height: emojiSize * 1.6,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 12.0,
-                            left: 12.0,
-                            right: 12.0,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: emojiRow.length < config.columns
-                                ? MainAxisAlignment.start
-                                : MainAxisAlignment.spaceBetween,
-                            children: emojiRow,
+                          style: TextStyle(
+                            color: colorTheme.greyColor,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       );
-                    },
-                  ),
+                    }
+                    final emojiRow = <EmojiCell>[];
+                    for (final emojiWrapper in emojiWrapperRow) {
+                      emojiRow.add(
+                        EmojiCell.fromConfig(
+                          emoji: emojiWrapper.emoji,
+                          emojiSize: config.emojiSizeMax,
+                          index: index,
+                          config: config,
+                          onEmojiSelected: (category, emoji) {
+                            state.onEmojiSelected(category, emoji);
+                          },
+                        ),
+                      );
+                    }
+
+                    return SizedBox(
+                      height: emojiSize * 1.6,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: 12.0,
+                          left: 12.0,
+                          right: 12.0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: emojiRow.length < config.columns
+                              ? MainAxisAlignment.start
+                              : MainAxisAlignment.spaceBetween,
+                          children: emojiRow,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  color: colorTheme.appBarColor,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ...state.categoryEmoji
-                          .map(
-                            (categoryEmoji) =>
-                                categoryEmoji.category == Category.RECENT
-                                    ? Container()
-                                    : InkWell(
-                                        onTap: () {
-                                          handleCategoryIconClick(
-                                            categoryEmoji,
-                                            emojiSize,
-                                          );
-                                        },
-                                        child: CircleAvatar(
-                                          backgroundColor: selectedCategory ==
-                                                  categoryEmoji.category
-                                              ? const Color.fromARGB(
-                                                  124, 60, 82, 96)
-                                              : Colors.transparent,
-                                          foregroundColor: colorTheme.iconColor,
-                                          radius: 16,
-                                          child: Icon(
-                                            config.getIconForCategory(
-                                              categoryEmoji.category,
-                                            ),
-                                            size: 20,
-                                          ),
-                                        ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                color: colorTheme.appBarColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ...state.categoryEmoji
+                        .map(
+                          (categoryEmoji) => categoryEmoji.category ==
+                                  Category.RECENT
+                              ? Container()
+                              : InkWell(
+                                  onTap: () {
+                                    handleCategoryIconClick(
+                                      categoryEmoji,
+                                      emojiSize,
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    backgroundColor: selectedCategory ==
+                                            categoryEmoji.category
+                                        ? const Color.fromARGB(124, 60, 82, 96)
+                                        : Colors.transparent,
+                                    foregroundColor: colorTheme.iconColor,
+                                    radius: 16,
+                                    child: Icon(
+                                      config.getIconForCategory(
+                                        categoryEmoji.category,
                                       ),
-                          )
-                          .toList(),
-                      Container()
-                    ],
-                  ),
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                        )
+                        .toList(),
+                    Container()
+                  ],
                 ),
-                if (Platform.isIOS) const SizedBox(height: 24),
-              ],
-            ),
-          );
-        },
-        config: Config(
-          columns: 8,
-          emojiSizeMax: emojiSize,
-        ),
+              ),
+              if (Platform.isIOS) const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+      config: Config(
+        columns: 8,
+        emojiSizeMax: emojiSize,
       ),
     );
   }

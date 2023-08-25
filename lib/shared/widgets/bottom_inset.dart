@@ -102,7 +102,7 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
             Column(
               children: [
                 const SizedBox(
-                  height: 4.0,
+                  height: 4,
                 ),
                 Stack(
                   children: [
@@ -110,7 +110,8 @@ class _AvoidBottomInsetState extends State<AvoidBottomInset>
                       height: keyboardHeight,
                     ),
                     if (widget.offstage != null) ...[
-                      SizedBox(
+                      Container(
+                        color: Colors.red,
                         height: keyboardHeight,
                         child: widget.offstage!,
                       )
