@@ -48,6 +48,7 @@ dependencies:
   audio_session: ^0.1.16
   camera: ^0.10.5+3
   photo_manager: ^2.7.1
+  google_fonts: ^4.0.4
 
 dev_dependencies:
   flutter_test:

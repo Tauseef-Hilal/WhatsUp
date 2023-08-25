@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
-import '../utils/abc.dart';
-
 class EmojiWrapper {
   const EmojiWrapper({
     required this.emoji,
@@ -33,50 +31,34 @@ class CustomEmojiPicker extends ConsumerStatefulWidget {
 
 class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
   final _scrollController = ScrollController();
-  final Map<Category, List<int>> categoryIndices = {};
+  final Map<Category, double> categoryOffsets = {};
+  final Map<Category, String> categoryNames = {
+    Category.SMILEYS: 'Smileys & People',
+    Category.ANIMALS: 'Animals & Nature',
+    Category.FOODS: 'Food & Drinks',
+    Category.TRAVEL: 'Travel & Places',
+    Category.ACTIVITIES: 'Activity',
+    Category.OBJECTS: 'Objects',
+    Category.SYMBOLS: 'Symbols',
+    Category.FLAGS: 'Flags'
+  };
   List<List<EmojiWrapper>?> allEmojiRows = [null];
-  Category? selectedCategory;
+  Category selectedCategory = Category.SMILEYS;
+
+  double emojiFontSize = 0;
+  final columnCount = 8;
+  final listPadding = 12.0;
+  final headerHeight = 26.0;
+  final rowGap = 6.0;
 
   @override
   void initState() {
-    for (var categoryEmoji in defaultEmojiSet) {
-      var row = <EmojiWrapper>[];
-      int rowCount = 0;
+    _populateEmojiRows();
+    _scrollController.addListener(_scrollListener);
 
-      for (var emoji in categoryEmoji.emoji) {
-        row.add(
-          EmojiWrapper(
-            emoji: emoji,
-            category: categoryEmoji.category,
-          ),
-        );
-
-        if (row.length == 8) {
-          allEmojiRows.add(row);
-          row = [];
-          rowCount++;
-        }
-      }
-
-      if (row.isNotEmpty) {
-        allEmojiRows.add(row);
-        rowCount++;
-      }
-
-      if (categoryEmoji == defaultEmojiSet.last) {
-        categoryIndices[categoryEmoji.category] = [
-          allEmojiRows.length - rowCount - 1,
-          categoryIndices.keys.length
-        ];
-        break;
-      }
-
-      allEmojiRows.add(null);
-      categoryIndices[categoryEmoji.category] = [
-        allEmojiRows.length - rowCount - 2,
-        categoryIndices.keys.length
-      ];
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _calculateCategoryOffsets();
+    });
 
     super.initState();
   }
@@ -87,7 +69,72 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
     super.dispose();
   }
 
-  void _onBackspacePressed() {
+  void _scrollListener() {
+    final offset = _scrollController.offset;
+    Category currentCategory = selectedCategory;
+
+    for (var entry in categoryOffsets.entries) {
+      if (offset < entry.value) break;
+      currentCategory = entry.key;
+    }
+
+    if (selectedCategory == currentCategory) return;
+    setState(() {
+      selectedCategory = currentCategory;
+    });
+  }
+
+  void _populateEmojiRows() {
+    for (var categoryEmoji in defaultEmojiSet) {
+      var row = <EmojiWrapper>[];
+
+      for (var emoji in categoryEmoji.emoji) {
+        row.add(
+          EmojiWrapper(
+            emoji: emoji,
+            category: categoryEmoji.category,
+          ),
+        );
+
+        if (row.length == columnCount) {
+          allEmojiRows.add(row);
+          row = [];
+        }
+      }
+
+      if (row.isNotEmpty) {
+        allEmojiRows.add(row);
+      }
+
+      if (categoryEmoji == defaultEmojiSet.last) break;
+      allEmojiRows.add(null);
+    }
+  }
+
+  void _calculateCategoryOffsets() {
+    double offsetSum = 0;
+
+    for (var (i, emojiRow) in allEmojiRows.indexed) {
+      if (emojiRow == null) {
+        categoryOffsets[allEmojiRows[i + 1]!.first.category] = offsetSum;
+        offsetSum += headerHeight;
+      } else {
+        offsetSum += emojiFontSize * 1.2 + rowGap;
+      }
+    }
+  }
+
+  void _handleCategoryIconClick(
+    CategoryEmoji categoryEmoji,
+    double emojiSize,
+  ) {
+    _scrollController.jumpTo(categoryOffsets[categoryEmoji.category]!);
+    setState(
+      () => selectedCategory = categoryEmoji.category,
+    );
+  }
+
+  void _handleBackspaceClick() {
     final controller = widget.textController;
     final text = controller.value.text;
     var cursorPosition = controller.selection.base.offset;
@@ -117,8 +164,20 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
 
   @override
   Widget build(BuildContext context) {
+    emojiFontSize = (MediaQuery.of(context).size.width - 2 * listPadding) /
+        (columnCount + 3);
+    final emojiSize = emojiFontSize * 1.2;
+
     final colorTheme = Theme.of(context).custom.colorTheme;
-    final emojiSize = MediaQuery.of(context).size.width / 14;
+    final iconColor = Theme.of(context).brightness == Brightness.dark
+        ? colorTheme.iconColor
+        : colorTheme.greyColor;
+    final highlightColor = Theme.of(context).brightness == Brightness.dark
+        ? const Color.fromARGB(124, 60, 82, 96)
+        : const Color.fromARGB(195, 226, 234, 234);
+    final borderColor = Theme.of(context).brightness == Brightness.dark
+        ? const Color.fromARGB(255, 40, 57, 68)
+        : const Color.fromARGB(255, 198, 207, 207);
 
     return EmojiPicker(
       textEditingController: widget.textController,
@@ -144,7 +203,7 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                       decoration: BoxDecoration(
                         border: Border.all(
                           width: 1,
-                          color: const Color.fromARGB(255, 40, 57, 68),
+                          color: borderColor,
                         ),
                         borderRadius: BorderRadius.circular(100.0),
                       ),
@@ -160,20 +219,20 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                               height: 30,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
-                                // vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: colorTheme.appBarColor,
-                                border: const Border(
+                                color: highlightColor,
+                                border: Border(
                                   right: BorderSide(
                                     width: 1,
-                                    color: Color.fromARGB(255, 40, 57, 68),
+                                    color: borderColor,
                                   ),
                                 ),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.emoji_emotions_outlined,
                                 size: 21,
+                                color: colorTheme.textColor1,
                               ),
                             ),
                           ),
@@ -182,11 +241,11 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               border: Border(
                                 right: BorderSide(
                                   width: 1,
-                                  color: Color.fromARGB(255, 40, 57, 68),
+                                  color: borderColor,
                                 ),
                               ),
                             ),
@@ -200,13 +259,13 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     width: 1.2,
-                                    color: colorTheme.iconColor,
+                                    color: iconColor,
                                   ),
                                 ),
                                 child: Text(
                                   'GIF',
                                   style: TextStyle(
-                                    color: colorTheme.iconColor,
+                                    color: iconColor,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -235,7 +294,7 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         width: 1.2,
-                                        color: colorTheme.iconColor,
+                                        color: iconColor,
                                       ),
                                     ),
                                   ),
@@ -243,7 +302,7 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                                     width: 10,
                                     height: 10,
                                     decoration: BoxDecoration(
-                                      color: colorTheme.iconColor,
+                                      color: iconColor,
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(8),
                                         bottomRight: Radius.circular(8),
@@ -258,7 +317,7 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                       ),
                     ),
                     InkWell(
-                        onTap: _onBackspacePressed,
+                        onTap: _handleBackspaceClick,
                         child: const Icon(Icons.backspace_outlined)),
                   ],
                 ),
@@ -266,21 +325,20 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
               const SizedBox(height: 8.0),
               Expanded(
                 child: ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: listPadding),
                   controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.vertical,
-                  padding: config.gridPadding,
                   itemCount: allEmojiRows.length,
                   itemBuilder: (context, index) {
                     final emojiWrapperRow = allEmojiRows[index];
                     if (emojiWrapperRow == null) {
                       return Container(
-                        margin: const EdgeInsets.only(left: 12),
-                        height: emojiSize,
+                        margin: const EdgeInsets.only(left: 4),
+                        height: headerHeight,
                         child: Text(
-                          titleCased(
-                            allEmojiRows[index + 1]!.first.category.name,
-                          ),
+                          categoryNames[
+                              allEmojiRows[index + 1]!.first.category]!,
                           style: TextStyle(
                             color: colorTheme.greyColor,
                             fontWeight: FontWeight.w500,
@@ -288,35 +346,31 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                         ),
                       );
                     }
-                    final emojiRow = <EmojiCell>[];
+                    final emojiRow = <Widget>[];
                     for (final emojiWrapper in emojiWrapperRow) {
                       emojiRow.add(
-                        EmojiCell.fromConfig(
-                          emoji: emojiWrapper.emoji,
-                          emojiSize: config.emojiSizeMax,
-                          index: index,
-                          config: config,
-                          onEmojiSelected: (category, emoji) {
-                            state.onEmojiSelected(category, emoji);
-                          },
+                        SizedBox(
+                          width: emojiSize,
+                          child: EmojiCell.fromConfig(
+                            emoji: emojiWrapper.emoji,
+                            emojiSize: emojiFontSize,
+                            config: config,
+                            onEmojiSelected: (category, emoji) {
+                              state.onEmojiSelected(category, emoji);
+                            },
+                          ),
                         ),
                       );
                     }
 
-                    return SizedBox(
-                      height: emojiSize * 1.6,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 12.0,
-                          left: 12.0,
-                          right: 12.0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: emojiRow.length < config.columns
-                              ? MainAxisAlignment.start
-                              : MainAxisAlignment.spaceBetween,
-                          children: emojiRow,
-                        ),
+                    return Container(
+                      margin: EdgeInsets.only(bottom: rowGap),
+                      height: emojiSize,
+                      child: Row(
+                        mainAxisAlignment: emojiRow.length < config.columns
+                            ? MainAxisAlignment.start
+                            : MainAxisAlignment.spaceBetween,
+                        children: emojiRow,
                       ),
                     );
                   },
@@ -324,37 +378,39 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
-                color: colorTheme.appBarColor,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? colorTheme.appBarColor
+                    : colorTheme.backgroundColor,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ...state.categoryEmoji
                         .map(
-                          (categoryEmoji) => categoryEmoji.category ==
-                                  Category.RECENT
-                              ? Container()
-                              : InkWell(
-                                  onTap: () {
-                                    handleCategoryIconClick(
-                                      categoryEmoji,
-                                      emojiSize,
-                                    );
-                                  },
-                                  child: CircleAvatar(
-                                    backgroundColor: selectedCategory ==
-                                            categoryEmoji.category
-                                        ? const Color.fromARGB(124, 60, 82, 96)
-                                        : Colors.transparent,
-                                    foregroundColor: colorTheme.iconColor,
-                                    radius: 16,
-                                    child: Icon(
-                                      config.getIconForCategory(
-                                        categoryEmoji.category,
+                          (categoryEmoji) =>
+                              categoryEmoji.category == Category.RECENT
+                                  ? Container()
+                                  : InkWell(
+                                      onTap: () {
+                                        _handleCategoryIconClick(
+                                          categoryEmoji,
+                                          emojiFontSize,
+                                        );
+                                      },
+                                      child: CircleAvatar(
+                                        backgroundColor: selectedCategory ==
+                                                categoryEmoji.category
+                                            ? highlightColor
+                                            : Colors.transparent,
+                                        foregroundColor: iconColor,
+                                        radius: 16,
+                                        child: Icon(
+                                          config.getIconForCategory(
+                                            categoryEmoji.category,
+                                          ),
+                                          size: 20,
+                                        ),
                                       ),
-                                      size: 20,
                                     ),
-                                  ),
-                                ),
                         )
                         .toList(),
                     Container()
@@ -367,21 +423,9 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
         );
       },
       config: Config(
-        columns: 8,
-        emojiSizeMax: emojiSize,
+        columns: columnCount,
+        emojiSizeMax: emojiFontSize,
       ),
-    );
-  }
-
-  void handleCategoryIconClick(CategoryEmoji categoryEmoji, double emojiSize) {
-    final [categoryIndex, seenCategoryCount] =
-        categoryIndices[categoryEmoji.category]!;
-    final offset = (categoryIndex * emojiSize * 1.6) -
-        (seenCategoryCount * emojiSize / 1.6);
-
-    _scrollController.jumpTo(offset);
-    setState(
-      () => selectedCategory = categoryEmoji.category,
     );
   }
 }
