@@ -2,6 +2,33 @@
 
 Welcome to the WhatsUp repository! 🎉 This project brings you the closest experience to WhatsApp, crafted with the power of Flutter and Firebase. With features like real-time conversations, efficient media transmission, voice messaging, and robust security, we've recreated the essence of WhatsApp while adding our unique touch. Discover the familiarity you love, paired with exciting enhancements, all in one package.
 
+## Screenshots
+
+<table border='0px'>
+    <tr>
+        <td>
+            <img src='screenshots/emoji.png?raw=true' alt='Emoji Picker' height='520'>
+        </td>
+        <td>
+            <img src='screenshots/home.png?raw=true' alt='Home Page' height='520'>
+        </td>
+        <td>
+            <img src='screenshots/chat.png?raw=true' alt='Chat Page' height='520'>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src='screenshots/document.png?raw=true' alt='Document Upload' height='520'>
+        </td>
+        <td>
+            <img src='screenshots/voice.png?raw=true' alt='Voice Chat' height='520'>
+        </td>
+        <td>
+            <img src='screenshots/gallery.png?raw=true' alt='Gallery' height='520'>
+        </td>
+    </tr>
+</table>
+
 ## Features That Shine ✨
 
 - **Real-time Conversations:** Experience the thrill of real-time messaging, just like you would on your favorite chat apps like WhatsApp.
