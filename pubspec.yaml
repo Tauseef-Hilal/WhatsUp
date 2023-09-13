@@ -58,6 +58,7 @@ dev_dependencies:
   isar_generator: ^3.1.0+1
   build_runner: ^2.4.6
   flutter_native_splash: ^2.3.2
+  flutter_launcher_icons: ^0.13.1
 
 # The following section is specific to Flutter packages.
 flutter:
