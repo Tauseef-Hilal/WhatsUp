@@ -1,59 +1,32 @@
-# 🚀 WhatsUp: The Ultimate WhatsApp Clone
+# WhatsUp: The Ultimate WhatsApp Clone
 
-Welcome to the WhatsUp repository! 🎉 This project brings you the closest experience to WhatsApp, crafted with the power of Flutter and Firebase. With features like real-time conversations, efficient media transmission, voice messaging, and robust security, we've recreated the essence of WhatsApp while adding our unique touch. Discover the familiarity you love, paired with exciting enhancements, all in one package.
+This project brings you the **closest** experience to WhatsApp, crafted with the power of Flutter and Firebase. With features like real-time conversations, efficient media transmission, voice messaging, and robust security, we've recreated the essence of WhatsApp while adding our unique touch. Discover the familiarity you love, paired with exciting enhancements, all in one package.
 
 ## Screenshots
 
-<table border='0px'>
-    <tr>
-        <td>
-            <img src='screenshots/emoji.png?raw=true' alt='Emoji Picker' height='520'>
-        </td>
-        <td>
-            <img src='screenshots/home.png?raw=true' alt='Home Page' height='520'>
-        </td>
-        <td>
-            <img src='screenshots/chat.png?raw=true' alt='Chat Page' height='520'>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img src='screenshots/document.png?raw=true' alt='Document Upload' height='520'>
-        </td>
-        <td>
-            <img src='screenshots/voice.png?raw=true' alt='Voice Chat' height='520'>
-        </td>
-        <td>
-            <img src='screenshots/gallery.png?raw=true' alt='Gallery' height='520'>
-        </td>
-    </tr>
-</table>
+Take a closer look to get to know about some of the app features
 
-## Features That Shine ✨
+<section style='display: grid; gap:10px; justify-content: center; grid-template-columns: repeat(auto-fit, 250px);'>
+    <img src='screenshots/emoji.png?raw=true' alt='Emoji Picker' />
+    <img src='screenshots/home.png?raw=true' alt='Home Page' />
+    <img src='screenshots/chat.png?raw=true' alt='Chat Page' />
+    <img src='screenshots/document.png?raw=true' alt='Document Upload' />
+    <img src='screenshots/voice.png?raw=true' alt='Voice Chat' />
+    <img src='screenshots/gallery.png?raw=true' alt='Gallery' />
+</section>
+<br>
 
-- **Real-time Conversations:** Experience the thrill of real-time messaging, just like you would on your favorite chat apps like WhatsApp.
-- **Message Attachments:** Share and receive images, music, videos, and documents with ease. Our compression technology optimizes storage and bandwidth consumption.
-- **Firebase Magic:** Safeguard your conversations with Firebase, ensuring rock-solid security for your login and messaging experience.
-- **Express Yourself:** Capture the essence of your thoughts with voice messages, adding a personal and dynamic touch to your conversations.
-- **Slick Interface:** Navigate smoothly through our beautifully designed interface, crafted with Flutter to ensure a delightful user journey.
+> **Note**: If screenshots are not visible, you might need a VPN or a different WIFI
+
+## Features That Shine 
+
+- **Real-time Conversations:** Experience real-time messaging, just like you would on your favorite chat apps like WhatsApp.
+- **Message Attachments:** Share and receive images, music, videos, and documents with ease. Our **compression** technology optimizes storage and bandwidth consumption.
+- **Voice Chat:** Capture the essence of your thoughts with voice messages, adding a personal and dynamic touch to your conversations.
+- **Slick Interface:** Navigate smoothly through our beautifully designed interface,  crafted with Flutter to ensure a delightful user experience.
 - **Stay Updated:** Never miss a beat with push notifications that keep you informed even when the app is in the background. Notification work only on Android because APNs requires a paid subscription.
-- **Offline Access:** Enjoy your chats and conversations seamlessly, whether you're online or offline.
-
-## Let's Get Started 🚀
-
-Follow these simple steps to get WhatsUp up and running:
-
-1. **Clone Me:** Start by cloning this repository to your local machine.
-2. **Firebase Setup:** Fire up a Firebase project and activate Firebase Authentication, Firestore and Storage.
-3. **Dependencies Power-Up:** Run `flutter pub get` to install the magic ingredients your project needs.
-4. **Launch Mode:** Ignite the app with `flutter run` and watch it come to life on your chosen device or emulator.
-
-## How the Magic Happens 🪄
-
-1. **Join the Circle:** Sign up or log in using your phone number, and let Firebase Authentication do its thing.
-2. **Chat All You Want:** Engage in real-time conversations that feel just like magic.
-3. **Attachments Unleashed:** Tap the attachment button, choose your media, and follow the breadcrumbs to send. Our image compression optimizes the sharing experience.
-4. **Voice Your Thoughts:** Record and send voice messages by holding down the microphone button while speaking. Release to send your audio gem.
+- **Offline Access:** Access your chats seamlessly, whether you're online or offline.
+- [There's more to come! Stay tuned] (#the-future-is-exciting)
 
 ## Fortified by Firebase Firestore 🌐
 
@@ -65,14 +38,14 @@ In WhatsUp, messages within a chat are stored exclusively on the phones of the c
 
 ## Known Issues
 
-- Attachments not playable when downloaded sometimes
+- Sometimes attachments that were received while in the chat page are not playable
+- Code needs to be improved in some places, especially in the chat page.
 
 ## Contribute and Elevate 🤝
 
 We heartily welcome contributions from the community to elevate the project. Share your insights, submit those bug reports, request features, and send those pull requests to make WhatsUp shine even brighter.
 
-## The Future is Exciting 🌟
-
+## The Future is Exciting
 Exciting enhancements await us on the horizon, including:
 
 - **Voice & Video Calling** Connect face-to-face or chat with your voice using our intuitive video and voice calling features.
@@ -85,9 +58,3 @@ Exciting enhancements await us on the horizon, including:
 - **Your Way, Your Look:** Customization options to make your WhatsUp experience uniquely yours.
 
 Stay tuned for these fantastic updates!
-
-## Help Us Soar 🦅
-
-Join us in making WhatsUp a sensation. Star the repository, fork it, and spread the word on social media.
-
-Thank you for reading. Let the conversations begin! 🗣️📞
