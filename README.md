@@ -6,24 +6,24 @@ This project brings you the **closest** experience to WhatsApp, crafted with the
 
 Take a closer look to get to know about some of the app features
 
-<section style='display: grid; gap:10px; justify-content: center; grid-template-columns: repeat(auto-fit, 250px);'>
-    <img src='screenshots/emoji.png?raw=true' alt='Emoji Picker' />
-    <img src='screenshots/home.png?raw=true' alt='Home Page' />
-    <img src='screenshots/chat.png?raw=true' alt='Chat Page' />
-    <img src='screenshots/document.png?raw=true' alt='Document Upload' />
-    <img src='screenshots/voice.png?raw=true' alt='Voice Chat' />
-    <img src='screenshots/gallery.png?raw=true' alt='Gallery' />
+<section>
+    <img src='screenshots/emoji.png?raw=true' alt='Emoji Picker' width='250px' />
+    <img src='screenshots/home.png?raw=true' alt='Home Page' width='250px' />
+    <img src='screenshots/chat.png?raw=true' alt='Chat Page' width='250px' />
+    <img src='screenshots/document.png?raw=true' alt='Document Upload' width='250px' />
+    <img src='screenshots/voice.png?raw=true' alt='Voice Chat' width='250px' />
+    <img src='screenshots/gallery.png?raw=true' alt='Gallery' width='250px' />
 </section>
 <br>
 
 > **Note**: If screenshots are not visible, you might need a VPN or a different WIFI
 
-## Features That Shine 
+## Features That Shine
 
 - **Real-time Conversations:** Experience real-time messaging, just like you would on your favorite chat apps like WhatsApp.
 - **Message Attachments:** Share and receive images, music, videos, and documents with ease. Our **compression** technology optimizes storage and bandwidth consumption.
 - **Voice Chat:** Capture the essence of your thoughts with voice messages, adding a personal and dynamic touch to your conversations.
-- **Slick Interface:** Navigate smoothly through our beautifully designed interface,  crafted with Flutter to ensure a delightful user experience.
+- **Slick Interface:** Navigate smoothly through our beautifully designed interface, crafted with Flutter to ensure a delightful user experience.
 - **Stay Updated:** Never miss a beat with push notifications that keep you informed even when the app is in the background. Notification work only on Android because APNs requires a paid subscription.
 - **Offline Access:** Access your chats seamlessly, whether you're online or offline.
 - [There's more to come! Stay tuned] (#the-future-is-exciting)
@@ -46,6 +46,7 @@ In WhatsUp, messages within a chat are stored exclusively on the phones of the c
 We heartily welcome contributions from the community to elevate the project. Share your insights, submit those bug reports, request features, and send those pull requests to make WhatsUp shine even brighter.
 
 ## The Future is Exciting
+
 Exciting enhancements await us on the horizon, including:
 
 - **Voice & Video Calling** Connect face-to-face or chat with your voice using our intuitive video and voice calling features.
