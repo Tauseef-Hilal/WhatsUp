@@ -10,8 +10,8 @@ import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../shared/models/user.dart';
 
-const _resendFactor = 2;
-const _resendInitial = 10;
+const _resendFactor = 5;
+const _resendInitial = 60;
 
 final resendTimerControllerProvider =
     AutoDisposeStateNotifierProvider<ResendTimerController, int>(
