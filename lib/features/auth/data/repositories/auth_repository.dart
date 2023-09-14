@@ -49,6 +49,7 @@ class FirebaseAuthRepository implements AuthenticationRepository {
         // NOT IMPLEMENTED YET
       },
       verificationFailed: (FirebaseAuthException e) {
+        Navigator.pop(context);
         showSnackBar(
           context: context,
           content: e.message!,

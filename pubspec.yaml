@@ -1,7 +1,7 @@
 name: whatsapp_clone
 description: Flutter WhatsApp Clone
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.0.0+1
+publish_to: "none"
+version: 0.1.0
 
 environment:
   sdk: ">=3.0.0"
