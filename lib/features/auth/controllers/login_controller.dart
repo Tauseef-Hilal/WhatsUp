@@ -2,11 +2,13 @@ import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone_number/phone_number.dart';
-import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/countries.dart';
 import 'package:whatsapp_clone/shared/utils/abc.dart';
 import 'package:whatsapp_clone/shared/widgets/dialogs.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
+
+import '../../../shared/models/user.dart';
+import '../views/verification.dart';
 
 final defaultCountryProvider = Provider(
   (ref) => Country(
@@ -212,13 +214,34 @@ class LoginController extends StateNotifier<Country> {
           actionCallbacks: {
             'EDIT': () => Navigator.of(context).pop(),
             'OK': () async {
-              final authController = ref.read(
-                authControllerProvider,
+              // final authController = ref.read(
+              //   authControllerProvider,
+              // );
+
+              // await authController.sendVerificationCode(
+              //   context,
+              //   phoneNumberWithCode,
+              // );
+              final formattedPhoneNumber =
+                  '+${state.phoneCode.trim()} ${phoneNumberController.text.trim()}';
+              final phone = Phone(
+                code: '+${state.phoneCode.trim()}',
+                number: ref
+                    .read(loginControllerProvider.notifier)
+                    .phoneNumberController
+                    .text
+                    .replaceAll(' ', '')
+                    .replaceAll('-', '')
+                    .replaceAll('(', '')
+                    .replaceAll(')', ''),
+                formattedNumber: formattedPhoneNumber,
               );
 
-              await authController.sendVerificationCode(
-                context,
-                phoneNumberWithCode,
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => VerificationPage(phone: phone),
+                ),
+                (route) => false,
               );
             },
           },

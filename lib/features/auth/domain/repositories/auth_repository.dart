@@ -11,6 +11,7 @@ abstract class AuthenticationRepository {
     BuildContext context,
     ProviderRef ref,
     String phoneNumber,
+    void Function(String code) onCodeSent
   );
 
   Future<bool> registerUser(Map<String, dynamic> userData);

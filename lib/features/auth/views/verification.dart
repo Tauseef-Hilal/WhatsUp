@@ -27,8 +27,12 @@ class VerificationPage extends ConsumerStatefulWidget {
 class _VerificationPageState extends ConsumerState<VerificationPage> {
   @override
   void initState() {
-    ref.read(verificationControllerProvider).init();
-    ref.read(resendTimerControllerProvider.notifier).init();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(verificationControllerProvider).init(
+            context,
+            widget.phone.rawNumber,
+          );
+    });
 
     super.initState();
   }
@@ -261,11 +265,6 @@ class _OTPFieldState extends ConsumerState<OTPField> {
               maxLength: 7,
               autofocus: true,
               onChanged: (value) {
-                if (value.length == 7) {
-                  widget.onFilled(value.replaceAll(' ', ''));
-                  return;
-                }
-
                 String newValue = value;
                 TextSelection selection = _textController.selection;
                 int cursorPosition = selection.baseOffset;
@@ -283,6 +282,11 @@ class _OTPFieldState extends ConsumerState<OTPField> {
                   text: newValue,
                   selection: TextSelection.collapsed(offset: cursorPosition),
                 );
+
+                if (newValue.length == 7) {
+                  widget.onFilled(newValue.replaceAll(' ', ''));
+                  return;
+                }
               },
               controller: _textController,
               style: textStyle,

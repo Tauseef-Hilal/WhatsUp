@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/domain/repositories/auth_repository.dart';
 import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 
@@ -42,6 +41,7 @@ class FirebaseAuthRepository implements AuthenticationRepository {
     BuildContext context,
     ProviderRef ref,
     String phoneNumber,
+    void Function(String code) onCodeSent,
   ) async {
     await auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
@@ -56,7 +56,13 @@ class FirebaseAuthRepository implements AuthenticationRepository {
         );
       },
       codeSent: (String verificationId, int? resendToken) {
-        ref.read(verificationCodeProvider.notifier).state = verificationId;
+        onCodeSent(verificationId);
+        Navigator.pop(context);
+        showSnackBar(
+          context: context,
+          content: "OTP Sent!",
+          type: SnacBarType.info,
+        );
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );

@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 
 import 'package:whatsapp_clone/features/auth/controllers/login_controller.dart';
-import 'package:whatsapp_clone/features/auth/views/verification.dart';
 
 import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
-import 'package:whatsapp_clone/shared/utils/snackbars.dart';
 import 'package:whatsapp_clone/shared/widgets/buttons.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
-
-import '../../../shared/models/user.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -40,35 +35,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(verificationCodeProvider, (previous, next) {
-      final formattedPhoneNumber =
-          '+${ref.read(loginControllerProvider).phoneCode.trim()} ${ref.read(loginControllerProvider.notifier).phoneNumberController.text.trim()}';
-      final phone = Phone(
-        code: '+${ref.read(loginControllerProvider).phoneCode.trim()}',
-        number: ref
-            .read(loginControllerProvider.notifier)
-            .phoneNumberController
-            .text
-            .replaceAll(' ', '')
-            .replaceAll('-', '')
-            .replaceAll('(', '')
-            .replaceAll(')', ''),
-        formattedNumber: formattedPhoneNumber,
-      );
+    // ref.listen(verificationCodeProvider, (previous, next) {
+    //   final formattedPhoneNumber =
+    //       '+${ref.read(loginControllerProvider).phoneCode.trim()} ${ref.read(loginControllerProvider.notifier).phoneNumberController.text.trim()}';
+    //   final phone = Phone(
+    //     code: '+${ref.read(loginControllerProvider).phoneCode.trim()}',
+    //     number: ref
+    //         .read(loginControllerProvider.notifier)
+    //         .phoneNumberController
+    //         .text
+    //         .replaceAll(' ', '')
+    //         .replaceAll('-', '')
+    //         .replaceAll('(', '')
+    //         .replaceAll(')', ''),
+    //     formattedNumber: formattedPhoneNumber,
+    //   );
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => VerificationPage(phone: phone),
-        ),
-        (route) => false,
-      );
+    //   Navigator.of(context).pushAndRemoveUntil(
+    //     MaterialPageRoute(
+    //       builder: (context) => VerificationPage(phone: phone),
+    //     ),
+    //     (route) => false,
+    //   );
 
-      showSnackBar(
-        context: context,
-        content: "OTP Sent!",
-        type: SnacBarType.info,
-      );
-    });
+    // });
 
     final screenWidth = MediaQuery.of(context).size.width;
     final selectedCountry = ref.watch(loginControllerProvider);

@@ -32,14 +32,14 @@ class AuthController {
   Future<void> sendVerificationCode(
     BuildContext context,
     String phoneNumber,
+    void Function(String code) onCodeSent,
   ) async {
-    phoneNumber = phoneNumber
-        .replaceAll('-', ' ')
-        .replaceAll('(', '')
-        .replaceAll(')', '')
-        .replaceAll(' ', '');
-
-    await authRepository.signInWithPhone(context, ref, phoneNumber);
+    await authRepository.signInWithPhone(
+      context,
+      ref,
+      phoneNumber,
+      onCodeSent,
+    );
   }
 
   Future<User> saveUserData(

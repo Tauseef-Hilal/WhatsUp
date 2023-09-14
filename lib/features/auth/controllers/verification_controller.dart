@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/domain/auth_service.dart';
 import 'package:whatsapp_clone/features/auth/views/user_details.dart';
+import 'package:whatsapp_clone/shared/utils/shared_pref.dart';
 
 import 'package:whatsapp_clone/theme/theme.dart';
 
@@ -22,24 +23,20 @@ class ResendTimerController extends StateNotifier<int> {
 
   AutoDisposeStateNotifierProviderRef ref;
   int _resendCount = 1;
-
-  late Timer _resendTimer;
-
+  Timer _resendTimer = Timer(Duration.zero, () {});
   int get resendCount => _resendCount;
-
-  void init() {
-    updateTimer();
-  }
 
   @override
   void dispose() {
-    if (_resendTimer.isActive) _resendTimer.cancel();
+    if (_resendTimer.isActive) {
+      _resendTimer.cancel();
+    }
     super.dispose();
   }
 
   bool get isTimerActive => _resendTimer.isActive;
 
-  void updateTimer() {
+  void updateTimer([bool saveTimestamp = true]) {
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state == 0) {
         timer.cancel();
@@ -49,7 +46,26 @@ class ResendTimerController extends StateNotifier<int> {
       }
     });
 
+    if (saveTimestamp) {
+      SharedPref.instance
+        ..setInt(
+          'resendTime',
+          _resendCount * _resendInitial * _resendFactor,
+        )
+        ..setString(
+          'resendTimestamp',
+          DateTime.now().millisecondsSinceEpoch.toString(),
+        );
+    }
     _resendCount++;
+  }
+
+  void setState(int time) {
+    state = time;
+  }
+
+  void setCount(int count) {
+    _resendCount = count;
   }
 }
 
@@ -63,22 +79,106 @@ class VerificationController {
   ProviderRef ref;
   late String _verificationCode;
 
-  void init() {
-    _verificationCode = ref.read(verificationCodeProvider);
+  void init(BuildContext context, String phoneNumber) async {
+    final resendTime = SharedPref.instance.getInt('resendTime');
+    final resendTimestamp =
+        int.parse(SharedPref.instance.getString('resendTimestamp') ?? '0') ~/
+            1000;
+    final elapsedTime =
+        DateTime.now().millisecondsSinceEpoch ~/ 1000 - resendTimestamp;
+    final remainingTime = (resendTime ?? 0) - elapsedTime;
+
+    if (resendTime == null || remainingTime < 1) {
+      if (resendTime != null && elapsedTime < 3600) {
+        final count = (resendTime ~/ (_resendFactor * _resendInitial)) + 1;
+        ref.read(resendTimerControllerProvider.notifier)
+          ..setCount(count)
+          ..setState(count * _resendFactor * _resendInitial);
+      } else {
+        ref.read(resendTimerControllerProvider.notifier)
+          ..setCount(1)
+          ..setState(_resendInitial);
+      }
+
+      await sendVerificationCode(context, phoneNumber);
+      return;
+    }
+
+    ref.read(resendTimerControllerProvider.notifier)
+      ..setState(remainingTime)
+      ..setCount(resendTime ~/ (_resendFactor * _resendInitial))
+      ..updateTimer();
   }
 
   void updateVerificationCode(String verificationCode) {
     _verificationCode = verificationCode;
+    ref.read(resendTimerControllerProvider.notifier).updateTimer();
   }
 
   void onResendPressed(BuildContext context, String phoneNumber) async {
-    final authController = ref.read(
-      authControllerProvider,
-    );
+    await sendVerificationCode(context, phoneNumber);
+  }
 
-    await authController.sendVerificationCode(
-      context,
-      phoneNumber,
+  Future<void> sendVerificationCode(
+    BuildContext context,
+    String phoneNumber,
+  ) async {
+    final colorTheme = Theme.of(context).custom.colorTheme;
+
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return FutureBuilder<void>(future: () async {
+          final authController = ref.read(
+            authControllerProvider,
+          );
+
+          await authController.sendVerificationCode(
+            context,
+            phoneNumber,
+            updateVerificationCode,
+          );
+        }(), builder: (context, snapshot) {
+          String? text;
+          Widget? widget;
+
+          if (snapshot.hasError) {
+            text = 'Oops! an error occured';
+            widget = Icon(
+              Icons.cancel,
+              color: colorTheme.errorSnackBarColor,
+              size: 38.0,
+            );
+
+            Future.delayed(const Duration(seconds: 2), () {
+              Navigator.of(context).pop();
+            });
+          }
+
+          return AlertDialog(
+            actionsPadding: const EdgeInsets.all(0),
+            content: Row(
+              children: [
+                widget ??
+                    CircularProgressIndicator(
+                      color: colorTheme.greenColor,
+                    ),
+                const SizedBox(
+                  width: 24.0,
+                ),
+                Text(
+                  text ?? 'Connecting',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(fontSize: 16.0),
+                ),
+              ],
+            ),
+          );
+        });
+      },
     );
   }
 
@@ -105,6 +205,10 @@ class VerificationController {
                 );
 
                 Future.delayed(const Duration(seconds: 2), () {
+                  SharedPref.instance.setInt(
+                    'resendTime',
+                    0,
+                  );
                   Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (context) => UserProfileCreationPage(
