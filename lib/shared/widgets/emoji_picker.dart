@@ -165,7 +165,7 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
   @override
   Widget build(BuildContext context) {
     emojiFontSize = (MediaQuery.of(context).size.width - 2 * listPadding) /
-        (columnCount + 3);
+        (columnCount + 5);
     final emojiSize = emojiFontSize * 1.2;
 
     final colorTheme = Theme.of(context).custom.colorTheme;
