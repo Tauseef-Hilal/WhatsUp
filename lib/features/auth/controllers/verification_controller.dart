@@ -10,8 +10,8 @@ import 'package:whatsapp_clone/theme/theme.dart';
 
 import '../../../shared/models/user.dart';
 
-const _resendFactor = 5;
-const _resendInitial = 60;
+const _resendFactor = 2;
+const _resendInitial = 10;
 
 final resendTimerControllerProvider =
     AutoDisposeStateNotifierProvider<ResendTimerController, int>(
@@ -48,16 +48,14 @@ class ResendTimerController extends StateNotifier<int> {
 
     if (saveTimestamp) {
       SharedPref.instance
-        ..setInt(
-          'resendTime',
-          _resendCount * _resendInitial * _resendFactor,
-        )
+        ..setInt('resendTime', state)
         ..setString(
           'resendTimestamp',
           DateTime.now().millisecondsSinceEpoch.toString(),
         );
+
+      _resendCount++;
     }
-    _resendCount++;
   }
 
   void setState(int time) {
@@ -90,7 +88,8 @@ class VerificationController {
 
     if (resendTime == null || remainingTime < 1) {
       if (resendTime != null && elapsedTime < 3600) {
-        final count = (resendTime ~/ (_resendFactor * _resendInitial)) + 1;
+        int count = resendTime ~/ (_resendFactor * _resendInitial) + 1;
+
         ref.read(resendTimerControllerProvider.notifier)
           ..setCount(count)
           ..setState(count * _resendFactor * _resendInitial);
@@ -104,10 +103,12 @@ class VerificationController {
       return;
     }
 
+    int count = resendTime ~/ (_resendFactor * _resendInitial) + 1;
+
     ref.read(resendTimerControllerProvider.notifier)
       ..setState(remainingTime)
-      ..setCount(resendTime ~/ (_resendFactor * _resendInitial))
-      ..updateTimer();
+      ..setCount(count)
+      ..updateTimer(false);
   }
 
   void updateVerificationCode(String verificationCode) {

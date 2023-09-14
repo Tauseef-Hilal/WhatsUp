@@ -35,31 +35,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ref.listen(verificationCodeProvider, (previous, next) {
-    //   final formattedPhoneNumber =
-    //       '+${ref.read(loginControllerProvider).phoneCode.trim()} ${ref.read(loginControllerProvider.notifier).phoneNumberController.text.trim()}';
-    //   final phone = Phone(
-    //     code: '+${ref.read(loginControllerProvider).phoneCode.trim()}',
-    //     number: ref
-    //         .read(loginControllerProvider.notifier)
-    //         .phoneNumberController
-    //         .text
-    //         .replaceAll(' ', '')
-    //         .replaceAll('-', '')
-    //         .replaceAll('(', '')
-    //         .replaceAll(')', ''),
-    //     formattedNumber: formattedPhoneNumber,
-    //   );
-
-    //   Navigator.of(context).pushAndRemoveUntil(
-    //     MaterialPageRoute(
-    //       builder: (context) => VerificationPage(phone: phone),
-    //     ),
-    //     (route) => false,
-    //   );
-
-    // });
-
     final screenWidth = MediaQuery.of(context).size.width;
     final selectedCountry = ref.watch(loginControllerProvider);
     final colorTheme = Theme.of(context).custom.colorTheme;

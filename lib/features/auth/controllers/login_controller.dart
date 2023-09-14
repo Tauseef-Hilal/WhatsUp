@@ -214,14 +214,6 @@ class LoginController extends StateNotifier<Country> {
           actionCallbacks: {
             'EDIT': () => Navigator.of(context).pop(),
             'OK': () async {
-              // final authController = ref.read(
-              //   authControllerProvider,
-              // );
-
-              // await authController.sendVerificationCode(
-              //   context,
-              //   phoneNumberWithCode,
-              // );
               final formattedPhoneNumber =
                   '+${state.phoneCode.trim()} ${phoneNumberController.text.trim()}';
               final phone = Phone(
