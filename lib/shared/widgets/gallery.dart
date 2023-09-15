@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:whatsapp_clone/theme/theme.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/views/attachment_sender.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
-import 'package:whatsapp_clone/theme/theme.dart';
 
 final galleryStateProvider =
     AutoDisposeStateNotifierProvider<GalleryStateController, GalleryState>(
@@ -91,7 +91,7 @@ class GalleryStateController extends StateNotifier<GalleryState> {
       ),
     );
 
-    final attachments = await ref
+    final attachments = ref
         .read(chatControllerProvider.notifier)
         .createAttachmentsFromFiles(files);
 
@@ -108,7 +108,7 @@ class GalleryStateController extends StateNotifier<GalleryState> {
     final returnedAttachments = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AttachmentMessageSender(
-          attachments: List.from(attachments),
+          attachmentsFuture: attachments,
           tags: selectedAssets.map((e) => e.asset.id).toList(),
         ),
       ),
@@ -116,9 +116,10 @@ class GalleryStateController extends StateNotifier<GalleryState> {
 
     if (returnedAttachments == null) return;
     final newSelectedAssets = <AssetWrapper>[];
+    final awaitedAttachments = await attachments;
 
-    for (var i = 0; i < attachments.length; i++) {
-      if (returnedAttachments.contains(attachments[i])) {
+    for (var i = 0; i < awaitedAttachments.length; i++) {
+      if (returnedAttachments.contains(awaitedAttachments[i])) {
         newSelectedAssets.add(selectedAssets[i]);
       }
     }
@@ -135,7 +136,7 @@ class AssetWrapper {
   const AssetWrapper({required this.asset, required this.thumbnail});
 
   final AssetEntity asset;
-  final Uint8List thumbnail;
+  final Uint8List? thumbnail;
 }
 
 class AlbumWrapper {
@@ -335,11 +336,7 @@ class _GalleryState extends ConsumerState<Gallery>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  AlbumView(
-                    showAlbumName: false,
-                    album: recentAlbum?.album,
-                    albumTitle: 'Recents',
-                  ),
+                  Recents(recentAlbum: recentAlbum),
                   AlbumsTab(albums: snap.data!),
                 ],
               ),
@@ -347,6 +344,33 @@ class _GalleryState extends ConsumerState<Gallery>
           },
         ),
       ),
+    );
+  }
+}
+
+class Recents extends StatefulWidget {
+  const Recents({
+    super.key,
+    required this.recentAlbum,
+  });
+
+  final AlbumWrapper? recentAlbum;
+
+  @override
+  State<Recents> createState() => _RecentsState();
+}
+
+class _RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return AlbumView(
+      showAlbumName: false,
+      album: widget.recentAlbum?.album,
+      albumTitle: 'Recents',
     );
   }
 }
@@ -478,50 +502,73 @@ class AlbumView extends ConsumerStatefulWidget {
 }
 
 class _AlbumViewState extends ConsumerState<AlbumView> {
-  late final Stream<List<AssetWrapper>> _assetsFuture;
+  late final Future<void> _assetsFuture;
+  final List<AssetWrapper> _assets = [];
+  final assetsPerPage = 40;
+  final _scrollController = ScrollController(keepScrollOffset: true);
+  int page = 0;
+  bool isLoading = true;
 
   @override
   void initState() {
     if (widget.album != null) {
-      _assetsFuture = loadAssets(widget.album!);
+      _assetsFuture = loadAssetsPaged(page);
     }
 
+    _scrollController.addListener(_scrollListener);
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant AlbumView oldWidget) {
     if (oldWidget.album == null && widget.album != null) {
-      _assetsFuture = loadAssets(widget.album!);
+      _assetsFuture = loadAssetsPaged(page);
     }
 
     super.didUpdateWidget(oldWidget);
   }
 
-  Stream<List<AssetWrapper>> loadAssets(AssetPathEntity album) async* {
-    final allAssets = await album.getAssetListRange(
-      start: 0,
-      end: 999999,
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> loadAssetsPaged(int pageNo) async {
+    final assetsForPage = await widget.album!.getAssetListPaged(
+      page: pageNo,
+      size: assetsPerPage,
     );
 
-    final thumbnails = allAssets
-        .map(
-          (e) => e.thumbnailDataWithSize(
+    final thumbnails = await Future.wait(assetsForPage.map(
+      (e) => e
+          .thumbnailDataWithSize(
             const ThumbnailSize.square(300),
             quality: 100,
-          ),
-        )
-        .toList();
+          )
+          .onError((_, __) => null),
+    ));
 
-    final assets = <AssetWrapper>[];
-    for (var i = 0; i < allAssets.length; i++) {
-      final asset = allAssets[i];
-
-      assets.add(
-        AssetWrapper(asset: asset, thumbnail: (await thumbnails[i])!),
+    for (var i = 0; i < assetsForPage.length; i++) {
+      final asset = assetsForPage[i];
+      _assets.add(
+        AssetWrapper(asset: asset, thumbnail: thumbnails[i]),
       );
+    }
 
-      yield assets;
+    setState(() {
+      page = pageNo;
+      isLoading = false;
+    });
+  }
+
+  void _scrollListener() {
+    if (isLoading) return;
+    if (_scrollController.position.maxScrollExtent - _scrollController.offset <
+        600) {
+      setState(() => isLoading = true);
+      loadAssetsPaged(page + 1);
     }
   }
 
@@ -598,32 +645,45 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
           return true;
         },
         child: SafeArea(
-          child: Stack(
+          child: Column(
             children: [
               widget.album != null
-                  ? StreamBuilder(
-                      stream: _assetsFuture,
+                  ? FutureBuilder(
+                      future: _assetsFuture,
                       builder: (context, snap) {
-                        if (!snap.hasData) {
+                        if (snap.connectionState == ConnectionState.waiting) {
                           return Container();
                         }
 
-                        final assets = snap.data!;
-                        return GridView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          shrinkWrap: true,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 2,
-                            crossAxisSpacing: 2,
+                        return Expanded(
+                          child: GridView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            controller: _scrollController,
+                            shrinkWrap: true,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 2,
+                              crossAxisSpacing: 2,
+                            ),
+                            itemCount: _assets.length,
+                            itemBuilder: (context, index) {
+                              if (index >= _assets.length) {
+                                return Container(
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColorsDark.appBarColor
+                                      : const Color.fromARGB(
+                                          172, 231, 231, 231),
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                );
+                              }
+                              return AlbumItem(
+                                assetWrapper: _assets[index],
+                              );
+                            },
                           ),
-                          itemCount: assets.length,
-                          itemBuilder: (context, index) {
-                            return AlbumItem(
-                              assetWrapper: assets[index],
-                            );
-                          },
                         );
                       },
                     )
@@ -651,10 +711,13 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
                                   child: SizedBox(
                                     width: 40,
                                     height: 40,
-                                    child: Image.memory(
-                                      selectedAssets[index].thumbnail,
-                                      fit: BoxFit.cover,
-                                    ),
+                                    child: selectedAssets[index].thumbnail !=
+                                            null
+                                        ? Image.memory(
+                                            selectedAssets[index].thumbnail!,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
                                   ),
                                 ),
                               );
@@ -755,15 +818,14 @@ class FadeInThumbnail extends StatefulWidget {
     this.heroTag,
   });
 
-  final Uint8List thumbnail;
+  final Uint8List? thumbnail;
   final String? heroTag;
 
   @override
   State<FadeInThumbnail> createState() => _FadeInThumbnailState();
 }
 
-class _FadeInThumbnailState extends State<FadeInThumbnail>
-    with AutomaticKeepAliveClientMixin {
+class _FadeInThumbnailState extends State<FadeInThumbnail> {
   double opacity = 0;
 
   @override
@@ -779,33 +841,34 @@ class _FadeInThumbnailState extends State<FadeInThumbnail>
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
-    final image = Image.memory(
-      widget.thumbnail,
-      width: double.infinity,
-      height: double.infinity,
-      fit: BoxFit.cover,
-    );
+    Image? image;
+    if (widget.thumbnail != null) {
+      image = Image.memory(
+        widget.thumbnail!,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
 
     return Container(
       color: Theme.of(context).brightness == Brightness.dark
           ? AppColorsDark.appBarColor
-          : const Color.fromARGB(221, 255, 255, 255),
+          : const Color.fromARGB(172, 231, 231, 231),
       width: double.infinity,
       height: double.infinity,
       child: AnimatedOpacity(
         opacity: opacity,
         duration: const Duration(milliseconds: 300),
-        child: widget.heroTag != null
-            ? Hero(
-                tag: widget.heroTag!,
-                child: image,
-              )
-            : image,
+        child: image == null
+            ? Container()
+            : widget.heroTag != null
+                ? Hero(
+                    tag: widget.heroTag!,
+                    child: image,
+                  )
+                : image,
       ),
     );
   }

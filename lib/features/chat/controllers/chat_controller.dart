@@ -466,7 +466,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return null;
     }
 
-    final attachments = await createAttachmentsFromFiles(files);
+    final attachments = createAttachmentsFromFiles(files);
     if (returnAttachments) {
       Navigator.pop(key.currentContext!);
       return attachments;
@@ -489,7 +489,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return;
     }
 
-    final attachments = await createAttachmentsFromFiles(files);
+    final attachments = createAttachmentsFromFiles(files);
 
     if (!mounted) return;
     Navigator.pop(key.currentContext!);
@@ -508,7 +508,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       return null;
     }
 
-    final attachments = await createAttachmentsFromFiles(
+    final attachments = createAttachmentsFromFiles(
       files,
       areDocuments: true,
     );
@@ -592,12 +592,12 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
 
   void navigateToAttachmentSender(
     BuildContext context,
-    List<Attachment> attachments,
+    Future<List<Attachment>> attachments,
   ) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => AttachmentMessageSender(
-          attachments: attachments,
+          attachmentsFuture: attachments,
         ),
       ),
     );

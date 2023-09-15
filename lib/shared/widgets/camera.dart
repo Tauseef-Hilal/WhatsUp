@@ -86,7 +86,7 @@ class CameraViewState extends ConsumerState<CameraView>
       file = await _controller.takePicture();
       if (!mounted) return;
 
-      final result = await ref
+      final result = ref
           .read(chatControllerProvider.notifier)
           .createAttachmentsFromFiles([File(file.path)]);
 
@@ -108,7 +108,7 @@ class CameraViewState extends ConsumerState<CameraView>
     progressNotifier.value = 0;
 
     if (!mounted) return;
-    final result = await ref
+    final result = ref
         .read(chatControllerProvider.notifier)
         .createAttachmentsFromFiles([File(file.path)]);
 
@@ -116,11 +116,11 @@ class CameraViewState extends ConsumerState<CameraView>
     setState(() => isRecording = false);
   }
 
-  void navigateToSender(List<Attachment> attachments) {
+  void navigateToSender(Future<List<Attachment>> attachments) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AttachmentMessageSender(
-          attachments: attachments,
+          attachmentsFuture: attachments,
         ),
       ),
     );

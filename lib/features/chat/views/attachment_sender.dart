@@ -20,11 +20,11 @@ import '../models/message.dart';
 class AttachmentMessageSender extends ConsumerStatefulWidget {
   const AttachmentMessageSender({
     super.key,
-    required this.attachments,
+    required this.attachmentsFuture,
     this.tags,
   });
 
-  final List<Attachment> attachments;
+  final Future<List<Attachment>> attachmentsFuture;
   final List<String>? tags;
 
   @override
@@ -38,16 +38,15 @@ class _AttachmentMessageSenderState
   late User other;
   late Attachment current;
   late List<TextEditingController> controllers;
-  bool isKeyboardVisible = false;
-  late List<Attachment> attachments = widget.attachments;
+  late List<Attachment> attachments;
   late StreamSubscription<bool> keyboardListener;
+  late final attachmentsFuture = awaitAttachments();
+  bool isKeyboardVisible = false;
 
   @override
   void initState() {
     self = ref.read(chatControllerProvider.notifier).self;
     other = ref.read(chatControllerProvider.notifier).other;
-    current = attachments[0];
-    controllers = attachments.map((_) => TextEditingController()).toList();
 
     keyboardListener = KeyboardVisibilityController().onChange.listen(
       (event) {
@@ -69,6 +68,12 @@ class _AttachmentMessageSenderState
     }
 
     super.dispose();
+  }
+
+  Future<void> awaitAttachments() async {
+    attachments = await widget.attachmentsFuture;
+    controllers = attachments.map((_) => TextEditingController()).toList();
+    current = attachments[0];
   }
 
   Future<void> addNewAttachments() async {
@@ -166,14 +171,6 @@ class _AttachmentMessageSenderState
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
-    final currentType = current.type;
-    final currentImageRenderer = AttachmentRenderer(
-      attachment: current.file!,
-      attachmentType: currentType,
-      fit: BoxFit.contain,
-      controllable: true,
-    );
-
     return WillPopScope(
       onWillPop: () async {
         Navigator.of(context).pop(attachments);
@@ -186,146 +183,178 @@ class _AttachmentMessageSenderState
             : const Color.fromARGB(236, 225, 233, 235),
         body: Stack(
           children: [
-            Center(
-              child: KeyboardDismissOnTap(
-                child: widget.tags != null
-                    ? Hero(
-                        tag: widget.tags![attachments.indexOf(current)],
-                        child: currentImageRenderer,
-                      )
-                    : currentImageRenderer,
-              ),
-            ),
-            AvoidBottomInset(
-              conditions: const [false],
-              child: Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 48),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+            FutureBuilder(
+                future: attachmentsFuture,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  final currentType = current.type;
+                  final currentImageRenderer = AttachmentRenderer(
+                    attachment: current.file!,
+                    attachmentType: currentType,
+                    fit: BoxFit.contain,
+                    controllable: true,
+                  );
+
+                  return Stack(
                     children: [
-                      ListTile(
-                        leading: GestureDetector(
-                          onTap: () => Navigator.of(context).pop(attachments),
-                          child: const CircleAvatar(
-                            backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                            foregroundColor: Colors.white,
-                            child: Icon(
-                              Icons.close,
-                            ),
-                          ),
-                        ),
-                        trailing: const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                              foregroundColor: Colors.white,
-                              child: Icon(Icons.crop),
-                            ),
-                            SizedBox(width: 8),
-                            CircleAvatar(
-                              backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                              foregroundColor: Colors.white,
-                              child: Icon(Icons.sticky_note_2),
-                            ),
-                            SizedBox(width: 8),
-                            CircleAvatar(
-                              backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                              foregroundColor: Colors.white,
-                              child: Icon(Icons.text_format_outlined),
-                            ),
-                            SizedBox(width: 8),
-                            CircleAvatar(
-                              backgroundColor: Color.fromARGB(100, 0, 0, 0),
-                              foregroundColor: Colors.white,
-                              child: Icon(Icons.draw),
-                            ),
-                          ],
+                      Center(
+                        child: KeyboardDismissOnTap(
+                          child: widget.tags != null
+                              ? Hero(
+                                  tag: widget
+                                      .tags![attachments.indexOf(current)],
+                                  child: currentImageRenderer,
+                                )
+                              : currentImageRenderer,
                         ),
                       ),
-                      const Spacer(),
-                      Offstage(
-                        offstage: isKeyboardVisible,
-                        child: Preview(
-                          attachments: attachments,
-                          current: current,
-                          onAttachmentClicked: selectAttachment,
-                          onDeleteClicked: removeSelectedAttachment,
+                      AvoidBottomInset(
+                        conditions: const [false],
+                        child: Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 48),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Spacer(),
+                                Offstage(
+                                  offstage: isKeyboardVisible,
+                                  child: Preview(
+                                    attachments: attachments,
+                                    current: current,
+                                    onAttachmentClicked: selectAttachment,
+                                    onDeleteClicked: removeSelectedAttachment,
+                                  ),
+                                ),
+                                Column(children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0),
+                                    child: ChatField(
+                                      textController: controllers[
+                                          attachments.indexOf(current)],
+                                      leading: GestureDetector(
+                                        onTap: addNewAttachments,
+                                        child: Icon(
+                                          Icons.add_box_rounded,
+                                          size: 24.0,
+                                          color: colorTheme.greyColor,
+                                        ),
+                                      ),
+                                      actions: [
+                                        GestureDetector(
+                                          child: const Icon(
+                                              Icons.hide_source_rounded),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    color: const Color.fromARGB(152, 0, 0, 0),
+                                    padding: const EdgeInsets.only(
+                                      top: 12.0,
+                                      bottom: 32,
+                                      left: 12,
+                                      right: 12,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {},
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
+                                                  ? colorTheme.appBarColor
+                                                  : const Color.fromARGB(
+                                                      255, 242, 251, 254),
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                            ),
+                                            child: Text(other.name),
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: sendAttachments,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: colorTheme.greenColor),
+                                            child: const Icon(
+                                              Icons.send,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ]),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                      Column(children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: ChatField(
-                            textController:
-                                controllers[attachments.indexOf(current)],
-                            leading: GestureDetector(
-                              onTap: addNewAttachments,
-                              child: Icon(
-                                Icons.add_box_rounded,
-                                size: 24.0,
-                                color: colorTheme.greyColor,
-                              ),
-                            ),
-                            actions: [
-                              GestureDetector(
-                                child: const Icon(Icons.hide_source_rounded),
-                              )
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          color: const Color.fromARGB(152, 0, 0, 0),
-                          padding: const EdgeInsets.only(
-                            top: 12.0,
-                            bottom: 32,
-                            left: 12,
-                            right: 12,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? colorTheme.appBarColor
-                                        : const Color.fromARGB(
-                                            255, 242, 251, 254),
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                  child: Text(other.name),
-                                ),
-                              ),
-                              InkWell(
-                                onTap: sendAttachments,
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: colorTheme.greenColor),
-                                  child: const Icon(
-                                    Icons.send,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ]),
                     ],
+                  );
+                }),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 52.0,
+                horizontal: 12.0,
+              ),
+              leading: GestureDetector(
+                onTap: () => Navigator.of(context).pop(attachments),
+                child: const CircleAvatar(
+                  backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                  foregroundColor: Colors.white,
+                  child: Icon(
+                    Icons.close,
                   ),
                 ),
+              ),
+              trailing: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                    foregroundColor: Colors.white,
+                    child: Icon(Icons.crop),
+                  ),
+                  SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                    foregroundColor: Colors.white,
+                    child: Icon(Icons.sticky_note_2),
+                  ),
+                  SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                    foregroundColor: Colors.white,
+                    child: Icon(Icons.text_format_outlined),
+                  ),
+                  SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Color.fromARGB(100, 0, 0, 0),
+                    foregroundColor: Colors.white,
+                    child: Icon(Icons.draw),
+                  ),
+                ],
               ),
             ),
           ],
