@@ -148,7 +148,7 @@ class AlbumWrapper {
 
   final AssetPathEntity album;
   final int assetCount;
-  final Uint8List thumbnail;
+  final Uint8List? thumbnail;
 }
 
 class Gallery extends ConsumerStatefulWidget {
@@ -192,6 +192,8 @@ class _GalleryState extends ConsumerState<Gallery>
 
     for (final album in albums) {
       final assets = await album.getAssetListRange(start: 0, end: 1);
+      if (assets.isEmpty) continue;
+
       final assetCount = await album.assetCountAsync;
       final thumbnail = await assets.first.thumbnailDataWithSize(
         const ThumbnailSize.square(200),
@@ -201,7 +203,7 @@ class _GalleryState extends ConsumerState<Gallery>
       final albumWrapper = AlbumWrapper(
         album: album,
         assetCount: assetCount,
-        thumbnail: thumbnail!,
+        thumbnail: thumbnail,
       );
 
       albumWrappers.add(albumWrapper);
@@ -318,6 +320,9 @@ class _GalleryState extends ConsumerState<Gallery>
         child: StreamBuilder(
           stream: _albumsFuture,
           builder: (context, snap) {
+            if (snap.hasError) {
+              print(snap.error);
+            }
             if (!snap.hasData) {
               return Container();
             }
@@ -411,7 +416,7 @@ class AlbumCard extends StatelessWidget {
 
   final AssetPathEntity album;
   final int assetCount;
-  final Uint8List thumbnail;
+  final Uint8List? thumbnail;
 
   @override
   Widget build(BuildContext context) {
@@ -461,17 +466,18 @@ class AlbumCard extends StatelessWidget {
                 const Icon(
                   Icons.folder,
                   color: Colors.white,
-                  size: 16,
+                  size: 18,
                 ),
                 const SizedBox(width: 8.0),
-                Text(
-                  album.name,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
+                Expanded(
+                  child: Text(
+                    album.name,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 Text(
                   assetCount.toString(),
                   style: const TextStyle(color: Colors.white),
