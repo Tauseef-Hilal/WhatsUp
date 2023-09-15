@@ -257,6 +257,7 @@ class _UserProfileCreationPageState
                 Text(
                   'Please provide your name and an optional profile photo',
                   style: TextStyle(color: colorTheme.greyColor),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(
                   height: 24.0,
