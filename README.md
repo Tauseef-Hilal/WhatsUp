@@ -2,6 +2,8 @@
 
 This project brings you the **closest** experience to WhatsApp, crafted with the power of Flutter and Firebase. With features like real-time conversations, efficient media transmission, voice messaging, and robust security, we've recreated the essence of WhatsApp while adding our unique touch. Discover the familiarity you love, paired with exciting enhancements, all in one package.
 
+[🚀 **Try the latest release now!**](https://github.com/Tauseef-Hilal/WhatsUp/releases/tag/v0.1.0)
+
 ## Screenshots
 
 Take a closer look to get to know about some of the app features
@@ -38,10 +40,8 @@ In WhatsUp, messages within a chat are stored exclusively on the phones of the c
 
 ## Known Issues
 
-- Gallery not loading in some devices (probably those having a lot of media) (Android only)
 - Sometimes attachments that were received while in the chat page are not playable
 - Seen feature not working sometimes
-- Rare performance issues in ChatPage (especially on Android)
 - Performance issues in app camera (especially on Android)
 
 ## Contribute and Elevate 🤝
