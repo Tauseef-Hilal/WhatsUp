@@ -320,9 +320,6 @@ class _GalleryState extends ConsumerState<Gallery>
         child: StreamBuilder(
           stream: _albumsFuture,
           builder: (context, snap) {
-            if (snap.hasError) {
-              print(snap.error);
-            }
             if (!snap.hasData) {
               return Container();
             }

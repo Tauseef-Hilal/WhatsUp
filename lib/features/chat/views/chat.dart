@@ -57,7 +57,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   Widget build(BuildContext context) {
     final self = widget.self;
     final other = widget.other;
-    print("CLIKED");
 
     return Platform.isAndroid
         ? WillPopScope(
@@ -271,7 +270,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
     final showEmojiPicker = ref.watch(
       chatControllerProvider.select((s) => s.showEmojiPicker),
     );
-    print("CLICKED 222");
 
     return Theme(
       data: Theme.of(context).copyWith(
