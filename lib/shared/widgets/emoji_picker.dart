@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/theme/theme.dart';
 
 class EmojiWrapper {
@@ -154,12 +155,15 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
     final selection = controller.value.selection;
     final newTextBeforeCursor =
         selection.textBefore(text).characters.skipLast(1).toString();
+    final newText = newTextBeforeCursor + selection.textAfter(text);
 
     controller
-      ..text = newTextBeforeCursor + selection.textAfter(text)
+      ..text = newText
       ..selection = TextSelection.fromPosition(
         TextPosition(offset: newTextBeforeCursor.length),
       );
+
+    ref.read(chatControllerProvider.notifier).onTextChanged(newText);
   }
 
   @override
