@@ -4,6 +4,10 @@ This project brings you the **closest** experience to WhatsApp, crafted with the
 
 [🚀 **Try the latest release now!**](https://github.com/Tauseef-Hilal/WhatsUp/releases/tag/v0.1.0)
 
+## Watch The Video
+
+https://github.com/Tauseef-Hilal/WhatsUp/assets/67793598/3fd21809-5f38-4bd8-ab03-487556c4e915
+
 ## Screenshots
 
 Take a closer look to get to know about some of the app features
