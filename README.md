@@ -8,6 +8,8 @@ This project brings you the **closest** experience to WhatsApp, crafted with the
 
 https://github.com/Tauseef-Hilal/WhatsUp/assets/67793598/3fd21809-5f38-4bd8-ab03-487556c4e915
 
+> **Note**: If the video is unplayable here, you can [**watch it on youtube**](https://youtu.be/SYPK5g2zr-A?si=W4MT1vmJ_uJS1LNA).
+
 ## Screenshots
 
 Take a closer look to get to know about some of the app features
