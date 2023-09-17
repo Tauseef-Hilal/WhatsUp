@@ -30,11 +30,15 @@ class LabelledButton extends StatelessWidget {
           ),
         ),
         const SizedBox(
-          height: 4.0,
+          height: 8.0,
         ),
         Text(
           label,
-          style: Theme.of(context).custom.textTheme.caption,
+          style: TextStyle(
+            color: Theme.of(context).custom.colorTheme.greyColor,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

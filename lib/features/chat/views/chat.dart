@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/models/message.dart';
-import 'package:whatsapp_clone/features/chat/views/widgets/buttons.dart';
+import 'package:whatsapp_clone/features/chat/views/widgets/attachment_picker.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/chat_date.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/chat_field.dart';
 import 'package:whatsapp_clone/features/chat/views/widgets/chat_mic.dart';
@@ -216,7 +216,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
   double keyboardHeight = SharedPref.instance.getDouble('keyboardHeight')!;
   bool isKeyboardVisible = false;
   late final StreamSubscription<bool> _keyboardSubscription;
-  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -236,7 +235,6 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
   @override
   void dispose() async {
     super.dispose();
-    _focusNode.dispose();
     _keyboardSubscription.cancel();
   }
 
@@ -246,7 +244,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
     if (!showEmojiPicker && !isKeyboardVisible) {
       ref.read(chatControllerProvider.notifier).setShowEmojiPicker(true);
     } else if (showEmojiPicker) {
-      _focusNode.requestFocus();
+      ref.read(chatControllerProvider).fieldFocusNode.requestFocus();
       SystemChannels.textInput.invokeMethod('TextInput.show');
       Future.delayed(const Duration(milliseconds: 300), () {
         if (!mounted || showEmojiPicker) return;
@@ -290,64 +288,59 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
             textController: ref.read(chatControllerProvider).messageController,
           ),
         ),
-        child: Column(
-          children: [
-            recordingState != RecordingState.recordingLocked &&
-                    recordingState != RecordingState.paused
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24.0),
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? colorTheme.appBarColor
-                                  : colorTheme.backgroundColor,
-                            ),
-                            child: recordingState == RecordingState.notRecording
-                                ? _buildChatField(
-                                    showEmojiPicker,
-                                    context,
-                                    hideElements,
-                                    colorTheme,
-                                  )
-                                : const VoiceRecorderField(),
-                          ),
+        child: recordingState != RecordingState.recordingLocked &&
+                recordingState != RecordingState.paused
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24.0),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? colorTheme.appBarColor
+                              : colorTheme.backgroundColor,
                         ),
-                        const SizedBox(
-                          width: 4.0,
-                        ),
-                        hideElements
-                            ? InkWell(
-                                onTap: () async {
-                                  ref
-                                      .read(chatControllerProvider.notifier)
-                                      .onSendBtnPressed(
-                                        ref,
-                                        widget.self,
-                                        widget.other,
-                                      );
-                                },
-                                child: CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: colorTheme.greenColor,
-                                  child: const Icon(
-                                    Icons.send,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                        child: recordingState == RecordingState.notRecording
+                            ? _buildChatField(
+                                showEmojiPicker,
+                                context,
+                                hideElements,
+                                colorTheme,
                               )
-                            : const ChatInputMic(),
-                      ],
+                            : const VoiceRecorderField(),
+                      ),
                     ),
-                  )
-                : const VoiceRecorder(),
-          ],
-        ),
+                    const SizedBox(
+                      width: 4.0,
+                    ),
+                    hideElements
+                        ? InkWell(
+                            onTap: () async {
+                              ref
+                                  .read(chatControllerProvider.notifier)
+                                  .onSendBtnPressed(
+                                    ref,
+                                    widget.self,
+                                    widget.other,
+                                  );
+                            },
+                            child: CircleAvatar(
+                              radius: 24,
+                              backgroundColor: colorTheme.greenColor,
+                              child: const Icon(
+                                Icons.send,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : const ChatInputMic(),
+                  ],
+                ),
+              )
+            : const VoiceRecorder(),
       ),
     );
   }
@@ -362,7 +355,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
             size: 24.0,
           ),
         ),
-        focusNode: _focusNode,
+        focusNode: ref.read(chatControllerProvider).fieldFocusNode,
         onTextChanged: (value) =>
             ref.read(chatControllerProvider.notifier).onTextChanged(value),
         textController: ref.read(chatControllerProvider).messageController,
@@ -417,135 +410,36 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
   }
 
   void onAttachmentsIconPressed(BuildContext context) {
-    showDialog(
-      barrierColor: null,
-      context: context,
-      builder: (context) {
-        return Dialog(
-          alignment: Alignment.center,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          insetPadding: EdgeInsets.only(
-            left: 12.0,
-            right: 12.0,
-            top: MediaQuery.of(context).size.height *
-                (Platform.isIOS ? 0.54 : 0.4),
-          ),
-          elevation: 0,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32.0,
-              vertical: 18.0,
-            ),
-            child: GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              children: [
-                LabelledButton(
-                  onTap: () async {
-                    ref
-                        .read(chatControllerProvider.notifier)
-                        .pickDocuments(context);
-                  },
-                  backgroundColor: Colors.deepPurpleAccent,
-                  label: 'Document',
-                  child: const Icon(
-                    Icons.insert_page_break,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
-                LabelledButton(
-                  onTap: () async {
-                    ref
-                        .read(chatControllerProvider.notifier)
-                        .navigateToCameraView(context);
-                  },
-                  label: 'Camera',
-                  backgroundColor: Colors.redAccent[400],
-                  child: const Icon(
-                    Icons.camera_alt_rounded,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
-                LabelledButton(
-                  onTap: () async {
-                    ref
-                        .read(chatControllerProvider.notifier)
-                        .pickAttachmentsFromGallery(context);
-                  },
-                  label: 'Gallery',
-                  backgroundColor: Colors.purple[400],
-                  child: const Icon(
-                    Icons.photo_size_select_actual_rounded,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
-                if (Platform.isAndroid) ...[
-                  LabelledButton(
-                    onTap: () async {
-                      ref
-                          .read(chatControllerProvider.notifier)
-                          .pickAudioFiles(context);
-                    },
-                    label: 'Audio',
-                    backgroundColor: Colors.orange[900],
-                    child: const Icon(
-                      Icons.headphones_rounded,
-                      size: 28,
-                      color: Colors.white,
-                    ),
-                  )
-                ],
-                LabelledButton(
-                  onTap: () {
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                  },
-                  label: 'Location',
-                  backgroundColor: Colors.green[600],
-                  child: const Icon(
-                    Icons.location_on,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
-                LabelledButton(
-                  onTap: () {
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                  },
-                  label: 'Payment',
-                  backgroundColor: Colors.teal[600],
-                  child: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.currency_rupee_rounded,
-                      size: 18,
-                      color: Colors.teal[600],
-                    ),
-                  ),
-                ),
-                LabelledButton(
-                  onTap: () async {
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                  },
-                  label: 'Contact',
-                  backgroundColor: Colors.blue[600],
-                  child: const Icon(
-                    Icons.person,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    final focusNode = ref.read(chatControllerProvider).fieldFocusNode;
+    focusNode.unfocus();
+    Future.delayed(
+      Duration(
+        milliseconds: MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 0,
+      ),
+      () async {
+        if (!mounted) return;
+        showDialog(
+          barrierColor: null,
+          context: context,
+          builder: (context) {
+            return Dialog(
+              alignment: Alignment.bottomCenter,
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: ref.read(chatControllerProvider).showEmojiPicker
+                    ? 36.0
+                    : 56.0,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              elevation: 0,
+              child: const Padding(
+                padding: EdgeInsets.only(top: 24.0),
+                child: AttachmentPicker(),
+              ),
+            );
+          },
         );
       },
     );

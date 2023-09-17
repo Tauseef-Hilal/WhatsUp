@@ -53,11 +53,13 @@ class ChatState {
     required this.recordingSamples,
     required this.soundRecorder,
     required this.messageController,
+    required this.fieldFocusNode,
   });
 
   final bool hideElements;
   final RecordingState recordingState;
   final TextEditingController messageController;
+  final FocusNode fieldFocusNode;
   final FlutterSoundRecorder soundRecorder;
   final bool showScrollBtn;
   final int unreadCount;
@@ -65,6 +67,7 @@ class ChatState {
   final bool showEmojiPicker;
 
   void dispose() {
+    fieldFocusNode.dispose();
     messageController.dispose();
     soundRecorder.closeRecorder();
   }
@@ -84,6 +87,7 @@ class ChatState {
       unreadCount: unreadCount ?? this.unreadCount,
       showEmojiPicker: showEmojiPicker ?? this.showEmojiPicker,
       messageController: messageController,
+      fieldFocusNode: fieldFocusNode,
       soundRecorder: soundRecorder,
       recordingSamples: recordingSamples ?? this.recordingSamples,
     );
@@ -95,6 +99,7 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
       : super(
           ChatState(
             messageController: TextEditingController(),
+            fieldFocusNode: FocusNode(),
             soundRecorder: FlutterSoundRecorder(logLevel: Level.error),
             recordingSamples: [],
           ),
