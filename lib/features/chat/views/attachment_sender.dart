@@ -407,7 +407,7 @@ class Preview extends StatelessWidget {
                             : null,
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(6),
                         child: Stack(
                           alignment: Alignment.center,
                           children: [

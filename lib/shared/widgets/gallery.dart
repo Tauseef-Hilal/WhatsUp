@@ -7,150 +7,6 @@ import 'package:whatsapp_clone/features/chat/controllers/chat_controller.dart';
 import 'package:whatsapp_clone/features/chat/views/attachment_sender.dart';
 import 'package:whatsapp_clone/theme/color_theme.dart';
 
-final galleryStateProvider =
-    AutoDisposeStateNotifierProvider<GalleryStateController, GalleryState>(
-  (ref) => GalleryStateController(),
-);
-
-class GalleryState {
-  final String title;
-  final bool showSelectBtn;
-  final bool canSelect;
-  final List<AssetWrapper> selectedAssets;
-
-  GalleryState({
-    required this.title,
-    required this.selectedAssets,
-    required this.canSelect,
-    required this.showSelectBtn,
-  });
-
-  GalleryState copyWith({
-    String? title,
-    List<AssetWrapper>? selectedAssets,
-    bool? showSelectBtn,
-    bool? canSelect,
-  }) {
-    return GalleryState(
-      title: title ?? this.title,
-      selectedAssets: selectedAssets ?? this.selectedAssets,
-      showSelectBtn: showSelectBtn ?? this.showSelectBtn,
-      canSelect: canSelect ?? this.canSelect,
-    );
-  }
-}
-
-class GalleryStateController extends StateNotifier<GalleryState> {
-  GalleryStateController()
-      : super(
-          GalleryState(
-            title: 'Send to Suhaib',
-            selectedAssets: [],
-            showSelectBtn: false,
-            canSelect: false,
-          ),
-        );
-
-  late final bool shouldReturnFiles;
-
-  void init({required bool returnFiles}) {
-    shouldReturnFiles = returnFiles;
-  }
-
-  void setSelectBtnVisibility(bool val) {
-    state = state.copyWith(showSelectBtn: val);
-  }
-
-  void toggleCanSelect() {
-    state = state.copyWith(
-      canSelect: !state.canSelect,
-      selectedAssets: state.canSelect == true ? [] : null,
-    );
-  }
-
-  void selectAsset(AssetWrapper asset) {
-    state = state.copyWith(selectedAssets: [
-      ...state.selectedAssets,
-      asset,
-    ]);
-  }
-
-  void unselectAsset(AssetWrapper asset) {
-    state = state.copyWith(
-        selectedAssets: [...state.selectedAssets.where((id) => id != asset)]);
-  }
-
-  Future<void> prepareAttachments(
-    BuildContext context,
-    WidgetRef ref,
-    List<AssetWrapper> selectedAssets,
-  ) async {
-    final files = await Future.wait(
-      selectedAssets.map(
-        (e) => e.asset.file.then((value) => value!),
-      ),
-    );
-
-    final attachments = ref
-        .read(chatControllerProvider.notifier)
-        .createAttachmentsFromFiles(files);
-
-    if (!mounted) return;
-    if (shouldReturnFiles) {
-      Navigator.popUntil(
-        context,
-        (route) => route.settings.name == "/gallery",
-      );
-      Navigator.pop(context, files.first);
-      return;
-    }
-
-    final returnedAttachments = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AttachmentMessageSender(
-          attachmentsFuture: attachments,
-          tags: selectedAssets.map((e) => e.asset.id).toList(),
-        ),
-      ),
-    );
-
-    if (returnedAttachments == null) return;
-    final newSelectedAssets = <AssetWrapper>[];
-    final awaitedAttachments = await attachments;
-
-    for (var i = 0; i < awaitedAttachments.length; i++) {
-      if (returnedAttachments.contains(awaitedAttachments[i])) {
-        newSelectedAssets.add(selectedAssets[i]);
-      }
-    }
-
-    state = state.copyWith(
-      selectedAssets: newSelectedAssets,
-      showSelectBtn: newSelectedAssets.isEmpty ? state.showSelectBtn : false,
-      canSelect: newSelectedAssets.isEmpty ? state.canSelect : true,
-    );
-  }
-}
-
-class AssetWrapper {
-  const AssetWrapper({required this.asset, required this.thumbnail});
-
-  final AssetEntity asset;
-  final Uint8List? thumbnail;
-}
-
-class AlbumWrapper {
-  const AlbumWrapper({
-    required this.album,
-    required this.assetCount,
-    required this.thumbnail,
-  });
-
-  final AssetPathEntity album;
-  final int assetCount;
-  final Uint8List? thumbnail;
-}
-
 class Gallery extends ConsumerStatefulWidget {
   const Gallery({super.key, required this.title, this.returnFiles = false});
 
@@ -195,7 +51,7 @@ class _GalleryState extends ConsumerState<Gallery>
       if (assets.isEmpty) continue;
 
       final assetCount = await album.assetCountAsync;
-      final thumbnail = await assets.first.thumbnailDataWithSize(
+      final thumbnail = assets.first.thumbnailDataWithSize(
         const ThumbnailSize.square(200),
         quality: 100,
       );
@@ -413,7 +269,7 @@ class AlbumCard extends StatelessWidget {
 
   final AssetPathEntity album;
   final int assetCount;
-  final Uint8List? thumbnail;
+  final Future<Uint8List?> thumbnail;
 
   @override
   Widget build(BuildContext context) {
@@ -544,14 +400,16 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
       size: assetsPerPage,
     );
 
-    final thumbnails = await Future.wait(assetsForPage.map(
-      (e) => e
-          .thumbnailDataWithSize(
-            const ThumbnailSize.square(300),
-            quality: 100,
-          )
-          .onError((_, __) => null),
-    ));
+    final thumbnails = assetsForPage
+        .map(
+          (e) => e
+              .thumbnailDataWithSize(
+                const ThumbnailSize.square(300),
+                quality: 100,
+              )
+              .onError((_, __) => null),
+        )
+        .toList();
 
     for (var i = 0; i < assetsForPage.length; i++) {
       final asset = assetsForPage[i];
@@ -714,13 +572,10 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
                                   child: SizedBox(
                                     width: 40,
                                     height: 40,
-                                    child: selectedAssets[index].thumbnail !=
-                                            null
-                                        ? Image.memory(
-                                            selectedAssets[index].thumbnail!,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
+                                    child: FadeInThumbnail(
+                                      thumbnail:
+                                          selectedAssets[index].thumbnail,
+                                    ),
                                   ),
                                 ),
                               );
@@ -821,7 +676,7 @@ class FadeInThumbnail extends StatefulWidget {
     this.heroTag,
   });
 
-  final Uint8List? thumbnail;
+  final Future<Uint8List?> thumbnail;
   final String? heroTag;
 
   @override
@@ -830,6 +685,7 @@ class FadeInThumbnail extends StatefulWidget {
 
 class _FadeInThumbnailState extends State<FadeInThumbnail> {
   double opacity = 0;
+  late final Future<Uint8List?> assetFuture = loadAssetThumbnail();
 
   @override
   void initState() {
@@ -843,36 +699,188 @@ class _FadeInThumbnailState extends State<FadeInThumbnail> {
     super.initState();
   }
 
+  Future<Uint8List?> loadAssetThumbnail() async {
+    return await widget.thumbnail;
+  }
+
   @override
   Widget build(BuildContext context) {
-    Image? image;
-    if (widget.thumbnail != null) {
-      image = Image.memory(
-        widget.thumbnail!,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-      );
-    }
+    return FutureBuilder(
+        future: assetFuture,
+        builder: (context, snap) {
+          Image? image;
+          if (snap.data != null) {
+            image = Image.memory(
+              snap.data!,
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            );
+          }
 
-    return Container(
-      color: Theme.of(context).brightness == Brightness.dark
-          ? AppColorsDark.appBarColor
-          : const Color.fromARGB(172, 231, 231, 231),
-      width: double.infinity,
-      height: double.infinity,
-      child: AnimatedOpacity(
-        opacity: opacity,
-        duration: const Duration(milliseconds: 300),
-        child: image == null
-            ? Container()
-            : widget.heroTag != null
-                ? Hero(
-                    tag: widget.heroTag!,
-                    child: image,
-                  )
-                : image,
-      ),
+          return Container(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColorsDark.appBarColor
+                : const Color.fromARGB(172, 231, 231, 231),
+            width: double.infinity,
+            height: double.infinity,
+            child: AnimatedOpacity(
+              opacity: opacity,
+              duration: const Duration(milliseconds: 300),
+              child: image == null
+                  ? Container()
+                  : widget.heroTag != null
+                      ? Hero(
+                          tag: widget.heroTag!,
+                          child: image,
+                        )
+                      : image,
+            ),
+          );
+        });
+  }
+}
+
+final galleryStateProvider =
+    AutoDisposeStateNotifierProvider<GalleryStateController, GalleryState>(
+  (ref) => GalleryStateController(),
+);
+
+class GalleryState {
+  final String title;
+  final bool showSelectBtn;
+  final bool canSelect;
+  final List<AssetWrapper> selectedAssets;
+
+  GalleryState({
+    required this.title,
+    required this.selectedAssets,
+    required this.canSelect,
+    required this.showSelectBtn,
+  });
+
+  GalleryState copyWith({
+    String? title,
+    List<AssetWrapper>? selectedAssets,
+    bool? showSelectBtn,
+    bool? canSelect,
+  }) {
+    return GalleryState(
+      title: title ?? this.title,
+      selectedAssets: selectedAssets ?? this.selectedAssets,
+      showSelectBtn: showSelectBtn ?? this.showSelectBtn,
+      canSelect: canSelect ?? this.canSelect,
     );
   }
+}
+
+class GalleryStateController extends StateNotifier<GalleryState> {
+  GalleryStateController()
+      : super(
+          GalleryState(
+            title: 'Send to Suhaib',
+            selectedAssets: [],
+            showSelectBtn: false,
+            canSelect: false,
+          ),
+        );
+
+  late final bool shouldReturnFiles;
+
+  void init({required bool returnFiles}) {
+    shouldReturnFiles = returnFiles;
+  }
+
+  void setSelectBtnVisibility(bool val) {
+    state = state.copyWith(showSelectBtn: val);
+  }
+
+  void toggleCanSelect() {
+    state = state.copyWith(
+      canSelect: !state.canSelect,
+      selectedAssets: state.canSelect == true ? [] : null,
+    );
+  }
+
+  void selectAsset(AssetWrapper asset) {
+    state = state.copyWith(selectedAssets: [
+      ...state.selectedAssets,
+      asset,
+    ]);
+  }
+
+  void unselectAsset(AssetWrapper asset) {
+    state = state.copyWith(
+        selectedAssets: [...state.selectedAssets.where((id) => id != asset)]);
+  }
+
+  Future<void> prepareAttachments(
+    BuildContext context,
+    WidgetRef ref,
+    List<AssetWrapper> selectedAssets,
+  ) async {
+    final files = await Future.wait(
+      selectedAssets.map(
+        (e) => e.asset.file.then((value) => value!),
+      ),
+    );
+
+    final attachments = ref
+        .read(chatControllerProvider.notifier)
+        .createAttachmentsFromFiles(files);
+
+    if (!mounted) return;
+    if (shouldReturnFiles) {
+      Navigator.popUntil(
+        context,
+        (route) => route.settings.name == "/gallery",
+      );
+      Navigator.pop(context, files.first);
+      return;
+    }
+
+    final returnedAttachments = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AttachmentMessageSender(
+          attachmentsFuture: attachments,
+          tags: selectedAssets.map((e) => e.asset.id).toList(),
+        ),
+      ),
+    );
+
+    if (returnedAttachments == null) return;
+    final newSelectedAssets = <AssetWrapper>[];
+    final awaitedAttachments = await attachments;
+
+    for (var i = 0; i < awaitedAttachments.length; i++) {
+      if (returnedAttachments.contains(awaitedAttachments[i])) {
+        newSelectedAssets.add(selectedAssets[i]);
+      }
+    }
+
+    state = state.copyWith(
+      selectedAssets: newSelectedAssets,
+      showSelectBtn: newSelectedAssets.isEmpty ? state.showSelectBtn : false,
+      canSelect: newSelectedAssets.isEmpty ? state.canSelect : true,
+    );
+  }
+}
+
+class AssetWrapper {
+  const AssetWrapper({required this.asset, required this.thumbnail});
+
+  final AssetEntity asset;
+  final Future<Uint8List?> thumbnail;
+}
+
+class AlbumWrapper {
+  const AlbumWrapper({
+    required this.album,
+    required this.assetCount,
+    required this.thumbnail,
+  });
+
+  final AssetPathEntity album;
+  final int assetCount;
+  final Future<Uint8List?> thumbnail;
 }
