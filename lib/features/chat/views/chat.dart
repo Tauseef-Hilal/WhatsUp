@@ -291,7 +291,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
         child: recordingState != RecordingState.recordingLocked &&
                 recordingState != RecordingState.paused
             ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -367,10 +367,10 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
               );
             },
             child: Transform.rotate(
-              angle: -0.85,
+              angle: -0.8,
               child: const Icon(
                 Icons.attach_file_rounded,
-                size: 28.0,
+                size: 26.0,
               ),
             ),
           ),
@@ -378,8 +378,8 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
             InkWell(
               onTap: () {},
               child: Container(
-                width: 22,
-                height: 22,
+                width: 21,
+                height: 21,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Theme.of(context).brightness == Brightness.light
@@ -411,7 +411,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
               },
               child: const Icon(
                 Icons.camera_alt_rounded,
-                size: 26.0,
+                size: 24.0,
               ),
             ),
           ],
