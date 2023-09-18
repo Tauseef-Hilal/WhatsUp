@@ -32,7 +32,7 @@ class ChatField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
+            padding: const EdgeInsets.only(bottom: 11.0),
             child: leading,
           ),
           const SizedBox(
@@ -59,12 +59,12 @@ class ChatField extends StatelessWidget {
           ),
           if (actions != null) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
+              padding: const EdgeInsets.only(bottom: 10.0),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: actions!
                     .map((e) => Padding(
-                          padding: const EdgeInsets.only(left: 16),
+                          padding: const EdgeInsets.only(left: 22),
                           child: e,
                         ))
                     .toList(),

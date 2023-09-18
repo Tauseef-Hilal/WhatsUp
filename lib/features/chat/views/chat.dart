@@ -352,7 +352,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
           onTap: switchKeyboards,
           child: Icon(
             !showEmojiPicker ? Icons.emoji_emotions : Icons.keyboard,
-            size: 24.0,
+            size: 26.0,
           ),
         ),
         focusNode: ref.read(chatControllerProvider).fieldFocusNode,
@@ -367,28 +367,37 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
               );
             },
             child: Transform.rotate(
-              angle: -0.8,
+              angle: -0.85,
               child: const Icon(
                 Icons.attach_file_rounded,
-                size: 24.0,
+                size: 28.0,
               ),
             ),
           ),
           if (!hideElements) ...[
             InkWell(
               onTap: () {},
-              child: CircleAvatar(
-                radius: 11,
-                backgroundColor:
-                    Theme.of(context).brightness == Brightness.light
-                        ? colorTheme.greyColor
-                        : colorTheme.iconColor,
-                child: Icon(
-                  Icons.currency_rupee_sharp,
-                  size: 14,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: Theme.of(context).brightness == Brightness.light
-                      ? colorTheme.backgroundColor
-                      : colorTheme.appBarColor,
+                      ? colorTheme.greyColor
+                      : colorTheme.iconColor,
+                ),
+                child: Center(
+                  child: Text(
+                    '₹',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? colorTheme.backgroundColor
+                          : colorTheme.appBarColor,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -402,7 +411,7 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
               },
               child: const Icon(
                 Icons.camera_alt_rounded,
-                size: 24.0,
+                size: 26.0,
               ),
             ),
           ],
@@ -676,7 +685,7 @@ class _ChatStreamState extends ConsumerState<ChatStream> {
         VisibilityDetector(
           key: ValueKey('${message.id}_vd'),
           onVisibilityChanged: (info) {
-            if (info.visibleFraction < 0.5) return;
+            if (info.visibleFraction < 0.1) return;
             markAsSeen(message);
           },
           child: MessageCard(

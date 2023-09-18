@@ -120,21 +120,24 @@ class _AttachedImageVideoViewerState
     final file = widget.message.attachment!.file;
     final focusNode = ref.read(chatControllerProvider).fieldFocusNode;
     focusNode.unfocus();
+
     Future.delayed(
-        Duration(
-          milliseconds: MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 0,
-        ), () async {
-      if (!mounted || file == null) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => AttachmentViewer(
-            file: file,
-            message: widget.message,
-            sender: sender,
+      Duration(
+        milliseconds: MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 0,
+      ),
+      () async {
+        if (!mounted || file == null) return;
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AttachmentViewer(
+              file: file,
+              message: widget.message,
+              sender: sender,
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   @override
@@ -1366,10 +1369,6 @@ class _DownloadingAttachmentState extends ConsumerState<DownloadingAttachment> {
               strokeWidth: 3.0,
             );
           case TaskState.error:
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              setState(() => isDownloading = false);
-            });
             return const CircularProgressIndicator(
               strokeWidth: 3.0,
             );

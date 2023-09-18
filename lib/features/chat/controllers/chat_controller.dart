@@ -583,9 +583,9 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
           type: type,
           url: "",
           autoDownload:
-              {AttachmentType.image, AttachmentType.voice}.contains(type),
+              type == AttachmentType.image || type == AttachmentType.voice,
           fileName: fileName,
-          fileSize: file.lengthSync(),
+          fileSize: await file.length(),
           fileExtension: fileName.split(".").last,
           width: width,
           height: height,
