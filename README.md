@@ -2,8 +2,6 @@
 
 This project brings you the **closest** experience to WhatsApp, crafted with the power of Flutter and Firebase. With features like real-time conversations, efficient media transmission, voice messaging, and robust security, we've recreated the essence of WhatsApp while adding our unique touch. Discover the familiarity you love, paired with exciting enhancements, all in one package.
 
-[🚀 **Try the latest release now!**](https://github.com/Tauseef-Hilal/WhatsUp/releases/tag/v0.1.0)
-
 ## Watch The Video
 
 https://github.com/Tauseef-Hilal/WhatsUp/assets/67793598/3fd21809-5f38-4bd8-ab03-487556c4e915
