@@ -69,9 +69,9 @@ class CustomErrorWidget extends StatelessWidget {
   final FlutterErrorDetails details;
 
   const CustomErrorWidget({
-    Key? key,
+    super.key,
     required this.details,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

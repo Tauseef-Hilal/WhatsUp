@@ -3,13 +3,13 @@ import 'package:whatsapp_clone/theme/theme.dart';
 
 class LabelledButton extends StatelessWidget {
   const LabelledButton({
-    Key? key,
+    super.key,
     this.radius = 30.0,
     this.backgroundColor = Colors.white,
     required this.onTap,
     required this.label,
     required this.child,
-  }) : super(key: key);
+  });
 
   final double radius;
   final Color? backgroundColor;

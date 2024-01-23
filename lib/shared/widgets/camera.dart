@@ -50,6 +50,8 @@ class CameraViewState extends ConsumerState<CameraView>
   @override
   void initState() {
     super.initState();
+    if (widget.cameras.isEmpty) return;
+
     _controller = CameraController(
       widget.cameras.first,
       ResolutionPreset.max,
@@ -75,6 +77,8 @@ class CameraViewState extends ConsumerState<CameraView>
     progressNotifier.dispose();
     flashIdxNotifier.dispose();
     btnSizeNotifier.dispose();
+
+    if (widget.cameras.isEmpty) return;
     _animationController.dispose();
     await _controller.dispose();
   }
@@ -128,6 +132,23 @@ class CameraViewState extends ConsumerState<CameraView>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.cameras.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          iconTheme: Theme.of(context).iconTheme.copyWith(
+                color: Colors.white,
+              ),
+        ),
+        body: const Center(
+            child: Text(
+          "No cameras detected",
+          style: TextStyle(color: Colors.red, fontSize: 20),
+        )),
+      );
+    }
+
     final colorTheme = Theme.of(context).custom.colorTheme;
 
     return Scaffold(

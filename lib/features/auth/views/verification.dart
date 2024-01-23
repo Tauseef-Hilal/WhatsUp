@@ -216,7 +216,7 @@ class _OTPFieldState extends ConsumerState<OTPField> {
           letterSpacing: 4,
         ),
       ),
-      textScaleFactor: MediaQuery.of(context).textScaleFactor,
+      textScaler: MediaQuery.of(context).textScaler,
       maxLines: 1,
       textDirection: TextDirection.ltr,
     )..layout();
@@ -239,7 +239,7 @@ class _OTPFieldState extends ConsumerState<OTPField> {
 
     return Container(
       width: totalWidth,
-      height: 50,
+      height: 44,
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(

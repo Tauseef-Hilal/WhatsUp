@@ -72,7 +72,7 @@ class _HomePageState extends ConsumerState<HomePage>
             ),
             receiverId: message.senderId,
           );
-          
+
           if (message.attachment != null && message.attachment!.autoDownload) {
             DownloadService.download(
               taskId: message.id,
@@ -220,11 +220,7 @@ class _HomePageState extends ConsumerState<HomePage>
           ],
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: colorTheme.indicatorColor,
-            indicatorWeight: 3.0,
-            labelColor: colorTheme.selectedLabelColor,
             labelStyle: textTheme.labelLarge,
-            unselectedLabelColor: colorTheme.unselectedLabelColor,
             tabs: const [
               Tab(
                 text: 'CHATS',
@@ -261,9 +257,9 @@ class _HomePageState extends ConsumerState<HomePage>
 
 class RecentChatsBody extends ConsumerWidget {
   const RecentChatsBody({
-    Key? key,
+    super.key,
     required this.user,
-  }) : super(key: key);
+  });
 
   final User user;
 

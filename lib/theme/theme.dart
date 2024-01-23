@@ -70,10 +70,15 @@ final lightThemeProvider = Provider((ref) => _theme);
 final _customTheme = CustomThemeData(isDarkTheme: false);
 final _theme = ThemeData(
   brightness: Brightness.light,
-  dialogTheme: const DialogTheme(
+  dialogTheme: DialogTheme(
+    shape: RoundedRectangleBorder(
+      side: const BorderSide(color: Colors.transparent),
+      borderRadius: BorderRadius.circular(4.0),
+    ),
     backgroundColor: AppColorsLight.backgroundColor,
-    titleTextStyle: TextStyle(color: AppColorsLight.textColor1, fontSize: 16),
-    contentTextStyle: TextStyle(
+    titleTextStyle:
+        const TextStyle(color: AppColorsLight.textColor1, fontSize: 16),
+    contentTextStyle: const TextStyle(
       color: AppColorsLight.textColor1,
       fontSize: 16,
     ),
@@ -102,16 +107,32 @@ final _theme = ThemeData(
   progressIndicatorTheme: const ProgressIndicatorThemeData(
     color: AppColorsLight.greenColor,
   ),
+  dividerTheme: const DividerThemeData(
+    color: AppColorsLight.greyColor,
+    thickness: 0.1,
+  ),
+  tabBarTheme: const TabBarTheme(
+    indicatorColor: AppColorsLight.indicatorColor,
+    indicatorSize: TabBarIndicatorSize.tab,
+    labelColor: AppColorsLight.selectedLabelColor,
+    unselectedLabelColor: AppColorsLight.unselectedLabelColor,
+    dividerHeight: 0,
+  ),
 );
 
 // Dark theme
 final _customDarkTheme = CustomThemeData(isDarkTheme: true);
 final _darkTheme = ThemeData(
   brightness: Brightness.dark,
-  dialogTheme: const DialogTheme(
+  dialogTheme: DialogTheme(
+    shape: RoundedRectangleBorder(
+      side: const BorderSide(color: Colors.transparent),
+      borderRadius: BorderRadius.circular(4.0),
+    ),
     backgroundColor: AppColorsDark.appBarColor,
-    titleTextStyle: TextStyle(color: AppColorsLight.textColor1, fontSize: 16),
-    contentTextStyle: TextStyle(
+    titleTextStyle:
+        const TextStyle(color: AppColorsLight.textColor1, fontSize: 16),
+    contentTextStyle: const TextStyle(
       color: AppColorsLight.textColor1,
       fontSize: 16,
     ),
@@ -139,6 +160,17 @@ final _darkTheme = ThemeData(
   ),
   progressIndicatorTheme: const ProgressIndicatorThemeData(
     color: AppColorsDark.greenColor,
+  ),
+  dividerTheme: const DividerThemeData(
+    color: AppColorsDark.greyColor,
+    thickness: 0.1,
+  ),
+  tabBarTheme: const TabBarTheme(
+    indicatorColor: AppColorsDark.indicatorColor,
+    indicatorSize: TabBarIndicatorSize.tab,
+    labelColor: AppColorsDark.selectedLabelColor,
+    unselectedLabelColor: AppColorsDark.unselectedLabelColor,
+    dividerHeight: 0,
   ),
 );
 

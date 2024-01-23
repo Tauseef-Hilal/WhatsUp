@@ -388,35 +388,33 @@ class _CustomEmojiPickerState extends ConsumerState<CustomEmojiPicker> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ...state.categoryEmoji
-                        .map(
-                          (categoryEmoji) =>
-                              categoryEmoji.category == Category.RECENT
-                                  ? Container()
-                                  : InkWell(
-                                      onTap: () {
-                                        _handleCategoryIconClick(
-                                          categoryEmoji,
-                                          emojiFontSize,
-                                        );
-                                      },
-                                      child: CircleAvatar(
-                                        backgroundColor: selectedCategory ==
-                                                categoryEmoji.category
-                                            ? highlightColor
-                                            : Colors.transparent,
-                                        foregroundColor: iconColor,
-                                        radius: 16,
-                                        child: Icon(
-                                          config.getIconForCategory(
-                                            categoryEmoji.category,
-                                          ),
-                                          size: 20,
-                                        ),
+                    ...state.categoryEmoji.map(
+                      (categoryEmoji) =>
+                          categoryEmoji.category == Category.RECENT
+                              ? Container()
+                              : InkWell(
+                                  onTap: () {
+                                    _handleCategoryIconClick(
+                                      categoryEmoji,
+                                      emojiFontSize,
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    backgroundColor: selectedCategory ==
+                                            categoryEmoji.category
+                                        ? highlightColor
+                                        : Colors.transparent,
+                                    foregroundColor: iconColor,
+                                    radius: 16,
+                                    child: Icon(
+                                      config.getIconForCategory(
+                                        categoryEmoji.category,
                                       ),
+                                      size: 20,
                                     ),
-                        )
-                        .toList(),
+                                  ),
+                                ),
+                    ),
                     Container()
                   ],
                 ),

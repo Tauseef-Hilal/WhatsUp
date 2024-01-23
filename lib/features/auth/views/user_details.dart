@@ -269,8 +269,9 @@ class _UserProfileCreationPageState
                     backgroundImage:
                         userImg != null ? FileImage(userImg!) : null,
                     backgroundColor: colorTheme.appBarColor,
-                    child:
-                        userImg == null ? const Icon(Icons.add_a_photo) : null,
+                    child: userImg == null
+                        ? Icon(Icons.add_a_photo, color: colorTheme.iconColor)
+                        : null,
                   ),
                 ),
                 const SizedBox(

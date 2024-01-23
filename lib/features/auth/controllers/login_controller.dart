@@ -304,7 +304,7 @@ class CountryPickerController extends StateNotifier<List<Country>> {
 
     state = [
       selectedCountry,
-      ...countriesList.where((country) => country != selectedCountry).toList()
+      ...countriesList.where((country) => country != selectedCountry)
     ];
   }
 

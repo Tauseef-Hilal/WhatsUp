@@ -71,7 +71,7 @@ class _AttachmentMessageSenderState
   }
 
   Future<void> awaitAttachments() async {
-    attachments = await widget.attachmentsFuture;
+    attachments = [...(await widget.attachmentsFuture)];
     controllers = attachments.map((_) => TextEditingController()).toList();
     current = attachments[0];
   }
@@ -171,10 +171,14 @@ class _AttachmentMessageSenderState
   @override
   Widget build(BuildContext context) {
     final colorTheme = Theme.of(context).custom.colorTheme;
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          return;
+        }
+
         Navigator.of(context).pop(attachments);
-        return false;
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,

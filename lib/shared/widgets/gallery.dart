@@ -496,14 +496,17 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
               ],
             ),
       backgroundColor: colorTheme.backgroundColor,
-      body: WillPopScope(
-        onWillPop: () async {
+      body: PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) {
           if (canSelect) {
             ref.read(galleryStateProvider.notifier).toggleCanSelect();
-            return false;
+            return;
           }
 
-          return true;
+          if (!didPop) {
+            Navigator.pop(context);
+          }
         },
         child: SafeArea(
           child: Column(
@@ -566,6 +569,7 @@ class _AlbumViewState extends ConsumerState<AlbumView> {
                             itemCount: selectedAssets.length,
                             itemBuilder: (context, index) {
                               return Padding(
+                                key: ValueKey(selectedAssets[index].asset.id),
                                 padding: const EdgeInsets.only(right: 10.0),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(4),

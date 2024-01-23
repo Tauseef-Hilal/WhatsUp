@@ -6,10 +6,10 @@ class GreenElevatedButton extends StatelessWidget {
   final String text;
 
   const GreenElevatedButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.text,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

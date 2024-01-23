@@ -59,16 +59,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final other = widget.other;
 
     return Platform.isAndroid
-        ? WillPopScope(
-            onWillPop: () async {
+        ? PopScope(
+            canPop: false,
+            onPopInvoked: (didPop) async {
               if (!ref.read(chatControllerProvider).showEmojiPicker) {
-                return true;
+                Navigator.pop(context);
+                return;
               }
 
               ref
                   .read(chatControllerProvider.notifier)
                   .setShowEmojiPicker(false);
-              return false;
             },
             child: _build(self, other, context),
           )
@@ -457,8 +458,8 @@ class _ChatInputContainerState extends ConsumerState<ChatInputContainer>
 
 class ChatStream extends ConsumerStatefulWidget {
   const ChatStream({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<ChatStream> createState() => _ChatStreamState();

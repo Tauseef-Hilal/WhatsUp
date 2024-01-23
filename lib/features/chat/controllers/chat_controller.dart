@@ -454,10 +454,20 @@ class ChatStateNotifier extends StateNotifier<ChatState> {
     BuildContext context, {
     bool returnAttachments = false,
   }) async {
+    if (Platform.isAndroid &&
+        (!await hasPermission(Permission.storage)) &&
+        (!await hasPermission(Permission.photos))) {
+      return null;
+    }
+
+    if (!context.mounted) return null;
+
     if (Platform.isAndroid) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => Gallery(title: 'Send to $otherUserContactName'),
+          builder: (context) => Gallery(
+            title: 'Send to $otherUserContactName',
+          ),
         ),
       );
       return null;

@@ -364,10 +364,10 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
 
 class LocalContactsList extends StatelessWidget {
   const LocalContactsList({
-    Key? key,
+    super.key,
     required this.contactsNotOnWhatsApp,
     required this.ref,
-  }) : super(key: key);
+  });
 
   final List<Contact> contactsNotOnWhatsApp;
   final WidgetRef ref;
@@ -431,11 +431,11 @@ class WhatsAppContactsList extends StatelessWidget {
   final User user;
 
   const WhatsAppContactsList({
-    Key? key,
+    super.key,
     required this.user,
     required this.contactsOnWhatsApp,
     required this.ref,
-  }) : super(key: key);
+  });
 
   final List<Contact> contactsOnWhatsApp;
   final WidgetRef ref;

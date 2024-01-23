@@ -20,9 +20,9 @@ dependencies:
   country_picker: ^2.0.20
   permission_handler: ^11.1.0
   shared_preferences: ^2.0.20
-  intl: ^0.18.1
+  intl: ^0.19.0
   emoji_picker_flutter: ^1.5.2
-  flutter_keyboard_visibility: ^5.4.0
+  flutter_keyboard_visibility: ^6.0.0
   phone_number: ^2.0.1
   uuid: ^3.0.7
   share_plus: ^7.0.2
@@ -36,7 +36,6 @@ dependencies:
   mime: ^1.0.4
   open_file_plus: ^3.4.1
   logger: ^1.1.0
-  flutter_webrtc: ^0.9.35
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
   firebase_messaging: ^14.6.5
